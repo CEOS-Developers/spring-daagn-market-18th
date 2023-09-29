@@ -3,6 +3,7 @@ package com.ceos18.springboot.town.domain;
 import com.ceos18.springboot.global.common.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -24,4 +25,11 @@ public class Town extends BaseEntity {
 
     @Column(nullable = false)
     private Float longitude;
+
+    @Builder
+    public Town(String name, Float latitude, Float longitude) {
+        this.name = name;
+        this.latitude = latitude;
+        this.longitude = longitude;
+    }
 }

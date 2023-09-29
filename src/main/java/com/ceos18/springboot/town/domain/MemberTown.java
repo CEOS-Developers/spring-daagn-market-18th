@@ -4,6 +4,7 @@ import com.ceos18.springboot.global.common.BaseEntity;
 import com.ceos18.springboot.member.domain.Member;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -24,4 +25,10 @@ public class MemberTown extends BaseEntity {
     @OneToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "town_id")
     private Town town;
+
+    @Builder
+    public MemberTown (Member member, Town town) {
+        this.member = member;
+        this.town = town;
+    }
 }
