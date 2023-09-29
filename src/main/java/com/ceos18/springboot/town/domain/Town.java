@@ -21,13 +21,13 @@ public class Town extends BaseEntity {
     private String name;
 
     @Column(nullable = false)
-    private Float latitude;
+    private Double latitude;
 
     @Column(nullable = false)
-    private Float longitude;
+    private Double longitude;
 
     @Builder
-    public Town(String name, Float latitude, Float longitude) {
+    public Town(String name, Double latitude, Double longitude) {
         this.name = name;
         this.latitude = latitude;
         this.longitude = longitude;

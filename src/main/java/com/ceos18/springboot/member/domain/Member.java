@@ -27,7 +27,7 @@ public class Member extends BaseEntity {
     private String phone;
 
     @Column(nullable = false)
-    private Float temperature;
+    private Double temperature;
 
     private String email;
 
@@ -38,7 +38,7 @@ public class Member extends BaseEntity {
     private Boolean activated;
 
     @Builder
-    public Member(String password, String nickname, String phone, Float temperature, String email, String imageUrl, Boolean activated) {
+    public Member(String password, String nickname, String phone, Double temperature, String email, String imageUrl, Boolean activated) {
         this.password = password;
         this.nickname = nickname;
         this.phone = phone;
