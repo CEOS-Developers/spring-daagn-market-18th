@@ -41,7 +41,7 @@
 칭찬 매너 평가와 긍정 거래 후기를 받으면 매너온도가 올라가고, 비매너 평가와 부정 거래 후기를 받으면 매너온도가 내려간다.
 
 ### 🥕모델링 결과 설명
-![당근마켓 DB 모델링 결과 ERD](https://github.com/letskuku/spring-daagn-market-18th/assets/90572599/3e1d8cd5-0ef8-4c30-8bff-8273e10eeb52)
+![당근마켓 DB 모델링 결과 ERD](https://github.com/letskuku/spring-daagn-market-18th/assets/90572599/08b0983e-4c26-4a18-85f3-0e9585b98d21)
 
 #### 📌member
 ![image](https://github.com/letskuku/spring-daagn-market-18th/assets/90572599/e46145f7-6907-4df7-8bdf-991ec342635a)
@@ -109,3 +109,204 @@
 - 기존의 서비스는 판매자도 후기를 작성할 수 있었으나, 편의상 구매자만 작성하는 것으로 설정하였다.
 - 거래 평가 항목인 preference 키를 Enum으로 관리한다.
 - FK : member, post
+
+## 2️⃣ Repository 단위 테스트
+### ForeignKey 필드를 포함하는 Entity을 하나 선택 : member town
+![image](https://github.com/letskuku/spring-daagn-market-18th/assets/90572599/3e7a9da7-29df-4c77-8534-6afdbf2141b0)
+
+- given when then 에 따라 테스트 작성
+```java
+        //given
+        Member memberA = Member.builder()
+                .password("1234")
+                .nickname("AAA")
+                .phone("010-1234-5678")
+                .temperature(36.5)
+                .email("AAA@naver.com")
+                .imageUrl("A.jpg")
+                .activated(true)
+                .build();
+
+        Member memberB = Member.builder()
+                .password("5678")
+                .nickname("BBB")
+                .phone("010-2345-6789")
+                .temperature(36.5)
+                .email("BBB@naver.com")
+                .imageUrl("B.jpg")
+                .activated(true)
+                .build();
+
+        Member memberC = Member.builder()
+                .password("0000")
+                .nickname("CCC")
+                .phone("010-9876-5432")
+                .temperature(36.5)
+                .email("CCC@naver.com")
+                .imageUrl("C.jpg")
+                .activated(true)
+                .build();
+
+        Town townA = Town.builder()
+                .name("경기도 부천시 상동")
+                .latitude(35.6)
+                .longitude(87.4)
+                .build();
+
+        Town townB = Town.builder()
+                .name("서울특별시 은평구")
+                .latitude(37.4)
+                .longitude(12.15)
+                .build();
+
+        memberRepository.save(memberA);
+        memberRepository.save(memberB);
+        memberRepository.save(memberC);
+
+        townRepository.save(townA);
+        townRepository.save(townB);
+
+        //when
+        MemberTown memberTownA = MemberTown.builder()
+                .member(memberA)
+                .town(townA)
+                .build();
+
+        MemberTown memberTownB = MemberTown.builder()
+                .member(memberB)
+                .town(townB)
+                .build();
+
+        MemberTown memberTownC = MemberTown.builder()
+                .member(memberC)
+                .town(townB)
+                .build();
+
+        memberTownRepository.save(memberTownA);
+        memberTownRepository.save(memberTownB);
+        memberTownRepository.save(memberTownC);
+
+        //then
+        assertThat(memberTownRepository.findAll().size()).isEqualTo(3);
+
+        MemberTown savedMemberTownA = memberTownRepository.findByMemberAndTown(memberA, townA).get();
+        assertThat(savedMemberTownA.getMember().getNickname()).isEqualTo("AAA");
+        assertThat(savedMemberTownA.getTown().getName()).isEqualTo("경기도 부천시 상동");
+
+        MemberTown savedMemberTownB = memberTownRepository.findByMemberAndTown(memberB, townB).get();
+        assertThat(savedMemberTownB.getMember().getNickname()).isEqualTo("BBB");
+        assertThat(savedMemberTownB.getTown().getName()).isEqualTo("서울특별시 은평구");
+
+        MemberTown savedMemberTownC = memberTownRepository.findByMemberAndTown(memberC, townB).get();
+        assertThat(savedMemberTownC.getMember().getNickname()).isEqualTo("CCC");
+        assertThat(savedMemberTownC.getTown().getName()).isEqualTo("서울특별시 은평구");
+```
+
+- 테스트에서 객체를 3개 이상 넣은 이후에 해당 객체가 출력되는지 확인
+![image](https://github.com/letskuku/spring-daagn-market-18th/assets/90572599/92f5614d-3e85-4b5e-ada2-cd824a26c306)
+
+
+- 테스트를 수행할 때 발생하는 JPA 쿼리 조회
+```
+Hibernate: 
+    insert 
+    into
+        member
+        (activated,created_at,email,image_url,nickname,password,phone,temperature,update_at) 
+    values
+        (?,?,?,?,?,?,?,?,?)
+Hibernate: 
+    insert 
+    into
+        member
+        (activated,created_at,email,image_url,nickname,password,phone,temperature,update_at) 
+    values
+        (?,?,?,?,?,?,?,?,?)
+Hibernate: 
+    insert 
+    into
+        member
+        (activated,created_at,email,image_url,nickname,password,phone,temperature,update_at) 
+    values
+        (?,?,?,?,?,?,?,?,?)
+Hibernate: 
+    insert 
+    into
+        town
+        (created_at,latitude,longitude,name,update_at) 
+    values
+        (?,?,?,?,?)
+Hibernate: 
+    insert 
+    into
+        town
+        (created_at,latitude,longitude,name,update_at) 
+    values
+        (?,?,?,?,?)
+Hibernate: 
+    insert 
+    into
+        member_town
+        (created_at,member_id,town_id,update_at) 
+    values
+        (?,?,?,?)
+Hibernate: 
+    insert 
+    into
+        member_town
+        (created_at,member_id,town_id,update_at) 
+    values
+        (?,?,?,?)
+Hibernate: 
+    insert 
+    into
+        member_town
+        (created_at,member_id,town_id,update_at) 
+    values
+        (?,?,?,?)
+Hibernate: 
+    select
+        m1_0.member_town_id,
+        m1_0.created_at,
+        m1_0.member_id,
+        m1_0.town_id,
+        m1_0.update_at 
+    from
+        member_town m1_0
+Hibernate: 
+    select
+        m1_0.member_town_id,
+        m1_0.created_at,
+        m1_0.member_id,
+        m1_0.town_id,
+        m1_0.update_at 
+    from
+        member_town m1_0 
+    where
+        m1_0.member_id=? 
+        and m1_0.town_id=?
+Hibernate: 
+    select
+        m1_0.member_town_id,
+        m1_0.created_at,
+        m1_0.member_id,
+        m1_0.town_id,
+        m1_0.update_at 
+    from
+        member_town m1_0 
+    where
+        m1_0.member_id=? 
+        and m1_0.town_id=?
+Hibernate: 
+    select
+        m1_0.member_town_id,
+        m1_0.created_at,
+        m1_0.member_id,
+        m1_0.town_id,
+        m1_0.update_at 
+    from
+        member_town m1_0 
+    where
+        m1_0.member_id=? 
+        and m1_0.town_id=?
+```
