@@ -4,14 +4,16 @@ import com.ceos18.springboot.domain.entity.base.BaseTimeEntity;
 import jakarta.persistence.*;
 import org.hibernate.annotations.ColumnDefault;
 
+import java.math.BigDecimal;
+
 @Entity
 @Table(name = "members")
 public class Member extends BaseTimeEntity {
 	@Id
-	@GeneratedValue
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	@Column(nullable = false, unique = true)
+	@Column(nullable = false, unique = true, length = 20)
 	private String phoneNumber;
 
 	@Column(unique = true)
@@ -26,10 +28,13 @@ public class Member extends BaseTimeEntity {
 
 	// 회원탈퇴 여부
 	@ColumnDefault("false")
+	@Column(nullable = false)
 	private boolean isWithdrawal;
 
-	private String mannerRating;
+	@Column(nullable = false)
+	private BigDecimal mannerRating;
 
+	@Column(nullable = false)
 	private String region;
 
 }

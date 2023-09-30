@@ -4,23 +4,17 @@ import com.ceos18.springboot.domain.entity.base.BaseTimeEntity;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "chat_messages")
-public class ChatMessage extends BaseTimeEntity {
+@Table(name = "members_chatrooms")
+public class MembersChatRoom extends BaseTimeEntity {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long id; // PK
+	private Long id;
 
 	@ManyToOne
 	@JoinColumn(name = "chat_room_id", nullable = false)
 	private ChatRoom chatRoom;
 
 	@ManyToOne
-	@JoinColumn(name = "sender_id", nullable = false)
-	private Member sender;
-
-	@Column(name = "content")
-	private String content;
-
-	@Column(name = "is_read")
-	private String isRead;
+	@JoinColumn(name = "member_id", nullable = false)
+	private Member member;
 }

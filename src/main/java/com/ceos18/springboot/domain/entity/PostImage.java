@@ -4,13 +4,16 @@ import com.ceos18.springboot.domain.entity.base.BaseTimeEntity;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "categories")
-public class Category extends BaseTimeEntity {
+@Table(name = "post_images")
+public class PostImage extends BaseTimeEntity {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id; // PK
 
-	@Column(name = "name")
-	private String name;
+	@ManyToOne
+	@JoinColumn(name = "post_id",nullable = false)
+	private Post post;
 
+	@Column(name = "url")
+	private String url;
 }

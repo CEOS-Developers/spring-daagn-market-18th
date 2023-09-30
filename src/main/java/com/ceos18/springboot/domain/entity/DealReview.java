@@ -1,25 +1,31 @@
 package com.ceos18.springboot.domain.entity;
 
 import com.ceos18.springboot.domain.entity.base.BaseTimeEntity;
+import com.ceos18.springboot.domain.entity.enums.MemberRole;
 import jakarta.persistence.*;
 
 @Entity
 @Table(name = "deal_reviews")
 public class DealReview extends BaseTimeEntity {
 	@Id
-	@GeneratedValue
-	private String id; // PK
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long id; // PK
 
 	@ManyToOne
-	@Column(name = "items_id")
-	private Item item; // PK
+	@JoinColumn(name = "completed_deal_id")
+	private CompletedDeal completedDeal; // FK
 
 	@ManyToOne
-	@Column(name = "author_id")
-	private Member author; // FK
+	@JoinColumn(name = "author_id", nullable = false)
+	private Member author;
 
+	@Column(name = "member_role", nullable = false)
+	private String memberRole;
+
+	@Column(name = "preference", nullable = false)
 	private String preference;
-	private String selections;
+
+	@Column(name = "messages")
 	private String messages;
 
 }
