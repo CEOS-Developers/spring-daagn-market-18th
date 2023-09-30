@@ -2,7 +2,7 @@
 
 ## 1️⃣ 당근 마켓의 DB를 모델링해요
 ### 당근마켓 ERD
-![당근마켓](https://github.com/yj-leez/spring-daagn-market-18th/assets/77960090/8e9d894f-e1bc-4504-8247-9d33b0e75368)
+![당근마켓-2](https://github.com/yj-leez/spring-daagn-market-18th/assets/77960090/da9e42e3-3c0d-465c-95e6-0893bb86d44d)
 
 - User
     - 유저 엔티티
@@ -20,17 +20,14 @@
     - Post 조회시 Purchase가 즉시로딩되지 않도록 Post 테이블에 외래키
 - Chatroom
     - 상품에 해당하는 채팅방 개수를 식별하기 위해 Post와 다대일 매핑
-    - 채팅방과 연결되어 있는 Post의 status가 `SELLING`일 때만 Appointment 엔티티 생성
-    - Appointment 즉시로딩하지 않도록 Chatroom 테이블에 외래키
 - Chat
     - User, Chatroom, message 정보를 넘겨 받아 Chat 엔티티 생성
-- Appointment
-    - 앱 내에서 약속은 채팅방에서만 생성, 확인 가능하기에 Chatroom과 일대일 매핑
 - WishItem
 - Review
-    - 어떤 방식으로 후기를 남기는지 확실치 않아 별점과 후기를 남기도록 일단 erd 작성
+    - 어떤 방식으로 후기를 남기는지 확실치 않아 평점과 후기를 남기도록 일단 erd 작성
     - Post의 seller_id와 Purchase의 buyer_id로 구매자와 판매자 확인 가능하므로 User는 작성자와만 연결
-
+<br/>
+<br/>
 
 ### 당근마켓 기능
 - 물건 올리기
@@ -40,13 +37,15 @@
 - 1:1 채팅
     - 첫 채팅 시 ⇒ 구매자가 상품에 대해 채팅방 엔티티, 채팅 엔티티 생성
     - 그 이후 ⇒ 유저, 채팅방, 메세지 등을 넘겨받아 채팅 메세지 엔티티 생성
-    - 약속 잡을 때 ⇒ 채팅방과 연결되어 있는 상품의 상태가 `SELLING`인 경우에만 약속 엔티티 생성 가능, 생성 후 상품의 상태 `RESERVED`으로 변경
 - 구매 확정
-    - 약속 시간이 지나서 사용자가 거래 확정을 누르면 채팅방에 연결된 상품의 상태를 `SOLDOUT` 변경, 구매 엔티티 생성
+    - 구매 확정 시 채팅방에 연결된 상품의 상태를 `SOLDOUT` 변경, 구매 엔티티 생성
 - 리뷰(온도)
+    - 리뷰 엔티티 생성 시 상대의 평점에 반영
     - 앱 내에서 리뷰는 상품을 조회 후 확인 가능
+<br/>
+<br/>
 
-### ****@OneToOne FetchType.LAZY 적용이 안 되는 이슈(N+1 문제)****
+### @OneToOne FetchType.LAZY 적용이 안 되는 이슈(N+1 문제)
 
 - JPA 구현체인 Hibernate에서는 @OneToOne 양방향 매핑 시 지연 로딩으로 설정하여도 즉시 로딩으로 동작하는 이슈 존재
 - mappedBy 속성으로 연결된 외래 키를 가지지 않은 쪽에서 테이블을 조회할 경우 외래 키를 가지고 있는 테이블(연관 관계의 주인)에 대해서는 지연 로딩이 동작하지 않고 N+1 쿼리가 발생
@@ -58,7 +57,9 @@
     - 대상 테이블에 외래 키가 존재하는 방식으로 전통적인 데이터베이스 개발자가 선호
     - 장점: 주 테이블과 대상 테이블을 일대일에서 일대다 관계로 변경할 때 테이블 구조를 유지 가능
     - 단점: JPA가 제공하는 기본 프록시 기능의 한계로 **지연 로딩으로 설정해도 항상 즉시 로딩**
-
+<br/>
+<br/>
+  
 ## 2️⃣ Repository 단위 테스트를 진행해요
 
 ### @DataJpaTest
@@ -84,6 +85,8 @@
 @ImportAutoConfiguration
 public @interface DataJpaTest {
 ```
+<br/>
+<br/>
 
 ### @AutoConfigureTestDatabase
 
