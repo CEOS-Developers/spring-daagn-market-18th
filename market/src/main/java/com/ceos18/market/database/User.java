@@ -49,7 +49,6 @@ public class User extends BaseTimeEntity {
     @Column(name = "ADR_CERT_YN", columnDefinition = "CHAR(1)")
     @NotNull
     @ColumnDefault("'N'")
-    @Size(max = 1)
     private StatusCode addressCertificationYN;
 
     // 등록한 사용자 소프트웨어 식별 정보
@@ -63,13 +62,11 @@ public class User extends BaseTimeEntity {
     @Column(name = "PRI_YN", columnDefinition = "CHAR(1)")
     @NotNull
     @ColumnDefault("'Y'")
-    @Size(max = 1)
     private StatusCode privacyYN;
 
     // Y: 마케팅 수신 동의, N: 마케팅 수신 미동의
     @Enumerated(EnumType.STRING)
     @Column(name = "MKTG_YN", columnDefinition = "CHAR(1)")
     @NotNull
-    @Size(max = 1)
     private StatusCode marketingYN;
 }
