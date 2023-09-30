@@ -180,3 +180,14 @@ Hibernate:
 ```
 
 그랬더니 이처럼 insert 구문이 잘 작동한 것을 볼 수 있다.
+
+
+---
+test가 잘 안돌아가서 왜 그런가 했더니 application.yml 의 ddl-auto: create 를 안 해줘서 그런 거였다.
+이번 과제를 하면서 배운 것이 정말 많았고 효율적인 도메인 설계에 대해 고민해보게 되었다. 시간관계상 or 미처 생각하지 못해서 구현하지 못한 것들이 좀 있어서 아쉽다. 다음에 좀 더 공부하고 리팩토링 해봐야겠다.
+- BaseEntity 활용하기
+- @NoArgsConstructor @AllArgsConstructor 사용 상황 (나는 일단 둘 다 넣었다 😅) 
+- @Builder 사용법 (다른 분들 코드 보니까 어떤 사람은 전체 class에 붙이고 어떤 사람은 생성자 만든 뒤 거기 위에 붙였다. 차이가 뭘까?!)
+- notNull의 표기법 (@NotNull vs @Column(nullable = false) 둘 중에 뭐 써야되는건지 헷갈려서 찾아보니까 @NotNull 쓰는 게 좋다고는 하는데 곧 사라질 어노테이션이라고 경고떠서 뭐지 싶었다)
+
+파이팅 🤣
