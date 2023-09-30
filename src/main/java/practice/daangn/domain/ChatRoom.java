@@ -20,10 +20,6 @@ public class ChatRoom extends BaseEntity{
     @JoinColumn(name = "post_id")
     private Post post;
 
-    @OneToOne(fetch=FetchType.LAZY)
-    @JoinColumn(name = "appointment_id")
-    private Appointment appointment;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "seller_id")
     private User seller;
