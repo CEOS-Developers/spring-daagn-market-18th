@@ -214,3 +214,165 @@ public class User {
 
 }
 ```
+
+# 2️⃣ Repository 단위 테스트를 진행해요
+
+## ForeignKey 필드를 포함하는 Entity을 하나 선택하여 다음과 같은 테스트를 진행해주세요
+
+</br>
+
+### given when then 에 따라서 테스트를 작성하기
+
+given-when-then : given when then 에 따라서 테스트를 작성하기
+given-when-then은 [준비 - 실행 - 검증]임
+</br>
+given : 테스트를 위해 준비를 하는 과정, 테스트에 사용하는 변수, 입력값을 정의하거나 Mock 객체를 정의하는 구문도 given에 포함됨
+
+</br></br>
+when : 실제로 액션을 하는 테스트를 실행하는 과정
+</br></br>
+then: 테스트를 검증하는 과정, 예상한 값, 실제 실행을 통해 나온 값을 검증한다.
+
+user와 achievement를 이용해서 두 가지 테스트 코드를 작성하였습니다.
+
+## UserTest
+
+### 1. given
+
+```java
+	//given
+	User user1 = new User();
+	user1.setNickName("user");
+	user1.setPassword("1234");
+	user1.setTemperature(36.5);
+	user1.setRetradingRate(80.0);
+	user1.setResponseRate(80.0);
+	userRepository.save(user1);
+```
+
+</br></br>
+
+### 2. when
+
+```java
+//        when
+        Optional<User> retrievedUser = userRepository.findById(user1.getId());
+```
+
+</br></br>
+
+### 3. then
+
+```java
+        assertThat(retrievedUser).isPresent();
+        assertThat(retrievedUser.get().getNickName()).isEqualTo("user");
+        assertThat(retrievedUser.get().getPassword()).isEqualTo("1234");
+        assertThat(retrievedUser.get().getTemperature()).isEqualTo(36.5);
+        assertThat(retrievedUser.get().getRetradingRate()).isEqualTo(80.0);
+        assertThat(retrievedUser.get().getResponseRate()).isEqualTo(80.0);
+
+        List<User> allUsers = userRepository.findAll();
+        logger.info("유저목록 : ");
+        for (User user : allUsers) {
+            logger.info("User ID: {}, Nickname: {}", user.getId(), user.getNickName());
+        }
+
+```
+
+유저를 한 명 생성하고, 정보가 잘 들어갔는지 테스트
+
+## userId를 참조하는 achievement 레포지토리 테스트
+
+### 1. given
+
+```java
+// Given
+        User user1 = new User();
+        user1.setPassword("1");
+        user1.setNickName("user1");
+        user1.setTemperature(36.5);
+        user1.setRetradingRate(80.0);
+        user1.setResponseRate(80.0);
+
+        User user2 = new User();
+        user2.setPassword("2");
+        user2.setNickName("user2");
+        user2.setTemperature(36.5);
+        user2.setRetradingRate(80.0);
+        user2.setResponseRate(80.0);
+
+        User user3 = new User();
+
+        user3.setPassword("3");
+        user3.setNickName("user3");
+        user3.setTemperature(36.5);
+        user3.setRetradingRate(80.0);
+        user3.setResponseRate(80.0);
+
+        userRepository.save(user1);
+        userRepository.save(user2);
+        userRepository.save(user3);
+```
+
+### 2. when
+
+```java
+        Achievement ac1 = new Achievement();
+        ac1.setAchievementNum(1);
+        ac1.setUser(user1);
+        Achievement ac2 = new Achievement();
+        ac2.setAchievementNum(2);
+        ac2.setUser(user1);
+        Achievement ac3 = new Achievement();
+        ac3.setAchievementNum(3);
+        ac3.setUser(user3);
+
+        achievementRepository.save(ac1);
+        achievementRepository.save(ac2);
+        achievementRepository.save(ac3);
+```
+
+### 3. then
+
+```java
+        List<Achievement> achievements = achievementRepository.findAll();
+        assertEquals(3, achievements.size());
+        assertEquals("user1", achievements.get(0).getUser().getNickName(), "First achievement's user nickname mismatch.");
+        assertEquals("user1", achievements.get(1).getUser().getNickName(), "Second achievement's user nickname mismatch.");
+        assertEquals("user3", achievements.get(2).getUser().getNickName(), "Third achievement's user nickname mismatch.");
+
+
+        List<User> allUsers = userRepository.findAll();
+        logger.info("유저목록 : ");
+        for (User user : allUsers) {
+            logger.info("User ID: {}, Nickname: {}", user.getId(), user.getNickName());
+        }
+```
+
+</br>
+userId를 참조하고 있기 때문에 user테이블에 없는 id이면 애초에 achievement에 db에 생성되지 않음.
+</br>
+한 유저가 여러 가지 업적을 가질 수 있는 상황을 가정하여 테스트하고, db에 잘 들어갔는지에 대해 테스트
+</br></br>
+
+## 테스트에서 객체를 3개 이상 넣은 이후에 해당 객체가 출력되는지 확인하기
+
+위 테스트의 로그
+
+```
+2023-09-30T20:54:17.071+09:00  INFO 11773 --- [    Test worker] com.carrot.clonecoding.user.UserTests    : 유저목록 :
+2023-09-30T20:54:17.072+09:00  INFO 11773 --- [    Test worker] com.carrot.clonecoding.user.UserTests    : User ID: 1, Nickname: user1
+2023-09-30T20:54:17.072+09:00  INFO 11773 --- [    Test worker] com.carrot.clonecoding.user.UserTests    : User ID: 2, Nickname: user2
+2023-09-30T20:54:17.072+09:00  INFO 11773 --- [    Test worker] com.carrot.clonecoding.user.UserTests    : User ID: 3, Nickname: user3
+
+```
+
+## 테스트를 수행할 때 발생하는 JPA 쿼리를 조회해보기
+
+![](https://velog.velcdn.com/images/aeyongdodam/post/d20242bf-1733-4fcc-96b7-e0b868db4e24/image.png)
+
+### 느낀 점
+
+역시 db 설계가 가장 어려운 것 같다. 테스트 특히 단위 테스트는 만들어 볼 기회가 없었는데 이번에 많이 배울 수 있었다.
+테스트 코드를 작성할 때 여러 기능을 써보면서 테스트 코드를 쓰는 여러 방법을 배울 수 있었다.
+이번 테스트 코드는 테스트가 종료되면 데이터베이스에는 테스트 데이터가 남아있지 않도록 하는 방향으로 짰다.
