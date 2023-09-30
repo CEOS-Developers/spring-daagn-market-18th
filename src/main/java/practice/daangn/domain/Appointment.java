@@ -20,6 +20,7 @@ public class Appointment extends BaseEntity{
 
     private LocalDateTime date;
     private String place;
+    private boolean is_completed; //완료 여부
 
     @OneToOne(mappedBy = "appointment")
     private ChatRoom chatRoom;
