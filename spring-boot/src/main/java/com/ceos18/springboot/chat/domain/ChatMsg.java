@@ -38,9 +38,9 @@ public class ChatMsg {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "chatroom_id", nullable = false)
-    private ChatRoom chatroom_id;
+    private ChatRoom chatroom;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "from_id", nullable = false)
-    private User from_id;
+    private User from;
 }

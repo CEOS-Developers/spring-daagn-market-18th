@@ -20,5 +20,5 @@ public class PostImg {
 
     @ManyToOne(fetch = FetchType.LAZY) // Cascade
     @JoinColumn(name = "post_id", nullable = false)
-    private Post post_id;
+    private Post post;
 }

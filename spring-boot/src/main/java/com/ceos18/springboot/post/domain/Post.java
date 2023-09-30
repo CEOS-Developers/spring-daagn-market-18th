@@ -48,11 +48,11 @@ public class Post {
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id", nullable = false)
-    private PostCategory category_id;
+    private PostCategory category;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
-    private User user_id;
+    private User user;
 
     @OneToMany(mappedBy = "post_id")
     private List<PostImg> projectImages = new ArrayList<>();

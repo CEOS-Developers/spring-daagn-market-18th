@@ -48,6 +48,6 @@ public class User {
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "town_id", nullable = false)
-    private Town town_id;
+    private Town town;
 
 }
