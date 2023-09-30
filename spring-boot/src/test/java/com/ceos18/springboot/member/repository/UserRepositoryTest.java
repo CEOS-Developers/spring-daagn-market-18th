@@ -58,7 +58,7 @@ public class UserRepositoryTest {
                 .user_nick("수수")
                 .pwd("1234")
                 .phone("01022223333")
-                .town_id(townA)
+                .town(townA)
                 .build();
 
         User userB = User.builder()
@@ -67,7 +67,7 @@ public class UserRepositoryTest {
                 .user_nick("척척")
                 .pwd("2222")
                 .phone("01033334444")
-                .town_id(townB)
+                .town(townB)
                 .build();
 
         User userC = User.builder()
@@ -76,7 +76,7 @@ public class UserRepositoryTest {
                 .user_nick("떡떡")
                 .pwd("3333")
                 .phone("01055554444")
-                .town_id(townC)
+                .town(townC)
                 .build();
 
 
