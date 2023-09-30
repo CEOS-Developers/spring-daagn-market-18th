@@ -4,8 +4,7 @@ import com.ceos18.springboot.domain.entity.base.BaseTimeEntity;
 import com.ceos18.springboot.domain.entity.enums.DealType;
 import com.ceos18.springboot.domain.entity.enums.PostStatus;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
@@ -13,6 +12,9 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @Table(name = "posts")
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Post extends BaseTimeEntity {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -50,10 +52,10 @@ public class Post extends BaseTimeEntity {
 	private PostStatus status;
 
 	@Column(name = "liked_count", nullable = false)
-	private String likedCount;
+	private int likedCount;
 
 	@Column(name = "view_count", nullable = false)
-	private String viewCount;
+	private int viewCount;
 
 	@Column(name = "pullup_at")
 	private LocalDateTime pullupAt;
