@@ -2,8 +2,12 @@ package com.ceos18.springboot.domain.entity;
 
 import com.ceos18.springboot.domain.entity.base.BaseTimeEntity;
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
 @Entity
+@Getter
+@Setter
 @Table(name = "items")
 public class Item extends BaseTimeEntity {
 	@Id
