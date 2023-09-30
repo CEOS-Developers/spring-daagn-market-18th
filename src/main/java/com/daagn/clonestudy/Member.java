@@ -20,6 +20,9 @@ public class Member extends BaseTimeEntity {
   private String nickname;
 
   @Column(nullable = false)
+  private String phoneNumber;
+
+  @Column(nullable = false)
   private String town;
 
   @Column
@@ -35,10 +38,11 @@ public class Member extends BaseTimeEntity {
   private Integer responseRate;
 
   @Builder
-  public Member(String nickname, String town, String icon){
+  public Member(String nickname, String town, String icon, String phoneNumber){
     this.nickname = nickname;
     this.town = town;
     this.icon = icon;
+    this.phoneNumber = phoneNumber;
     this.temperature = 36.5;
     this.redeal = 0;
     this.responseRate = 0;
