@@ -22,4 +22,5 @@ public class Chat {
 
     private boolean is_read;
     private boolean is_from_seller;
+    private String message;
 }
