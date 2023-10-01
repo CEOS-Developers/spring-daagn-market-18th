@@ -2,26 +2,27 @@
 
 ## 1️⃣ 당근 마켓의 DB를 모델링해요
 ### 당근마켓 ERD
-![당근마켓-2](https://github.com/yj-leez/spring-daagn-market-18th/assets/77960090/da9e42e3-3c0d-465c-95e6-0893bb86d44d)
+![당근마켓](https://github.com/yj-leez/spring-daagn-market-18th/assets/77960090/72b3d055-056f-4d29-83a1-cde78869e1e2)
 
 - User
-    - 유저 엔티티
+    - 유저 테이블
 - ActivityArea
     - 사용자가 활동하는 지역, 최대 두개까지 존재하므로 User와 다대일 매핑
 - Area
     - 지역 엔티티
 - Post
-    - 판매자가 올린 상품 엔티티, Category와 다대일 매핑
+    - 판매자가 올린 상품 테이블. Category와 다대일 매핑
     - 상품을 판매하는 지역을 식별하기 위해 Area와 다대일 매핑
     - 상태 속성 : `SELLING`, `RESERVED`, `SOLDOUT`
 - Category
 - Image
 - Purchase
+    - 구매 확정 시 Post의 Status를 바꾸는 것만으로는 나중에 내가 구매한 상품들을 조회할 수 없다고 생각하여 Purchase 테이블 생성
     - Post 조회시 Purchase가 즉시로딩되지 않도록 Post 테이블에 외래키
 - Chatroom
     - 상품에 해당하는 채팅방 개수를 식별하기 위해 Post와 다대일 매핑
 - Chat
-    - User, Chatroom, message 정보를 넘겨 받아 Chat 엔티티 생성
+    - is_from_seller: 구매자가 보냈는지, 판매자가 보냈는지 확인할 수 있는 컬럼
 - WishItem
 - Review
     - 어떤 방식으로 후기를 남기는지 확실치 않아 평점과 후기를 남기도록 일단 erd 작성
@@ -93,3 +94,63 @@ public @interface DataJpaTest {
 - 테스트 데이터베이스의 구성정보를 자동으로 설정
 - @AutoConfigureTestDatabase의 기본 내장 DB 커넥션이 H2, HSQLDB와 같이 인메모리 DB로 되어있음
 - 실제 데이터베이스를 이용하고 싶다면 `Replace.NONE` 을 사용
+
+### 쿼리문
+```sql
+-- given
+Hibernate: 
+    insert 
+    into
+        user
+        (created,email,modified,name,nickname,password,phone_number,profile_img,rating,role) 
+    values
+        (?,?,?,?,?,?,?,?,?,?)
+Hibernate: 
+    insert 
+    into
+        user
+        (created,email,modified,name,nickname,password,phone_number,profile_img,rating,role) 
+    values
+        (?,?,?,?,?,?,?,?,?,?)
+Hibernate: 
+    insert 
+    into
+        area
+        (name) 
+    values
+        (?)
+Hibernate: 
+    insert 
+    into
+        area
+        (name) 
+    values
+        (?)
+-- when
+Hibernate: 
+    insert 
+    into
+        activity_area
+        (area_id,user_id) 
+    values
+        (?,?)
+Hibernate: 
+    insert 
+    into
+        activity_area
+        (area_id,user_id) 
+    values
+        (?,?)
+Hibernate: 
+    insert 
+    into
+        activity_area
+        (area_id,user_id) 
+    values
+        (?,?)
+-- then
+Hibernate: 
+    select
+        count(*) 
+    from
+        activity_area a1_0
