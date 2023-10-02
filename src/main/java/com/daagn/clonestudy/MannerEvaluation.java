@@ -18,7 +18,7 @@ import org.hibernate.annotations.OnDeleteAction;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Review {
+public class MannerEvaluation {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -39,5 +39,8 @@ public class Review {
 
   @Column(nullable = false)
   private Boolean isBuyer;
+
+  @Column(nullable = false)
+  private Boolean isPositive;
 
 }

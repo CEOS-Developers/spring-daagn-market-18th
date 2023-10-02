@@ -28,13 +28,13 @@
 #### ✦ DataBase 설계
 
 - [ERDCloud Link](https://www.erdcloud.com/d/yfayiX7p9ZFCZWuhZ)
-  ![CEOS_STUDY](https://github.com/jongmee/spring-daagn-market-18th/assets/101439796/a22745b2-96d8-467c-ac39-19f48414f748)
+  ![CEOS_STUDY (1)](https://github.com/jongmee/spring-daagn-market-18th/assets/101439796/e77a4a91-4398-4023-96b2-554e4c727add)
 
 - 도메인 설명
   1. <b>Member</b><br>
   매너온도, 재거래희망률, 응답률을 가진다.
-  2. <b>Review</b><br>
-  리뷰 쓴 유저와 리뷰 받은 유저를 Foreign key로 저장한다. is_buyer라는 속성으로 리뷰 남긴 이가 구매자인지 판매자인지 구별한다.
+  2. <b>MannerEvaluation</b><br>
+  리뷰 쓴 유저와 리뷰 받은 유저를 Foreign key로 저장한다. is_buyer라는 속성으로 리뷰 남긴 이가 구매자인지 구별한다. is_positive로는 긍정 매너 평가인지 부정 매너 평가인지 표시한다. 추후 유저의 매너 온도에 반영된다.
   3. <b>Post</b><br>
   가격 제안을 받는 여부, 구매 상태(판매 중, 예약 중, 거래 완료), 거래 희망 장소, 작성자의 pk 등 당근마켓의 게시물 요소를 반영하였다.
   4. <b>PostImage</b><br>
@@ -112,11 +112,8 @@ class PostRepositoryTest {
     Post 게시글3 = Post.builder().title("테스트 제목3").price(15000).address("테스트 거래 주소3").isAuction(false).writer(테스트유저2).build();
 
     // when
-    memberRepository.save(테스트유저1);
-    memberRepository.save(테스트유저2);
-    postRepository.save(게시글1);
-    postRepository.save(게시글2);
-    postRepository.save(게시글3);
+    memberRepository.saveAll(List.of(테스트유저1,테스트유저2));
+    postRepository.saveAll(List.of(게시글1, 게시글2, 게시글3));
 
     List<Post> 저장된_게시글들 = postRepository.findAll();
 

@@ -2,6 +2,6 @@ package com.daagn.clonestudy;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface ReviewRepository extends JpaRepository<Review, Long> {
+public interface MannerEvaluationRepository extends JpaRepository<MannerEvaluation, Long> {
 
 }
