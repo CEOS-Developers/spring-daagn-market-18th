@@ -20,7 +20,7 @@
   @DisplayName("사용자 저장")
   void saveUser() {
     // given
-    User user = new User(1L, "ROLE_USER", "01012345678", true, 100.0).toEntity();
+    User user = new User(1L, "ROLE_USER", "01012345678", true, 100.0);
     // when
     User savedUser = userRepository.save(user);
     // then
