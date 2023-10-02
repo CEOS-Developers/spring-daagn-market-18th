@@ -28,11 +28,8 @@ class PostRepositoryTest {
     Post 게시글3 = Post.builder().title("테스트 제목3").price(15000).address("테스트 거래 주소3").isAuction(false).writer(테스트유저2).build();
 
     // when
-    memberRepository.save(테스트유저1);
-    memberRepository.save(테스트유저2);
-    postRepository.save(게시글1);
-    postRepository.save(게시글2);
-    postRepository.save(게시글3);
+    memberRepository.saveAll(List.of(테스트유저1,테스트유저2));
+    postRepository.saveAll(List.of(게시글1, 게시글2, 게시글3));
 
     List<Post> 저장된_게시글들 = postRepository.findAll();
 
