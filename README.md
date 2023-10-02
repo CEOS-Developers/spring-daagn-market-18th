@@ -217,7 +217,7 @@ class PostRepositoryTest {
      - MyRepository에 findAllByName과 같이 메서드를 만들면 동적으로 Proxy 인스턴스에 생성된다.
 2. Data jpa를 찾다보면 SimpleJpaRepository에서  <b>entity manager</b>를 생성자 주입을 통해서 주입 받는다. 근데 <b>싱글톤</b> 객체는 한번만 할당을  받는데, 한번 연결 때 마다 생성이 되는 entity manager를 생성자 주입을 통해서 받는 것은 수상하지 않는가? 어떻게 되는 것일까?<br>
 ➡️ 주입 받는 Entity Manamger 역시 프록시 객체이다. Entity Manager의 메서드를 호출하면 SharedEntityManagerInvocationHandler를 호출하여 메서드를 실행한다. 현재 데이터베이스 트랜잭션과 관련된 실제 EntityManager의 메서드를 호출할 수 있다. 싱글톤은 유지하면서 동시성 이슈를 해결할 수 있다.
-<img width="1300" alt="스크린샷 2023-10-02 오후 3 14 31" src="https://github.com/jongmee/spring-daagn-market-18th/assets/101439796/021aa6f4-f444-435c-a208-c3dd2044b9a6">
+<img width="1300" alt="스크린샷 2023-10-02 오후 3 14 31" src="https://github.com/jongmee/spring-daagn-market-18th/assets/101439796/021aa6f4-f444-435c-a208-c3dd2044b9a6"><br><br>
    - 디버깅한 방법
    ```java
     // 영속성 매니저를 주입 받는 레포지토리 만들기
