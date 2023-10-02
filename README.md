@@ -138,5 +138,136 @@ class PostRepositoryTest {
   3. 모든 Post 객체 조회
 <img width="730" alt="스크린샷 2023-09-30 오후 10 25 47" src="https://github.com/jongmee/spring-daagn-market-18th/assets/101439796/c8c0870a-5722-49cf-bbdb-2cd550d2288b">
 
+#### ✦ 추가 스터디 과제 질문들<br>
+1. 어떻게  Data JPA는 <b>interface</b>만으로도 함수가 구현이 되는가?<br>
+➡️ 인터페이스 JpaRepository를 구현한 SimpleJpaRepository를 타겟으로 프록시를 생성해서 빈으로 등록한다. 이때 프록시는 런타임에 동적으로 인스턴스가 변경되는 다이나믹 프록시 기법으로 구현된다. 프록시 클래스를 바이트코드( .class file )로 직접 만든다. <br><br>
+<img width="784" alt="스크린샷 2023-10-01 오후 12 40 54" src="https://github.com/jongmee/spring-daagn-market-18th/assets/101439796/392742e6-b8cf-4e20-b282-f5d3c7625ca2"> <br><br>
+   - 다이나믹 프록시 기법
+     - 대상 클래스마다 프록시 클래스를 만들 경우 코드 중복과 번거로움이 생기기 때문에 컴파일 시점이 아니라 런타임 시점에 프록시 클래스를 만든다.
+     - Java의 reflection API가 제공하는 <b>newProxyInstance()</b>로 런타임 시점에 프록시 클래스를 만들 수 있다.
+     ```java
+      class Proxy {
+        @CallerSensitive
+        public static Object newProxyInstance(
+        ClassLoader loader, // 프록시 클래스를 만들 클래스로더
+        Class<?>[] interfaces, // 프록시 클래스가 구현할 인터페이스 목록(배열)
+        InvocationHandler h) // 메서드가 호출되었을때 실행될 핸들러
+        {}
+      } 
+     ```
+     - 인터페이스 <b>InvocationHandler</b>의 <b>invoke</b> 메서드가 동적 프록의 메서드가 호출되었을 때 실행된다.
+     ```java
+      public interface InvocationHandler {
+      public Object invoke(
+      Object proxy, // 프록시 객체
+      Method method, // 호출한 메서드 정보
+      Object[] args) // 메서드에 전달된 파라미터
+      throws Throwable;
+      }
+     ```
+     - 예제 코드로 다이나믹 프록시로 구현된 Spring Data JPA 이해하기
+     ```java
+     // 우리가 사용하는 Data JPA 인터페이스 
+     public interface JpaRepository{
+      void save(Object item);
+     }
+     
+     // 실제 구현체
+     public class SimpleJpaRepository implements  JpaRepository{
+      @Override
+      public void save(Object item){
+        log.info("Save {}", item);
+      }
+     }
+     
+     // 우리가 작성한 레포지토리
+     public interface MyRepository extends JpaRepository{
+     }
+     
+     // reflection API 메서드를 사용하기 위한 재료 - invocationHandler
+     public class RepositoryHandler implements InvocationHandler{
+     
+      private final JpaRepository target;
+     
+      public RepositoryHandler(JpaRepository target){
+        this.target = target;
+      }
+     
+      @Override
+      public Object invoke(Object proxy, Method method, Object[] args){
+        log.info("Save in Proxy");
+        return method.invoke(target, args);
+      }
+     
+     }
+     
+     // 스프링처럼 프록시 인스턴스를 사용해보기
+     public class DynamicProxyTest{
+      @Test
+      void 동적프록시_Reflection으로_구현하기(){
+        RepositoryHandler repositoryHandler = new RepositoryHandler(new SimpleJpaRepository());
+        MyRepository myRepository = (MyRepository) Proxy.newProxyInstance(
+                                    MyRepository.class.getClassLoader(),
+                                    new Class[]{MyRepository.class},
+                                    repositoryHandler);
+        myRepository.save("NewItem");
+      }
+     }
+     ```
+     - MyRepository에 findAllByName과 같이 메서드를 만들면 동적으로 Proxy 인스턴스에 생성된다.
+2. Data jpa를 찾다보면 SimpleJpaRepository에서  <b>entity manager</b>를 생성자 주입을 통해서 주입 받는다. 근데 <b>싱글톤</b> 객체는 한번만 할당을  받는데, 한번 연결 때 마다 생성이 되는 entity manager를 생성자 주입을 통해서 받는 것은 수상하지 않는가? 어떻게 되는 것일까?<br>
+➡️ 주입 받는 Entity Manamger 역시 프록시 객체이다. Entity Manager의 메서드를 호출하면 SharedEntityManagerInvocationHandler를 호출하여 메서드를 실행한다. 현재 데이터베이스 트랜잭션과 관련된 실제 EntityManager의 메서드를 호출할 수 있다. 싱글톤은 유지하면서 동시성 이슈를 해결할 수 있다.
+<img width="1300" alt="스크린샷 2023-10-02 오후 3 14 31" src="https://github.com/jongmee/spring-daagn-market-18th/assets/101439796/021aa6f4-f444-435c-a208-c3dd2044b9a6">
+   - 디버깅한 방법
+   ```java
+    // 영속성 매니저를 주입 받는 레포지토리 만들기
+    @Repository
+    @Transactional
+    public class RepositoryForEmTest {
+    
+      private EntityManager em;
+    
+      @Autowired
+      public RepositoryForEmTest(EntityManager em){
+        this.em = em;
+      }
+    
+      public void save(){
+        em.persist(Member.builder().nickname("유저").town("서울시 마포구 대흥동").phoneNumber("00000000000").build());
+      }
+    }
+   
+    @TestConfiguration
+    public class TestConfig {
+    
+      @PersistenceContext
+      private EntityManager em;
+    
+      @Bean
+      public RepositoryForEmTest repositoryForEmTest(){
+        return new RepositoryForEmTest(em);
+      }
+    
+    }
+   
+    // JPA repository가 아니기에 TestConfig에서 레포지토리를 등록해주어야 @DataJpaTest에서 사용할 수 있음
+    @DataJpaTest
+    @Import(TestConfig.class)
+    public class JpaRepositoryTest {
+    
+      @Autowired
+      private RepositoryForEmTest repository;
+   
+      @Test
+      @DisplayName("스프링 레포지토리에 Entity Manager가 주입되는 방식을 확인한다.")
+      void EntityManager_주입되는방식_확인하기() {
+        repository.save();
+        logger.info("Entity Manager Info: {}", repository.getEm().getClass());
+      }
+    }
+
+   ```
+
 #### ✦ 느낀 점 및 배운 점<br>
-레포지토리 계층 테스트는 처음 해보아서 실행 결과를 보고 스프링 컨테이너가 올라가는 줄 알았으나, @DataJpaTest는 JPA 관련 요소들만 읽어서 spring context를 만든다는 것을 알게 되었다. 앞으로 Data Jpa 메서드를 쿼리문을 직접 작성하는 등 커스텀 한다면 레포지토리 계층 테스트부터 차근차근 진행해야겠다. 
+레포지토리 계층 테스트는 처음 해보아서 실행 결과를 보고 스프링 컨테이너가 올라가는 줄 알았으나, @DataJpaTest는 JPA 관련 요소들만 읽어서 spring context를 만든다는 것을 알게 되었다. 앞으로 Data Jpa 메서드를 쿼리문을 직접 작성하는 등 커스텀 한다면 레포지토리 계층 테스트부터 차근차근 진행해야겠다.<br>
+추가 과제 질문들에 대한 답을 찾아보면서 프록시가 스프링에서 어떻게 사용되는지 실제 코드를 바탕으로 이해할 수 있었다. 그저 받아들이면서 공부를 끝내지 않을 수 있었고 미처 생각치 못한 의문을 해결할 수 있었다.
