@@ -40,9 +40,11 @@
   4. <b>PostImage</b><br>
   한 게시물 당 8개까지 이미지를 올릴 수 있다. 게시물과 이미지가 Many-to-one 관계이므로 게시물 이미지 테이블을 생성하였다.
   5. <b>Purchase</b><br>
-  구매자와 게시글을 Foreign key로 저장하고 구매 확정 여부를 저장한다.
+  구매자와 게시글을 Foreign key로 저장하고 구매 확정 여부를 저장한다.<br>
+  `🚨 고려 사항: Post 속성으로 구매자와 구매 확정 여부가 존재할 경우 null 값에서 '구매가 되었을 때' 값이 업데이트 되므로 불필요한 null은 선호하지 않아 따로 구매(Purchase) 테이블을 만들었다.`<br>
   6. <b>Chatting</b><br>
-  한 게시글 보고 여러 유저가 게시자에게 채팅할 수 있다. 따라서 채팅방 테이블에는 게시글, 채팅 한 유저, 채팅 받은 유저의 Foreign key를 저장한다.
+  한 게시글 보고 여러 유저가 게시자에게 채팅할 수 있다. 따라서 채팅방 테이블에는 게시글, 채팅 한 유저, 채팅 받은 유저의 Foreign key를 저장한다.<br>
+  `🚨 고려 사항: 게시글의 작성자와 채팅 받은 유저가 동일하지만, 게시글을 통해 작성자를 조회하는 것은 추가적인 join으로 성능 저하가 발생하므로 채팅 받은 유저도 저장한다.` <br>
   7. <b>Message</b><br>
   한 채팅방 안에서 유저끼리 주고 받은 메시지에 대한 테이블이다. 메시지를 보낸 사람을 구별하는 boolean 속성, 메시지 내용, 작성 시각을 저장한다. 
 - 구현<br>
@@ -86,6 +88,21 @@ public enum PostStatus {
 
   SELLING, RESERVATION, COMPLETION
 
+}
+```
+
+Setter 사용은 지양하고 심플 빌더 패턴(Builder 어노테이션)을 사용 <br>
+`➡️ 초기화 값을 명시하고 순서 관계 없이 값을 넣을 수 있으며 null 값을 일일히 넘겨주지 않아도 된다. 가독성도 좋다.`
+```java
+@Builder
+public Member(String nickname, String town, String icon, String phoneNumber){
+  this.nickname = nickname;
+  this.town = town;
+  this.icon = icon;
+  this.phoneNumber = phoneNumber;
+  this.temperature = 36.5;
+  this.redeal = 0;
+  this.responseRate = 0;
 }
 ```
 
