@@ -4,6 +4,7 @@ import com.ceos18.springboot.town.domain.Town;
 import jakarta.persistence.*;
 import lombok.*;
 import org.antlr.v4.runtime.misc.NotNull;
+import org.hibernate.annotations.ColumnDefault;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -19,15 +20,19 @@ import java.time.LocalDateTime;
 public class User {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long user_id;
+    @Column(name = "user_id")
+    private Long id;
 
-    private String img_url;
+    @Column(name = "img_url")
+    private String imgUrl;
 
     @NotNull
-    private String user_name;
+    @Column(name = "user_name")
+    private String name;
 
     @NotNull
-    private String user_nick;
+    @Column(name = "user_nick")
+    private String nick;
 
     @NotNull
     private String pwd;
@@ -38,7 +43,8 @@ public class User {
     private String email;
 
     @NotNull
-    private Double temp = 36.5;
+    @ColumnDefault("36.5")
+    private Double temperature;
 
     @CreatedDate
     private LocalDateTime created_at;

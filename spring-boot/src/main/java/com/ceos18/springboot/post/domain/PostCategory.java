@@ -1,9 +1,6 @@
 package com.ceos18.springboot.post.domain;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -18,8 +15,10 @@ import org.antlr.v4.runtime.misc.NotNull;
 public class PostCategory {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long category_id;
+    @Column(name = "category_id")
+    private Long id;
 
     @NotNull
-    private String category_name;
+    @Column(name = "category_name")
+    private String name;
 }

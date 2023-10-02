@@ -23,7 +23,8 @@ import java.time.LocalDateTime;
 public class ChatRoom {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long chatroom_id;
+    @Column(name = "chatroom_id")
+    private Long id;
 
     @CreatedDate
     private LocalDateTime created_at;
@@ -31,8 +32,6 @@ public class ChatRoom {
     @LastModifiedDate
     private LocalDateTime updated_at;
 
-    @NotNull // 0[읽음] 1[읽지않음]
-    private Integer chatroom_check_status;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "post_id", nullable = false)

@@ -22,7 +22,8 @@ import java.time.LocalDateTime;
 public class ChatMsg {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long msg_id;
+    @Column(name = "msg_id")
+    private Long id;
 
     @NotNull
     private String content;
@@ -33,8 +34,8 @@ public class ChatMsg {
     @LastModifiedDate
     private LocalDateTime updated_at;
 
-    @NotNull // 0[읽음] 1[읽지않음]
-    private Integer msg_check_status;
+    @NotNull // TRUE[읽음] FALSE[읽지않음]
+    private boolean msg_check_status;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "chatroom_id", nullable = false)

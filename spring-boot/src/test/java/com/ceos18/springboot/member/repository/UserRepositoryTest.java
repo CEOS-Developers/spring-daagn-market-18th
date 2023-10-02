@@ -31,21 +31,21 @@ public class UserRepositoryTest {
 
         //given
         Town townA = Town.builder()
-                .town_name("경기도 수원시 영통구")
-                .town_x(33.8)
-                .town_y(12.3)
+                .name("경기도 수원시 영통구")
+                .x(33.8)
+                .y(12.3)
                 .build();
 
         Town townB = Town.builder()
-                .town_name("서울시 서대문구 아현동")
-                .town_x(100.2)
-                .town_y(15.0)
+                .name("서울시 서대문구 아현동")
+                .x(100.2)
+                .y(15.0)
                 .build();
 
         Town townC = Town.builder()
-                .town_name("경기도 구리시 교문동")
-                .town_x(130.0)
-                .town_y(4.0)
+                .name("경기도 구리시 교문동")
+                .x(130.0)
+                .y(4.0)
                 .build();
 
         townRepository.save(townA);
@@ -53,27 +53,27 @@ public class UserRepositoryTest {
         townRepository.save(townC);
 
         User userA = User.builder()
-                .img_url("a.jpg")
-                .user_name("김수한")
-                .user_nick("수수")
+                .imgUrl("a.jpg")
+                .name("김수한")
+                .nick("수수")
                 .pwd("1234")
                 .phone("01022223333")
                 .town(townA)
                 .build();
 
         User userB = User.builder()
-                .img_url("b.jpg")
-                .user_name("철수한")
-                .user_nick("척척")
+                .imgUrl("b.jpg")
+                .name("철수한")
+                .nick("척척")
                 .pwd("2222")
                 .phone("01033334444")
                 .town(townB)
                 .build();
 
         User userC = User.builder()
-                .img_url("c.jpg")
-                .user_name("한석봉")
-                .user_nick("떡떡")
+                .imgUrl("c.jpg")
+                .name("한석봉")
+                .nick("떡떡")
                 .pwd("3333")
                 .phone("01055554444")
                 .town(townC)
@@ -85,9 +85,9 @@ public class UserRepositoryTest {
         User savedUserC = userRepository.save(userC);
 
         // then
-        User findUserA = userRepository.findById(userA.getUser_id()).get();
-        User findUserB = userRepository.findById(userB.getUser_id()).get();
-        User findUserC = userRepository.findById(userC.getUser_id()).get();
+        User findUserA = userRepository.findById(userA.getId()).get();
+        User findUserB = userRepository.findById(userB.getId()).get();
+        User findUserC = userRepository.findById(userC.getId()).get();
 
         //when
         Assertions.assertThat(savedUserA).isSameAs(findUserA);

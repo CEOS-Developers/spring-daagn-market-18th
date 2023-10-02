@@ -13,10 +13,12 @@ import org.antlr.v4.runtime.misc.NotNull;
 public class PostImg {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long img_id;
+    @Column(name = "post_img_id")
+    private Long id;
 
     @NotNull
-    private String img_url;
+    @Column(name = "post_img_url")
+    private String imgUrl;
 
     @ManyToOne(fetch = FetchType.LAZY) // Cascade
     @JoinColumn(name = "post_id", nullable = false)

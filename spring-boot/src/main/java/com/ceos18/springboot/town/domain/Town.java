@@ -16,14 +16,18 @@ public class Town {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long town_id;
+    @Column(name = "town_id")
+    private Long id;
 
     @NotNull
-    private String town_name;
+    @Column(name = "town_name")
+    private String name;
 
     @NotNull
-    private Double town_x;
+    @Column(name = "town_x")
+    private Double x;
 
     @NotNull
-    private Double town_y;
+    @Column(name = "town_y")
+    private Double y;
 }

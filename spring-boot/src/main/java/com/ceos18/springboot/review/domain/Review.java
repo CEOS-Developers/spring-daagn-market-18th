@@ -1,5 +1,6 @@
 package com.ceos18.springboot.review.domain;
 
+import com.ceos18.springboot.chat.domain.ChatRoom;
 import com.ceos18.springboot.member.domain.User;
 import com.ceos18.springboot.post.domain.Post;
 import jakarta.persistence.*;
@@ -23,7 +24,8 @@ import java.time.LocalDateTime;
 public class Review {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long review_id;
+    @Column(name = "review_id")
+    private Long id;
 
     @NotNull
     private String content;
@@ -43,10 +45,6 @@ public class Review {
     private User reviewer;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "reviewee_id", nullable = false)
-    private User reviewee;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "post_id", nullable = false)
-    private Post post;
+    @JoinColumn(name = "chatroom_id", nullable = false)
+    private ChatRoom chatRoom;
 }
