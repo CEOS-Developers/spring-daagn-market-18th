@@ -2,6 +2,10 @@ package com.daagn.clonestudy;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.daagn.clonestudy.member.domain.Member;
+import com.daagn.clonestudy.member.domain.MemberRepository;
+import com.daagn.clonestudy.post.domain.Post;
+import com.daagn.clonestudy.post.domain.PostRepository;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

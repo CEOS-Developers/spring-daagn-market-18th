@@ -1,5 +1,6 @@
-package com.daagn.clonestudy;
+package com.daagn.clonestudy.chat.domain;
 
+import com.daagn.clonestudy.common.BaseTimeEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;

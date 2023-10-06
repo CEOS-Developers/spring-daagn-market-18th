@@ -1,4 +1,4 @@
-package com.daagn.clonestudy;
+package com.daagn.clonestudy.member.domain;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -8,6 +8,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.OnDelete;
@@ -15,28 +16,31 @@ import org.hibernate.annotations.OnDeleteAction;
 
 @Entity
 @NoArgsConstructor
-public class Purchase {
+@AllArgsConstructor
+@Builder
+public class MannerEvaluation {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
+  @JoinColumn(nullable = false)
+  @ManyToOne(fetch = FetchType.LAZY)
+  @OnDelete(action = OnDeleteAction.CASCADE)
+  private Member receiver;
+
+  @JoinColumn(nullable = false)
+  @ManyToOne(fetch = FetchType.LAZY)
+  @OnDelete(action = OnDeleteAction.CASCADE)
+  private Member sender;
+
   @Column(nullable = false)
-  private Boolean confirmed;
+  private String content;
 
-  @JoinColumn(nullable = false)
-  @ManyToOne(fetch = FetchType.LAZY)
-  private Member buyer;
+  @Column(nullable = false)
+  private Boolean isBuyer;
 
-  @JoinColumn(nullable = false)
-  @ManyToOne(fetch = FetchType.LAZY)
-  private Post post;
-
-  @Builder
-  public Purchase(Member buyer, Post post){
-    this.confirmed = false;
-    this. buyer = buyer;
-    this.post = post;
-  }
+  @Column(nullable = false)
+  private Boolean isPositive;
 
 }

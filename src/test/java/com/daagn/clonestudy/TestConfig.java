@@ -1,5 +1,6 @@
 package com.daagn.clonestudy;
 
+import com.daagn.clonestudy.common.RepositoryForEmTest;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.springframework.boot.test.context.TestConfiguration;

@@ -1,6 +1,7 @@
 package com.daagn.clonestudy;
 
-import io.micrometer.observation.GlobalObservationConvention;
+import com.daagn.clonestudy.common.RepositoryForEmTest;
+import com.daagn.clonestudy.post.domain.PostRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;

@@ -1,5 +1,6 @@
-package com.daagn.clonestudy;
+package com.daagn.clonestudy.post.domain;
 
+import com.daagn.clonestudy.member.domain.Member;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
