@@ -15,7 +15,7 @@ public class Image {
     @Column(name = "image_id")
     private Long id;
     private String url;
-    private int order;
+    private int sequence;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "post_id")

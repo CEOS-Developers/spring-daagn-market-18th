@@ -16,6 +16,7 @@ public class Purchase {
     @Column(name = "purchase_id")
     private Long id;
 
-    @OneToOne(mappedBy = "purchase")
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "post_id")
     private Post post;
 }
