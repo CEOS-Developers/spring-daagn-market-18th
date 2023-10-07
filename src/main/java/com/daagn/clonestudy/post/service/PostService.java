@@ -17,6 +17,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.crossstore.ChangeSetPersister.NotFoundException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -39,7 +40,7 @@ public class PostService {
 
     for(MultipartFile image: images){
       if(image != null && image.isEmpty()){
-        // 우선 로컬에 저
+        // 우선 로컬에 저장
         String fullPath = localImagePath + image.getOriginalFilename();
         image.transferTo(new File(fullPath));
 
@@ -51,6 +52,7 @@ public class PostService {
         PostImage saved = postImageRepository.save(postImage);
       }
     }
+
     return PostResponse.fromEntity(post);
   }
 
@@ -76,6 +78,11 @@ public class PostService {
     }
 
     return responses;
+  }
+
+  public PostResponse detail(Long postId) throws Exception {
+    Post post = postRepository.findById(postId).orElseThrow(()->new NotFoundException());
+    return PostResponse.fromEntity(post);
   }
 
 }
