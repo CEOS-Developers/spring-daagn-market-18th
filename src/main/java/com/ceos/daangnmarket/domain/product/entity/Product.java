@@ -6,6 +6,7 @@ import com.ceos.daangnmarket.domain.user.entity.User;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -41,5 +42,19 @@ public class Product extends BaseEntity {
   private String description;
 
   private LocalDateTime refreshedAt;
+
+  @Builder
+  public Product(Long id, User user, EmdArea emdArea, Category category, String title, String status, Integer sellPrice, Integer viewCount, String description, LocalDateTime refreshedAt) {
+    this.id = id;
+    this.user = user;
+    this.emdArea = emdArea;
+    this.category = category;
+    this.title = title;
+    this.status = status;
+    this.sellPrice = sellPrice;
+    this.viewCount = viewCount;
+    this.description = description;
+    this.refreshedAt = refreshedAt;
+  }
 
 }
