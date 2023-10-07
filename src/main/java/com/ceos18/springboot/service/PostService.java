@@ -26,7 +26,7 @@ public class PostService {
 	private final PostRepository postRepository;
 	private final CategoryRepository categoryRepository;
 	private final MemberRepository memberRepository;
-	private final ModelMapper modelMapper;
+//	private final ModelMapper modelMapper;
 
 	/**
 	 * 게시글 등록
