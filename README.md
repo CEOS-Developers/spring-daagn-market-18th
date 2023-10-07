@@ -191,3 +191,242 @@ test가 잘 안돌아가서 왜 그런가 했더니 application.yml 의 ddl-auto
 - notNull의 표기법 (@NotNull vs @Column(nullable = false) 둘 중에 뭐 써야되는건지 헷갈려서 찾아보니까 @NotNull 쓰는 게 좋다고는 하는데 곧 사라질 어노테이션이라고 경고떠서 뭐지 싶었다)
 
 파이팅 🤣
+
+---
+# 💙 CEOS 18th Backend Study 3주차 💙
+
+> POST 모델 선택해서 api 만들기
+
+## ⭐ 수정사항
+- BaseEntity 활용하기
+- JAVA CamelCase, SQL snake_case 적용
+- erd SQL TYPE 에 맞춰서 수정 & 구조 변경
+
+## 1️⃣새로운 데이터를 create하도록 요청하는 API 만들기
+
+- **URL**:`danggun/posts`
+- **Method**:`POST`
+- **Body**:`{
+"title": "제목",
+"price": 2000,
+"content": "내용",
+"status": "판매중"
+"category": "도서"
+"user": 1
+  }
+
+## 2️⃣모든 데이터를 가져오는 API 만들기
+
+- **URL**:`danggun/posts`
+- **Method**:`GET`
+
+## 3️⃣ 특정 데이터를 가져오는 API 만들기
+
+- **URL**:`danggun/posts/<int:pk>`
+- **Method**:`GET`
+
+## 4️⃣ 특정 데이터를 삭제 또는 업데이트하는 API
+
+### [삭제]
+- **URL**:`danggun/posts/<int:pk>`
+- **Method**:`DELETE`
+
+## ⭐ Dto 계층
+
+### DTO 클래스에서 Request와 Response로 구분하는 이유
+
+- requestDTO를 사용하는 이유
+1. @RequestParam으로 데이터를 일일이 받을 필요 없이 객체 하나로 한꺼번에 받을 수 있다.
+2. Bean Validation, Contoller에서 검증 기능을 분리할 수 있다.
+3. 엔티티 내부를 캡슐화할 수 있다. (엔티티의 값이 변경되지 않도록 한다)
+
+
+- responseDTO를 사용하는 이유
+1. 넘겨줄 필요가 없는 데이터를 보내지 않을 수 있다. (화면에 꼭 필요한 데이터만 보내줄 수 있다)
+2. 순환참조를 예방할 수 있다.
+3. 엔티티 내부를 캡슐화할 수 있다.
+
+- PostRequestDto
+```java
+@NoArgsConstructor
+@Getter
+public class PostRequestDto {
+
+    private String title;
+    private Long price;
+    private String content;
+    private PostStatus status;
+    private PostCategory category;
+    private User user;
+    private List<PostImg> projectImages = new ArrayList<>();
+
+    @Builder
+    public PostRequestDto(String title, Long price, String content, PostStatus status, PostCategory category, User user, List<PostImg> projectImages) {
+        this.title = title;
+        this.price = price;
+        this.content = content;
+        this.status = status;
+        this.category = category;
+        this.user = user;
+        this.projectImages = projectImages;
+    }
+
+    public Post toEntity() {
+        return Post.builder()
+                .title(title)
+                .price(price)
+                .content(content)
+                .status(status)
+                .category(category)
+                .user(user)
+                .projectImages(projectImages)
+                .build();
+    }
+}
+```
+- PostResponseDto
+```java
+@Getter
+@NoArgsConstructor
+public class PostResponseDto {
+
+    private Long id;
+    private String title;
+    private Long price;
+    private String content;
+    private PostStatus status;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+    private PostCategory category;
+    private User user;
+    private List<PostImg> projectImages = new ArrayList<>();
+
+    @Builder // Entity to Dto
+    public PostResponseDto(Long id, String title, Long price, String content, PostStatus status, LocalDateTime createdAt, LocalDateTime updatedAt, PostCategory category, User user, List<PostImg> projectImages) {
+        this.id = id;
+        this.title = title;
+        this.price = price;
+        this.content = content;
+        this.status = status;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+        this.category = category;
+        this.user = user;
+        this.projectImages = projectImages;
+    }
+
+    public static PostResponseDto from(Post post){
+        return PostResponseDto.builder()
+                .id(post.getId())
+                .title(post.getTitle())
+                .price(post.getPrice())
+                .content(post.getContent())
+                .status(post.getStatus())
+                .createdAt(post.getCreatedAt())
+                .updatedAt(post.getUpdatedAt())
+                .category(post.getCategory())
+                .user(post.getUser())
+                .projectImages(post.getProjectImages())
+                .build();
+
+    }
+}
+
+```
+## ⭐ Service 계층
+- PostService 인터페이스
+```java
+public interface PostService {
+    void createPost(PostRequestDto postRequestDto);
+
+    List<PostResponseDto> getAllPosts();
+
+    PostResponseDto getPost(Long id);
+
+    void deletePost(Long id);
+}
+
+```
+- PostServiceImpl
+```java
+@Service
+@RequiredArgsConstructor
+public class PostServiceImpl implements PostService {
+
+    private final PostRepository postRepository;
+    private final PostImgRepository postImgRepository;
+    private final PostCategoryRepository postCategoryRepository;
+
+    @Override
+    @Transactional
+    public void createPost(PostRequestDto postRequestDto) {
+        Post post = postRequestDto.toEntity();
+        postRepository.save(post);
+    }
+
+    @Override
+    @Transactional
+    public List<PostResponseDto> getAllPosts() {
+        List<Post> postList = postRepository.findAll();
+        return postList.stream().map(PostResponseDto::from).toList();
+    }
+
+    @Override
+    @Transactional
+    public PostResponseDto getPost(Long id) {
+            return PostResponseDto.from(postRepository.findById(id)
+                    .orElseThrow(PostNotFoundException::new));
+    }
+
+    @Override
+    @Transactional
+    public void deletePost(Long id) {
+        Post post = postRepository.findById(id)
+                .orElseThrow(PostNotFoundException::new);
+        postRepository.delete(post);
+    }
+}
+```
+
+## ⭐ Controller 계층
+- PostController
+```java
+@Slf4j
+@RestController
+@RequiredArgsConstructor
+@RequestMapping(value = "danggun/posts")
+public class PostController {
+
+    private final PostService postService;
+    //@RequiredArgsConstructor를 사용했기 때문에 의존성이 자동 주입된다
+
+    @PostMapping
+    public ResponseEntity<Long> createPost(@RequestBody @Valid PostRequestDto postRequestDto) {
+        log.info("상품 게시글 생성하기");
+        postService.createPost(postRequestDto);
+        return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+
+    @GetMapping
+    public ResponseEntity<List<PostResponseDto>> getAllPosts() {
+        log.info("모든 상품 게시글 조회하기");
+        List<PostResponseDto> PostResponseList = postService.getAllPosts();
+        return ResponseEntity.ok(PostResponseList);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<PostResponseDto> getPost(@PathVariable Long id) {
+        log.info("상품 게시글 상세 조회하기");
+        PostResponseDto postResponse = postService.getPost(id);
+        return ResponseEntity.ok(postResponse);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deletePost(@PathVariable Long id) {
+        log.info("상품 게시글 삭제하기");
+        postService.deletePost(id);
+        return ResponseEntity.ok().build();
+    }
+
+}
+```

@@ -19,7 +19,7 @@ import java.util.List;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
-@RequestMapping(value = "/posts")
+@RequestMapping(value = "danggun/posts")
 public class PostController {
 
     private final PostService postService;
