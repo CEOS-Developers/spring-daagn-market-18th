@@ -53,6 +53,60 @@
   }
 ```
 
+## CRUD API
+1. 게시글 생성 API ```/api/product```
+    - Service
+    ```java
+    public Product postProduct(PostProductRequest postProductRequest, Long userId){
+      User user = userRepository.findById(userId).orElseThrow();
+      EmdArea emdArea = emdAreaRepository.findById(postProductRequest.getAreaId()).orElseThrow();
+      Category category = categoryRepository.findById(postProductRequest.getCategoryId()).orElseThrow();
+    
+      Product createdProduct = productRepository.save(
+      Product.builder()
+      .user(user)
+      .emdArea(emdArea)
+      .category(category)
+      .title(postProductRequest.getTitle())
+      .status(postProductRequest.getStatus())
+      .sellPrice(postProductRequest.getSellPrice())
+      .viewCount(0)
+      .description(postProductRequest.getDescription())
+      .build()
+      );
+    
+      return createdProduct;
+    }
+    ```
+
+2. 게시글 전체 조회 API ```/api/product```
+    - Service
+    ```java
+    public List<Product> getAllProduct(){
+      return productRepository.findAll();
+    }
+    
+    ```
+3. 게시글 개별 조회 API ```/api/product/{productId}```
+    - Service
+    ```java
+    public Product getProductById(Long productId){
+      return productRepository.findById(productId).orElseThrow();
+    }
+    ```
+4. 게시글 삭제 API ```/api/product/{productId}```
+    - Service
+    ```java
+    @Transactional
+    public String deleteProduct(Long productId){
+        Product product = productRepository.findById(productId).orElseThrow();
+    
+        productRepository.delete(product);
+    
+        return "Product #"+productId+" deleted successfully";
+    }
+    ```
+
 ## 후기
 - 아직 repository test에서 오류가 발생하고 있어, 빠른 시일 내에 해결을 하고 싶습니다... 흔히 나오는 해결 방법이었던 setting 설정 변경으로는 해결되지 않더라고요...
 ![image](https://github.com/gmkim20713/daangn-market/assets/68195241/22d888a8-a402-42bd-a893-baeb9e4ec96c)
