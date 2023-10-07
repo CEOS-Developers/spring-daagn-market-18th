@@ -11,7 +11,8 @@
 
 
 ### 📒 목차
-[2주차 | DB 모델링과 JPA](#2주차-미션-주제) <br><br>
+[2주차 | DB 모델링과 JPA](#2주차-미션-주제) <br>
+[3주차 | CRUD API](#3주차-미션-주제) <br><br>
 
 ### 2주차 미션 주제
 ### 당근 마켓의 DB를 모델링한다 🥕
@@ -285,3 +286,51 @@ class PostRepositoryTest {
 #### ✦ 느낀 점 및 배운 점<br>
 레포지토리 계층 테스트는 처음 해보아서 실행 결과를 보고 스프링 컨테이너가 올라가는 줄 알았으나, @DataJpaTest는 JPA 관련 요소들만 읽어서 spring context를 만든다는 것을 알게 되었다. 앞으로 Data Jpa 메서드를 쿼리문을 직접 작성하는 등 커스텀 한다면 레포지토리 계층 테스트부터 차근차근 진행해야겠다.<br>
 추가 과제 질문들에 대한 답을 찾아보면서 프록시가 스프링에서 어떻게 사용되는지 실제 코드를 바탕으로 이해할 수 있었다. 그저 받아들이면서 공부를 끝내지 않을 수 있었고 미처 생각치 못한 의문을 해결할 수 있었다.
+<br><br><br>
+
+<div align="center">
+
+### 3주차 미션 주제
+### CRUD API 만들기
+
+</div>
+
+#### ✦ API 문서<br>
+
+- <b>게시글을 생성한다.</b>
+1. Request URL<br>
+`POST` `/post` <br><br>
+2. Request Parameter
+```java
+@RequestPart final PostCreateRequest request
+@RequestPart List<MultipartFile> images
+``` 
+
+- <b>게시글 목록을 조회한다.</b>
+1. Request URL<br>
+`GET` `/post` <br><br>
+2. Request Parameter
+```java
+@RequestParam(value = "last-post-id", required = false) Long lastId // 무한 스크롤 방식
+@RequestParam int size
+``` 
+
+- <b>게시글을 조회한다.</b>
+1. Request URL<br>
+`GET` `/post/{post-id}` <br><br>
+2. Request Parameter
+```java
+@PathVariable Long postId
+```
+
+- <b>게시글을 삭제한다.</b>
+1. Request URL<br>
+   `DELETE` `/post/{post-id}` <br><br>
+2. Request Parameter
+```java
+@PathVariable Long postId
+```
+
+#### ✦ 테스트 방식<br>
+- DatabaseCleaner: 각 테스트 시 데이터베이스와 영속성 컨텍스트를 지운다.<br>
+- SpringBootTest: 의존적인 레포지토리의 기능을 모두 사용하기 위해 스프링부트테스트로 진행하였다.
