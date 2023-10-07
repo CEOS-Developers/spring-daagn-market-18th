@@ -27,21 +27,21 @@ public class PostResponseDto {
     private Long price;
     private String content;
     private PostStatus status;
-    private LocalDateTime created_at;
-    private LocalDateTime updated_at;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
     private PostCategory category;
     private User user;
     private List<PostImg> projectImages = new ArrayList<>();
 
     @Builder // Entity to Dto
-    public PostResponseDto(Long id, String title, Long price, String content, PostStatus status, LocalDateTime created_at, LocalDateTime updated_at, PostCategory category, User user, List<PostImg> projectImages) {
+    public PostResponseDto(Long id, String title, Long price, String content, PostStatus status, LocalDateTime createdAt, LocalDateTime updatedAt, PostCategory category, User user, List<PostImg> projectImages) {
         this.id = id;
         this.title = title;
         this.price = price;
         this.content = content;
         this.status = status;
-        this.created_at = created_at;
-        this.updated_at = updated_at;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
         this.category = category;
         this.user = user;
         this.projectImages = projectImages;
@@ -54,8 +54,8 @@ public class PostResponseDto {
                 .price(post.getPrice())
                 .content(post.getContent())
                 .status(post.getStatus())
-                .created_at(post.getCreated_at())
-                .updated_at(post.getUpdated_at())
+                .createdAt(post.getCreatedAt())
+                .updatedAt(post.getUpdatedAt())
                 .category(post.getCategory())
                 .user(post.getUser())
                 .projectImages(post.getProjectImages())

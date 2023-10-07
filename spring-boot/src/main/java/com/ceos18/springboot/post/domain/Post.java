@@ -1,5 +1,6 @@
 package com.ceos18.springboot.post.domain;
 
+import com.ceos18.springboot.global.common.entity.BaseEntity;
 import com.ceos18.springboot.member.domain.User;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
@@ -22,7 +23,7 @@ import java.util.List;
 @Builder
 @Getter
 @EntityListeners(AuditingEntityListener.class)
-public class Post {
+public class Post extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "post_id")
@@ -40,12 +41,6 @@ public class Post {
     @NotNull
     @Enumerated(EnumType.STRING)
     private PostStatus status;
-
-    @CreatedDate
-    private LocalDateTime created_at;
-
-    @LastModifiedDate
-    private LocalDateTime updated_at;
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id", nullable = false)

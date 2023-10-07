@@ -1,5 +1,6 @@
 package com.ceos18.springboot.chat.domain;
 
+import com.ceos18.springboot.global.common.entity.BaseEntity;
 import com.ceos18.springboot.member.domain.User;
 import com.ceos18.springboot.post.domain.Post;
 import jakarta.persistence.*;
@@ -20,18 +21,11 @@ import java.time.LocalDateTime;
 @Builder
 @Getter
 @EntityListeners(AuditingEntityListener.class)
-public class ChatRoom {
+public class ChatRoom extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "chatroom_id")
     private Long id;
-
-    @CreatedDate
-    private LocalDateTime created_at;
-
-    @LastModifiedDate
-    private LocalDateTime updated_at;
-
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "post_id", nullable = false)

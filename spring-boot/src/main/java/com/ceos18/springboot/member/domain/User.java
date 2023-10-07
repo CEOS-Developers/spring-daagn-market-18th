@@ -1,5 +1,6 @@
 package com.ceos18.springboot.member.domain;
 
+import com.ceos18.springboot.global.common.entity.BaseEntity;
 import com.ceos18.springboot.town.domain.Town;
 import jakarta.persistence.*;
 import lombok.*;
@@ -17,7 +18,7 @@ import java.time.LocalDateTime;
 @Builder
 @Getter
 @EntityListeners(AuditingEntityListener.class)
-public class User {
+public class User extends BaseEntity {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "user_id")
@@ -45,12 +46,6 @@ public class User {
     @NotNull
     @ColumnDefault("36.5")
     private Double temperature;
-
-    @CreatedDate
-    private LocalDateTime created_at;
-
-    @LastModifiedDate
-    private LocalDateTime updated_at;
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "town_id", nullable = false)
