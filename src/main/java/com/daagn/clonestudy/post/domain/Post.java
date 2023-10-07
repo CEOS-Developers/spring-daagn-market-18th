@@ -1,5 +1,6 @@
 package com.daagn.clonestudy.post.domain;
 
+import com.daagn.clonestudy.common.BaseTimeEntity;
 import com.daagn.clonestudy.member.domain.Member;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -20,7 +21,7 @@ import org.hibernate.annotations.OnDeleteAction;
 @Entity
 @NoArgsConstructor
 @Getter
-public class Post {
+public class Post extends BaseTimeEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
