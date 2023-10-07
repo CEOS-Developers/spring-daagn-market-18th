@@ -392,8 +392,14 @@ public class Member extends BaseEntity {
     }
 }
 ```
-#### ❓member 도메인에서 NoArgsConstructor(access = AccessLevel.PROTECTED)을 사용한 이유?
+#### ❓member 도메인에서 NoArgsConstructor(access = AccessLevel.PROTECTED)을 사용하는 이유?
 기본 생성자의 접근 제어자를 public으로 해둘 경우, member 도메인이 가지고 있어야 할 정보가 제대로 들어있지 않은 채 무분별하게 객체가 생성될 수 있다. AccessLevel.PROTECTED를 설정해놓게 되면 무분별한 객체 생성에 대해 한 번 더 체크할 수 있는 수단이 된다.
+
+#### ❓Builder를 사용하는 이유?
+- 필요한 데이터만 가지고 객체를 생성할 수 있다.
+- 유연성을 확보할 수 있다. (ex. 새롭게 추가되는 변수가 있어도 기존의 코드에 영향을 주지 않는다.)
+- 직관적으로 데이터를 파악할 수 있으므로 가독성을 높일 수 있다.
+- 불변성을 확보할 수 있다.
 
 ### 📌application
 1️⃣ member 엔티티 관련 비즈니스 로직에 대한 service 인터페이스
