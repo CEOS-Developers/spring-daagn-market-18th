@@ -315,7 +315,7 @@ public class PostRepositoryTest {
 
 # 프로젝트 패키지 구조
 
-![Untitled](ceos%20%E1%84%89%E1%85%B3%E1%84%91%E1%85%B3%E1%84%85%E1%85%B5%E1%86%BC%202%E1%84%8C%E1%85%AE%E1%84%8E%E1%85%A1%20%E1%84%86%E1%85%B5%E1%84%89%E1%85%A7%E1%86%AB%20547efe6903f847a2a7c3c9ea4e71d873/Untitled%2017.png)
+![Untitled 17](https://github.com/CEOS-Developers/spring-daagn-market-18th/assets/48885608/6dc9be1f-9b94-4e58-953f-0ec5d8de0224)
 
 Post (게시글) 도메인에 대해 CRUD 를 만들어봅시다.
 
@@ -447,15 +447,15 @@ public class InitDb {
 
 Category 와 Member 하나씩을 save 해줍니다.
 
-![Untitled](ceos%20%E1%84%89%E1%85%B3%E1%84%91%E1%85%B3%E1%84%85%E1%85%B5%E1%86%BC%202%E1%84%8C%E1%85%AE%E1%84%8E%E1%85%A1%20%E1%84%86%E1%85%B5%E1%84%89%E1%85%A7%E1%86%AB%20547efe6903f847a2a7c3c9ea4e71d873/Untitled%2018.png)
+![Untitled 18](https://github.com/CEOS-Developers/spring-daagn-market-18th/assets/48885608/7fd61359-0a75-4713-be2b-19d424d6dbde)
 
-![Untitled](ceos%20%E1%84%89%E1%85%B3%E1%84%91%E1%85%B3%E1%84%85%E1%85%B5%E1%86%BC%202%E1%84%8C%E1%85%AE%E1%84%8E%E1%85%A1%20%E1%84%86%E1%85%B5%E1%84%89%E1%85%A7%E1%86%AB%20547efe6903f847a2a7c3c9ea4e71d873/Untitled%2019.png)
+![Untitled 19](https://github.com/CEOS-Developers/spring-daagn-market-18th/assets/48885608/17955e5a-aac5-4f2e-b0f0-91a249b45af4)
 
 
 
 # API 설계
 
-![Untitled](ceos%20%E1%84%89%E1%85%B3%E1%84%91%E1%85%B3%E1%84%85%E1%85%B5%E1%86%BC%202%E1%84%8C%E1%85%AE%E1%84%8E%E1%85%A1%20%E1%84%86%E1%85%B5%E1%84%89%E1%85%A7%E1%86%AB%20547efe6903f847a2a7c3c9ea4e71d873/Untitled%2020.png)
+![Untitled 20](https://github.com/CEOS-Developers/spring-daagn-market-18th/assets/48885608/c3309bb8-b973-46ae-b252-916161fb0ea3)
 
 ## post 생성
 
@@ -946,17 +946,18 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 
 ## post 생성
 
-![Untitled](ceos%20%E1%84%89%E1%85%B3%E1%84%91%E1%85%B3%E1%84%85%E1%85%B5%E1%86%BC%202%E1%84%8C%E1%85%AE%E1%84%8E%E1%85%A1%20%E1%84%86%E1%85%B5%E1%84%89%E1%85%A7%E1%86%AB%20547efe6903f847a2a7c3c9ea4e71d873/Untitled%2021.png)
+![Untitled 21](https://github.com/CEOS-Developers/spring-daagn-market-18th/assets/48885608/b401da9d-0056-4af1-a915-2af86374ff5b)
 
-![Untitled](ceos%20%E1%84%89%E1%85%B3%E1%84%91%E1%85%B3%E1%84%85%E1%85%B5%E1%86%BC%202%E1%84%8C%E1%85%AE%E1%84%8E%E1%85%A1%20%E1%84%86%E1%85%B5%E1%84%89%E1%85%A7%E1%86%AB%20547efe6903f847a2a7c3c9ea4e71d873/Untitled%2022.png)
+![Untitled 22](https://github.com/CEOS-Developers/spring-daagn-market-18th/assets/48885608/609e384e-ae02-4362-bcfa-4cc636e25235)
 
-![Untitled](ceos%20%E1%84%89%E1%85%B3%E1%84%91%E1%85%B3%E1%84%85%E1%85%B5%E1%86%BC%202%E1%84%8C%E1%85%AE%E1%84%8E%E1%85%A1%20%E1%84%86%E1%85%B5%E1%84%89%E1%85%A7%E1%86%AB%20547efe6903f847a2a7c3c9ea4e71d873/Untitled%2023.png)
+![Untitled 23](https://github.com/CEOS-Developers/spring-daagn-market-18th/assets/48885608/dc4fa73f-539f-42c1-aabb-f8e9274caa97)
 
 ## post 전체 조회
 
-![Untitled](ceos%20%E1%84%89%E1%85%B3%E1%84%91%E1%85%B3%E1%84%85%E1%85%B5%E1%86%BC%202%E1%84%8C%E1%85%AE%E1%84%8E%E1%85%A1%20%E1%84%86%E1%85%B5%E1%84%89%E1%85%A7%E1%86%AB%20547efe6903f847a2a7c3c9ea4e71d873/Untitled%2024.png)
 
-![Untitled](ceos%20%E1%84%89%E1%85%B3%E1%84%91%E1%85%B3%E1%84%85%E1%85%B5%E1%86%BC%202%E1%84%8C%E1%85%AE%E1%84%8E%E1%85%A1%20%E1%84%86%E1%85%B5%E1%84%89%E1%85%A7%E1%86%AB%20547efe6903f847a2a7c3c9ea4e71d873/Untitled%2025.png)
+![Untitled 24](https://github.com/CEOS-Developers/spring-daagn-market-18th/assets/48885608/3ed57c5e-0155-4e67-af40-e760ae665105)
+
+![Untitled 25](https://github.com/CEOS-Developers/spring-daagn-market-18th/assets/48885608/89914ad4-da64-483c-8136-928116c6ae1c)
 
 ```java
 [
@@ -1007,23 +1008,23 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 
 ## post 단건 조회
 
-![Untitled](ceos%20%E1%84%89%E1%85%B3%E1%84%91%E1%85%B3%E1%84%85%E1%85%B5%E1%86%BC%202%E1%84%8C%E1%85%AE%E1%84%8E%E1%85%A1%20%E1%84%86%E1%85%B5%E1%84%89%E1%85%A7%E1%86%AB%20547efe6903f847a2a7c3c9ea4e71d873/Untitled%2026.png)
+![Untitled 26](https://github.com/CEOS-Developers/spring-daagn-market-18th/assets/48885608/dbb1132d-0a1a-4856-8e27-b132e3110182)
 
-![Untitled](ceos%20%E1%84%89%E1%85%B3%E1%84%91%E1%85%B3%E1%84%85%E1%85%B5%E1%86%BC%202%E1%84%8C%E1%85%AE%E1%84%8E%E1%85%A1%20%E1%84%86%E1%85%B5%E1%84%89%E1%85%A7%E1%86%AB%20547efe6903f847a2a7c3c9ea4e71d873/Untitled%2027.png)
+![Untitled 27](https://github.com/CEOS-Developers/spring-daagn-market-18th/assets/48885608/57804ff0-8c12-4f63-b158-fc4d93069102)
 
 ## post 수정
 
-![Untitled](ceos%20%E1%84%89%E1%85%B3%E1%84%91%E1%85%B3%E1%84%85%E1%85%B5%E1%86%BC%202%E1%84%8C%E1%85%AE%E1%84%8E%E1%85%A1%20%E1%84%86%E1%85%B5%E1%84%89%E1%85%A7%E1%86%AB%20547efe6903f847a2a7c3c9ea4e71d873/Untitled%2028.png)
+![Untitled 28](https://github.com/CEOS-Developers/spring-daagn-market-18th/assets/48885608/d2f735c8-dc8d-4e48-a57c-dfd6fdbbc809)
 
 title 을 수정해보겠습니다
 
-![Untitled](ceos%20%E1%84%89%E1%85%B3%E1%84%91%E1%85%B3%E1%84%85%E1%85%B5%E1%86%BC%202%E1%84%8C%E1%85%AE%E1%84%8E%E1%85%A1%20%E1%84%86%E1%85%B5%E1%84%89%E1%85%A7%E1%86%AB%20547efe6903f847a2a7c3c9ea4e71d873/Untitled%2029.png)
+![Untitled 29](https://github.com/CEOS-Developers/spring-daagn-market-18th/assets/48885608/81abe3ec-736d-4b34-a1b7-ff8afdbe72e6)
 
 ## post 삭제
 
-![Untitled](ceos%20%E1%84%89%E1%85%B3%E1%84%91%E1%85%B3%E1%84%85%E1%85%B5%E1%86%BC%202%E1%84%8C%E1%85%AE%E1%84%8E%E1%85%A1%20%E1%84%86%E1%85%B5%E1%84%89%E1%85%A7%E1%86%AB%20547efe6903f847a2a7c3c9ea4e71d873/Untitled%2030.png)
+![Untitled 30](https://github.com/CEOS-Developers/spring-daagn-market-18th/assets/48885608/ebe110fc-19aa-4fad-b689-965d6ae4c4a8)
 
-![Untitled](ceos%20%E1%84%89%E1%85%B3%E1%84%91%E1%85%B3%E1%84%85%E1%85%B5%E1%86%BC%202%E1%84%8C%E1%85%AE%E1%84%8E%E1%85%A1%20%E1%84%86%E1%85%B5%E1%84%89%E1%85%A7%E1%86%AB%20547efe6903f847a2a7c3c9ea4e71d873/Untitled%2031.png)
+![Untitled 31](https://github.com/CEOS-Developers/spring-daagn-market-18th/assets/48885608/776af15d-7ea7-408f-b47d-a2a951e14b0f)
 
 ---
 
