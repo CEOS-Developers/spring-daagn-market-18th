@@ -340,9 +340,11 @@ Hibernate:
 -----
 ## 🥕구현 내용 및 추가 설명 (선택 모델 member)
 ### 📌domain
-- 회원 엔티티가 가지고 있어야 할 정보
-- member builder
-- 계정 활성화 여부를 나타내는 acivated 값을 false로 변경하는 메서드
+1️⃣ 회원 엔티티가 가지고 있어야 할 정보
+
+2️⃣ member builder
+
+3️⃣ 계정 활성화 여부를 나타내는 acivated 값을 false로 변경하는 메서드
 ```java
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
@@ -394,8 +396,9 @@ public class Member extends BaseEntity {
 기본 생성자의 접근 제어자를 public으로 해둘 경우, member 도메인이 가지고 있어야 할 정보가 제대로 들어있지 않은 채 무분별하게 객체가 생성될 수 있다. AccessLevel.PROTECTED를 설정해놓게 되면 무분별한 객체 생성에 대해 한 번 더 체크할 수 있는 수단이 된다.
 
 ### 📌application
-- member 엔티티 관련 비즈니스 로직에 대한 service 인터페이스
-- service 인터페이스를 구현한 serviceImpl
+1️⃣ member 엔티티 관련 비즈니스 로직에 대한 service 인터페이스
+
+2️⃣ service 인터페이스를 구현한 serviceImpl
 ```java
 @Service
 @Transactional(readOnly = true)
@@ -463,7 +466,7 @@ public class MemberServiceImpl implements MemberService {
 member는 엔티티 중 가장 중요하다고 볼 수 있는 정보이기 때문에 안전한 데이터 관리를 위해 soft delete를 사용하였다.
 
 ### 📌exception
-- 조회하고자 하는 회원 정보가 respository에 존재하지 않을 경우 발생하는 MemberNotFoundException
+1️⃣ 조회하고자 하는 회원 정보가 respository에 존재하지 않을 경우 발생하는 MemberNotFoundException
 ```java
 public class MemberNotFoundException extends RuntimeException {
 
@@ -480,7 +483,7 @@ public class MemberNotFoundException extends RuntimeException {
 추후 exceptionController에서 관련 로그를 찍게 되는데, 어떤 잘못된 id 값으로 엔티티 조회가 요청된 것인지 정확한 로그 내용의 출력을 위해 id 값을 인자로 받는다.
 
 ### 📌presentation
-- 클라이언트로부터 member 엔티티 생성/조회/삭제 요청을 받아 처리하는 controller
+1️⃣ 클라이언트로부터 member 엔티티 생성/조회/삭제 요청을 받아 처리하는 controller
 ```java
 @RestController
 @RequestMapping("/api/member")
@@ -525,7 +528,7 @@ public class MemberController {
 #### ❓createMember에서 status code 201 Created 반환
 201 Created는 요청이 성공적으로 처리되어서 리소스가 만들어졌음을 의미하는 상태 코드이다. 200 OK보다 member 엔티티 생성이라는 요청에 사용하기에 적합하다고 생각하였다.
 
-- member 관련 Custom Exception을 처리하는 exception controller
+2️⃣ member 관련 Custom Exception을 처리하는 exception controller
 ```java
 @Slf4j
 @RestControllerAdvice
@@ -544,8 +547,9 @@ public class MemberExceptionController {
 로그 레벨에는 trace, debug, info, warn, error가 있다. member 엔티티가 제대로 조회되지 않으면 더 이상의 작업이 진행될 수 없기 때문에 error 레벨로 판단하였다.
 
 ### 📌dto
-- 회원 정보 생성 요청 시 controller에서 service로 요청한 회원 정보 넘겨주는 request dto
-- 회원 정보 조회 요청 시 service에서 controller로 요청한 회원 정보 넘겨주는 response dto
+1️⃣ 회원 정보 생성 요청 시 controller에서 service로 요청한 회원 정보 넘겨주는 request dto
+
+2️⃣ 회원 정보 조회 요청 시 service에서 controller로 요청한 회원 정보 넘겨주는 response dto
 ```java
 @Getter
 public class MemberResponse {
@@ -605,7 +609,7 @@ public class MemberResponse {
 기존에는 entity -> dto, dto -> entity로 변환해주는 mapper 클래스를 따로 만들어 관리하였으나, 3주차 세션 내용을 참고하여 정적 팩토리 메서드를 사용하였다.
 
 ### 📌repository
-- member 엔티티를 저장하는 repository
+1️⃣ member 엔티티를 저장하는 repository
 ```java
 @Repository
 public interface MemberRepository extends JpaRepository<Member, Long> {
