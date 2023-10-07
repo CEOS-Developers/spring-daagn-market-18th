@@ -1,5 +1,6 @@
 package practice.daangn.user.dto;
 
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import practice.daangn.domain.User;
@@ -13,11 +14,22 @@ public class UserResponseDto {
     private String name;
     private String nickname;
 
-    public UserResponseDto(User user){
-        this.email = user.getEmail();
-        this.password = user.getPassword();
-        this.phone_number = user.getPhone_number();
-        this.name = user.getName();
-        this.nickname = user.getNickname();
+    @Builder
+    private UserResponseDto(String email, String password, String phone_number, String name, String nickname){
+        this.email = email;
+        this.password = password;
+        this.phone_number = phone_number;
+        this.name = name;
+        this.nickname = nickname;
+    }
+
+    public static UserResponseDto from(User user){
+        return UserResponseDto.builder()
+                .email(user.getEmail())
+                .password(user.getPassword())
+                .phone_number(user.getPhone_number())
+                .name(user.getName())
+                .nickname(user.getNickname())
+                .build();
     }
 }

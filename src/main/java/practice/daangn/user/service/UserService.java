@@ -30,14 +30,14 @@ public class UserService {
     public List<UserResponseDto> findAllUSer(){
         List<User> users = userRepository.findAll();
         return users.stream()
-                .map(UserResponseDto::new)
+                .map(UserResponseDto::from)
                 .collect(Collectors.toList());
     }
 
     public List<UserResponseDto> findUserByWord(String word){
         List<User> users = userRepository.findByEmailContaining(word);
         return users.stream()
-                .map(UserResponseDto::new)
+                .map(UserResponseDto::from)
                 .collect(Collectors.toList());
     }
 
