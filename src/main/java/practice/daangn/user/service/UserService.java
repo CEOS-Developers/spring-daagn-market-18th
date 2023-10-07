@@ -34,8 +34,8 @@ public class UserService {
                 .collect(Collectors.toList());
     }
 
-    public List<UserResponseDto> findUserByEmail(String email){
-        List<User> users = userRepository.findByEmailContaining(email);
+    public List<UserResponseDto> findUserByWord(String word){
+        List<User> users = userRepository.findByEmailContaining(word);
         return users.stream()
                 .map(UserResponseDto::new)
                 .collect(Collectors.toList());

@@ -26,9 +26,9 @@ public class UserController {
         return new ResponseEntity(userService.findAllUSer(), HttpStatus.OK);
     }
 
-    @GetMapping("/{email}")
-    public ResponseEntity findUserByEmail(@PathVariable String email){
-        return new ResponseEntity(userService.findUserByEmail(email), HttpStatus.OK);
+    @GetMapping("/{word}")
+    public ResponseEntity findUserByWord(@PathVariable String word){
+        return new ResponseEntity(userService.findUserByWord(word), HttpStatus.OK);
     }
 
     @DeleteMapping("/{id}")
