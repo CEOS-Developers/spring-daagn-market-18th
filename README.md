@@ -310,3 +310,313 @@ Hibernate:
         m1_0.member_id=? 
         and m1_0.town_id=?
 ```
+-----
+# 📁CEOS 18th Backend Study - 3주차 미션
+### 1️⃣ 새로운 데이터를 create하도록 요청하는 API 만들기
+
+생성 시 필요한 필드 값을 담아 보내면 해당 값을 저장하고 있는 데이터를 생성하면 됩니다!
+
+- **URL** : `api/items/`
+- **Method** : `POST`
+- **Body** : `{"필드명": 필드값, ... }`
+
+저번 모델링 과제 결과 중 **모델 한 개**를 선택해주세요 (최대한 서비스에서 중심이 되는 모델이면 좋습니다!)
+
+### 2️⃣ 모든 데이터를 가져오는 API 만들기
+
+- **URL** : `api/items/`
+- **Method** : `GET`
+
+### 3️⃣ 특정 데이터를 가져오는 API 만들기
+
+- **URL** : `api/items/<int:pk>/`
+- **Method**: `GET`
+
+### 4️⃣ 특정 데이터를 삭제 또는 업데이트하는 API 만들기
+
+- **URL** : `api/items/<int:pk>/`
+- **Method** : `DELETE`
+
+-----
+## 🥕구현 내용 및 추가 설명 (선택 모델 member)
+### 📌domain
+- 회원 엔티티가 가지고 있어야 할 정보
+- member builder
+- 계정 활성화 여부를 나타내는 acivated 값을 false로 변경하는 메서드
+```java
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Getter
+@Entity
+public class Member extends BaseEntity {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "member_id")
+    private Long id;
+
+    @Column(nullable = false)
+    private String password;
+
+    @Column(nullable = false)
+    private String nickname;
+
+    @Column(nullable = false)
+    private String phone;
+
+    @Column(nullable = false)
+    private Double temperature;
+
+    private String email;
+
+    @Column(name = "image_url")
+    private String imageUrl;
+
+    @Column(nullable = false)
+    private Boolean activated;
+
+    @Builder
+    public Member(String password, String nickname, String phone, String email, String imageUrl) {
+        this.password = password;
+        this.nickname = nickname;
+        this.phone = phone;
+        this.temperature = 36.5;
+        this.email = email;
+        this.imageUrl = imageUrl;
+        this.activated = true;
+    }
+
+    public void updateActivatedFalse() {
+        this.activated = false;
+    }
+}
+```
+#### ❓member 도메인에서 NoArgsConstructor(access = AccessLevel.PROTECTED)을 사용한 이유?
+기본 생성자의 접근 제어자를 public으로 해둘 경우, member 도메인이 가지고 있어야 할 정보가 제대로 들어있지 않은 채 무분별하게 객체가 생성될 수 있다. AccessLevel.PROTECTED를 설정해놓게 되면 무분별한 객체 생성에 대해 한 번 더 체크할 수 있는 수단이 된다.
+
+### 📌application
+- member 엔티티 관련 비즈니스 로직에 대한 service 인터페이스
+- service 인터페이스를 구현한 serviceImpl
+```java
+@Service
+@Transactional(readOnly = true)
+@RequiredArgsConstructor
+public class MemberServiceImpl implements MemberService {
+
+    private final MemberRepository memberRepository;
+
+    @Transactional
+    public void createMember(MemberRequest memberRequest) {
+
+        Member member = memberRequest.toEntity();
+
+        memberRepository.save(member);
+    }
+
+    public List<MemberResponse> getAllMembers() {
+
+        List<Member> memberList = memberRepository.findAllByActivated(true);
+        if (memberList.isEmpty()) {
+            throw new MemberNotFoundException();
+        }
+
+        List<MemberResponse> memberResponseList = memberList.stream()
+                .map(MemberResponse::fromEntity)
+                .collect(Collectors.toList());
+
+        return memberResponseList;
+    }
+
+    public MemberResponse getMember(Long id) {
+
+        Member member = memberRepository.findByIdAndActivated(id, true)
+                .orElseThrow(() -> new MemberNotFoundException(id));
+
+        return MemberResponse.fromEntity(member);
+    }
+
+    @Transactional
+    public void deleteMember(Long id) {
+
+        Member member = memberRepository.findByIdAndActivated(id, true)
+                .orElseThrow(() -> new MemberNotFoundException(id));
+
+        member.updateActivatedFalse();
+    }
+}
+```
+#### ❓Transactional(readOnly = true)를 사용하는 이유?
+조회용 메서드에 readOnly = true를 적용하게 되면 가독성 뿐만 아니라 영속성 컨텍스트와 관련한 성능상의 이점도 존재한다.
+
+영속성 컨텍스트는 entity 조회 시 초기 상태에 대한 snapshot을 저장했다가 트랜잭션의 commit이 이루어질 때, snapshot과 현재 entity의 상태를 비교한다. 이때, 변경된 내용이 있다면 개발자가 update 메서드를 호출하지 않아도 update query를 생성하여 쓰기 지연 저장소에 두었다가, 일괄적으로 flush하여 DB에 반영한다. 이것을 변경 감지(Dirty Checking)이라고 한다.
+
+그러나 만약 readOnly = true를 설정하게 되면 JPA는 해당 트랜잭션 내에서 조회하는 entity는 조회용임을 인식하고, 변경 감지를 위한 snapshot을 따로 보관하지 않아 메모리가 절약된다.
+
+또한, readOnly = true로 설정되면 트랜잭션 내에서 수동으로 flush를 호출하지 않으면 flush는 자동으로 수행되지 않는다. 따라서 조회용 entity의 예상치 못한 수정을 방지할 수 있다.
+
+이외에도 트래픽 분산을 위해 Master-Slave 구조로 복제본 DB를 함께 운용하면 조회 작업은 Slave DB에서 수행하고 수정 작업은 Master DB에서 수행하도록 하는데, readOnly = true면 Slave DB에서 데이터를 가져오도록 동작하기 때문에 트래픽 분산의 목적을 온전히 달성할 수 있다.
+
+#### ❓deleteMember에서 soft delete 사용
+데이터베이스에서 데이터를 삭제하는 방법에는 물리삭제(hard delete)와 논리삭제(soft delete)가 있다.
+- 물리 삭제 : SQL의 DELETE 명령어를 사용하여 데이터를 완전히 삭제하는 방법
+- 논리 삭제 : SQL의 UPDATE 명령어를 사용하여 삭제 여부를 알 수 있는 컬럼에 값을 넣어 삭제를 의미하는 방법
+
+member는 엔티티 중 가장 중요하다고 볼 수 있는 정보이기 때문에 안전한 데이터 관리를 위해 soft delete를 사용하였다.
+
+### 📌exception
+- 조회하고자 하는 회원 정보가 respository에 존재하지 않을 경우 발생하는 MemberNotFoundException
+```java
+public class MemberNotFoundException extends RuntimeException {
+
+    public MemberNotFoundException() {
+        super("회원 정보가 존재하지 않습니다.");
+    }
+
+    public MemberNotFoundException(Long id) {
+        super("요청한 id 값 " + id + "에 해당하는 회원 정보가 존재하지 않습니다.");
+    }
+}
+```
+#### ❓id 값을 인자로 받는 MemberNotFoundException 생성자가 존재하는 이유?
+추후 exceptionController에서 관련 로그를 찍게 되는데, 어떤 잘못된 id 값으로 엔티티 조회가 요청된 것인지 정확한 로그 내용의 출력을 위해 id 값을 인자로 받는다.
+
+### 📌presentation
+- 클라이언트로부터 member 엔티티 생성/조회/삭제 요청을 받아 처리하는 controller
+```java
+@RestController
+@RequestMapping("/api/member")
+@RequiredArgsConstructor
+public class MemberController {
+
+    private final MemberService memberService;
+
+    @PostMapping
+    public ResponseEntity<Void> createMember(@RequestBody MemberRequest memberRequest) {
+
+        memberService.createMember(memberRequest);
+
+        return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+
+    @GetMapping
+    public ResponseEntity<List<MemberResponse>> getAllMembers() {
+
+        List<MemberResponse> memberResponseList = memberService.getAllMembers();
+
+        return ResponseEntity.ok(memberResponseList);
+    }
+
+    @GetMapping("/{memberId}")
+    public ResponseEntity<MemberResponse> getMember(@PathVariable Long memberId) {
+
+        MemberResponse memberResponse = memberService.getMember(memberId);
+
+        return ResponseEntity.ok(memberResponse);
+    }
+
+    @DeleteMapping("/{memberId}")
+    public ResponseEntity<Void> deleteMember(@PathVariable Long memberId) {
+
+        memberService.deleteMember(memberId);
+
+        return ResponseEntity.ok().build();
+    }
+}
+```
+#### ❓createMember에서 status code 201 Created 반환
+201 Created는 요청이 성공적으로 처리되어서 리소스가 만들어졌음을 의미하는 상태 코드이다. 200 OK보다 member 엔티티 생성이라는 요청에 사용하기에 적합하다고 생각하였다.
+
+- member 관련 Custom Exception을 처리하는 exception controller
+```java
+@Slf4j
+@RestControllerAdvice
+public class MemberExceptionController {
+
+    @ExceptionHandler(MemberNotFoundException.class)
+    public ResponseEntity<String> catchMemberNotFoundException(MemberNotFoundException e) {
+
+        log.error(e.getMessage());
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+    }
+}
+```
+#### ❓log.error
+로그 레벨에는 trace, debug, info, warn, error가 있다. member 엔티티가 제대로 조회되지 않으면 더 이상의 작업이 진행될 수 없기 때문에 error 레벨로 판단하였다.
+
+### 📌dto
+- 회원 정보 생성 요청 시 controller에서 service로 요청한 회원 정보 넘겨주는 request dto
+- 회원 정보 조회 요청 시 service에서 controller로 요청한 회원 정보 넘겨주는 response dto
+```java
+@Getter
+public class MemberResponse {
+
+    private final Long id;
+
+    private final String password;
+
+    private final String nickname;
+
+    private final String phone;
+
+    private final Double temperature;
+
+    private final String email;
+
+    private final String imageUrl;
+
+    private final Boolean activated;
+
+    private final LocalDateTime createdAt;
+
+    private final LocalDateTime updatedAt;
+
+    @Builder
+    public MemberResponse(Long id, String password, String nickname, String phone, Double temperature, String email,
+                          String imageUrl, Boolean activated, LocalDateTime createdAt, LocalDateTime updatedAt) {
+        this.id = id;
+        this.password = password;
+        this.nickname = nickname;
+        this.phone = phone;
+        this.temperature = temperature;
+        this.email = email;
+        this.imageUrl = imageUrl;
+        this.activated = activated;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+    }
+
+    public static MemberResponse fromEntity(Member member) {
+        return MemberResponse.builder()
+                .id(member.getId())
+                .password(member.getPassword())
+                .nickname(member.getNickname())
+                .phone(member.getPhone())
+                .temperature(member.getTemperature())
+                .email(member.getEmail())
+                .imageUrl(member.getImageUrl())
+                .activated(member.getActivated())
+                .createdAt(member.getCreatedAt())
+                .updatedAt(member.getUpdateAt())
+                .build();
+    }
+}
+```
+#### ❓MemberResponse dto에서 정적 팩토리 메서드 사용
+기존에는 entity -> dto, dto -> entity로 변환해주는 mapper 클래스를 따로 만들어 관리하였으나, 3주차 세션 내용을 참고하여 정적 팩토리 메서드를 사용하였다.
+
+### 📌repository
+- member 엔티티를 저장하는 repository
+```java
+@Repository
+public interface MemberRepository extends JpaRepository<Member, Long> {
+
+    Optional<Member> findByIdAndActivated(Long id, Boolean activated);
+
+    List<Member> findAllByActivated(Boolean activated);
+}
+```
+#### ❓activated를 사용한 엔티티 조회
+soft delete를 사용하고 있기 때문에 활성화된 회원 정보만을 조회하도록 하기 위해 findBy 로직에 activated 매개변수를 추가하여 조회하도록 한다.
+
+## 🥕새롭게 알게 된 점 & 느낀 점
+코드를 작성할 때 당연하다고 여기며 작성하던 부분들이 많았는데, 미션 내용 정리를 위해 그런 부분들을 찾아보는 기회가 되었던 것 같다. 특히 Transactional(readOnly = true)를 설정하면 막연하게 성능상 이점이 있다고만 알고 있었는데, 정확히 어떤 부분에서의 이점인지 공부해보게 되었다. 또한, 정적 팩토리 메서드는 알고만 있던 개념인데 직접 적용해볼 수 있어 좋았다. 지난주에 단위 테스트 코드를 작성해보았는데, 이번 미션 코드에 대해서도 테스트 코드를 작성해보면 좋을 것 같다.
