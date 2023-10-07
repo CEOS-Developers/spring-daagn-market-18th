@@ -207,13 +207,13 @@ test가 잘 안돌아가서 왜 그런가 했더니 application.yml 의 ddl-auto
 - **URL**:`danggun/posts`
 - **Method**:`POST`
 - **Body**:`{
-"title": "제목",
+"title": "제목입니다",
 "price": 2000,
-"content": "내용",
-"status": "판매중"
-"category": "도서"
+"content": "좋은 물건이에요",
+"status": "SALE",
+"category": 2,
 "user": 1
-  }
+  }`
 
 ## 2️⃣모든 데이터를 가져오는 API 만들기
 
@@ -258,17 +258,15 @@ public class PostRequestDto {
     private PostStatus status;
     private PostCategory category;
     private User user;
-    private List<PostImg> projectImages = new ArrayList<>();
 
     @Builder
-    public PostRequestDto(String title, Long price, String content, PostStatus status, PostCategory category, User user, List<PostImg> projectImages) {
+    public PostRequestDto(String title, Long price, String content, PostStatus status, PostCategory category, User user) {
         this.title = title;
         this.price = price;
         this.content = content;
         this.status = status;
         this.category = category;
         this.user = user;
-        this.projectImages = projectImages;
     }
 
     public Post toEntity() {
@@ -279,10 +277,10 @@ public class PostRequestDto {
                 .status(status)
                 .category(category)
                 .user(user)
-                .projectImages(projectImages)
                 .build();
     }
 }
+
 ```
 - PostResponseDto
 ```java

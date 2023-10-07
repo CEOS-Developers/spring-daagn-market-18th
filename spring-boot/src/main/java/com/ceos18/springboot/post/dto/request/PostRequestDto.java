@@ -27,17 +27,15 @@ public class PostRequestDto {
     private PostStatus status;
     private PostCategory category;
     private User user;
-    private List<PostImg> projectImages = new ArrayList<>();
 
     @Builder
-    public PostRequestDto(String title, Long price, String content, PostStatus status, PostCategory category, User user, List<PostImg> projectImages) {
+    public PostRequestDto(String title, Long price, String content, PostStatus status, PostCategory category, User user) {
         this.title = title;
         this.price = price;
         this.content = content;
         this.status = status;
         this.category = category;
         this.user = user;
-        this.projectImages = projectImages;
     }
 
     public Post toEntity() {
@@ -48,7 +46,6 @@ public class PostRequestDto {
                 .status(status)
                 .category(category)
                 .user(user)
-                .projectImages(projectImages)
                 .build();
     }
 }
