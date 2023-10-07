@@ -4,16 +4,19 @@ import com.ceos18.springboot.domain.entity.Category;
 import com.ceos18.springboot.domain.entity.Member;
 import com.ceos18.springboot.domain.entity.Post;
 import com.ceos18.springboot.domain.entity.enums.PostStatus;
-import com.ceos18.springboot.dto.PostCreateRequestDto;
-import com.ceos18.springboot.dto.PostUpdateRequestDto;
+import com.ceos18.springboot.dto.request.PostCreateRequestDto;
+import com.ceos18.springboot.dto.request.PostUpdateRequestDto;
+import com.ceos18.springboot.dto.response.PostReadResponseDto;
 import com.ceos18.springboot.repository.CategoryRepository;
 import com.ceos18.springboot.repository.MemberRepository;
 import com.ceos18.springboot.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
+import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional(readOnly = true)
@@ -23,6 +26,7 @@ public class PostService {
 	private final PostRepository postRepository;
 	private final CategoryRepository categoryRepository;
 	private final MemberRepository memberRepository;
+	private final ModelMapper modelMapper;
 
 	/**
 	 * 게시글 등록
@@ -57,16 +61,23 @@ public class PostService {
 	/**
 	 * 게시글 전체 조회
 	 */
-	public List<Post> findAllPosts() {
-		return postRepository.findAll();
+	public List<PostReadResponseDto> findAllPosts() {
+		List<Post> posts = postRepository.findAll();
+		return posts.stream()
+				.map(PostReadResponseDto::fromEntity)
+				.collect(Collectors.toList());
 	}
 
 	/**
 	 * 게시글 단건 조회
 	 */
-	public Post findPost(Long postId) {
-		return postRepository.findById(postId)
+	public PostReadResponseDto findPost(Long postId) {
+		Post post =  postRepository.findById(postId)
 				.orElseThrow(() -> new IllegalArgumentException("해당 게시글이 없습니다. id=" + postId));
+
+
+		// return modelMapper.map(post, PostReadResponseDto.class);
+		return PostReadResponseDto.fromEntity(post);
 	}
 
 

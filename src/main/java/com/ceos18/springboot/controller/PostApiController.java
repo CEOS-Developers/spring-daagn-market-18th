@@ -1,8 +1,8 @@
 package com.ceos18.springboot.controller;
 
-import com.ceos18.springboot.domain.entity.Post;
-import com.ceos18.springboot.dto.PostCreateRequestDto;
-import com.ceos18.springboot.dto.PostUpdateRequestDto;
+import com.ceos18.springboot.dto.request.PostCreateRequestDto;
+import com.ceos18.springboot.dto.request.PostUpdateRequestDto;
+import com.ceos18.springboot.dto.response.PostReadResponseDto;
 import com.ceos18.springboot.service.PostService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -27,13 +27,13 @@ public class PostApiController {
 
 	// 전체 조회
 	@GetMapping("/v1/post/")
-	public List<Post> findAllPosts() {
+	public List<PostReadResponseDto> findAllPosts() {
 		return postService.findAllPosts();
 	}
 
 	// 단건 조회
 	@GetMapping("/v1/post/{postId}")
-	public Post findPost(@PathVariable("postId") Long postId) {
+	public PostReadResponseDto findPost(@PathVariable("postId") Long postId) {
 		return postService.findPost(postId);
 	}
 

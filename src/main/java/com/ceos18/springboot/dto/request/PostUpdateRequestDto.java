@@ -1,4 +1,4 @@
-package com.ceos18.springboot.dto;
+package com.ceos18.springboot.dto.request;
 
 import com.ceos18.springboot.domain.entity.enums.DealType;
 import lombok.Getter;
