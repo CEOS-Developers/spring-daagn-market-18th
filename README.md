@@ -211,9 +211,16 @@ test가 잘 안돌아가서 왜 그런가 했더니 application.yml 의 ddl-auto
 "price": 2000,
 "content": "좋은 물건이에요",
 "status": "SALE",
-"category": 2,
-"user": 1
+"category": {
+  "name": "가구"
+}
   }`
+"category" 가 외래키로 연결되는 부분이 궁금해서 찾아보았다. 
+사용자 입력으로는 name 필드인 "가구"만 받게 되는 것이고, "id" 를 입력하지 않아도 된다. 
+이후 서버에서는 이 카테고리 name("가구")을 기반으로 데이터베이스에서 해당 카테고리를 찾아 "id" 부분도 마저 할당하게 되는 것이다.
+
+![캡처](https://github.com/nzeong/to-do-list/assets/121355994/0ad7695e-0f98-4e47-b691-b328b5de2607)
+아직 category랑 user 모델은 구현하지 못해서 null로 표시된다.
 
 ## 2️⃣모든 데이터를 가져오는 API 만들기
 
@@ -233,13 +240,12 @@ test가 잘 안돌아가서 왜 그런가 했더니 application.yml 의 ddl-auto
 
 ## ⭐ Dto 계층
 
-### DTO 클래스에서 Request와 Response로 구분하는 이유
+### DTO 클래스에서 Request와 Response로 구분하는 이유?
 
 - requestDTO를 사용하는 이유
 1. @RequestParam으로 데이터를 일일이 받을 필요 없이 객체 하나로 한꺼번에 받을 수 있다.
 2. Bean Validation, Contoller에서 검증 기능을 분리할 수 있다.
 3. 엔티티 내부를 캡슐화할 수 있다. (엔티티의 값이 변경되지 않도록 한다)
-
 
 - responseDTO를 사용하는 이유
 1. 넘겨줄 필요가 없는 데이터를 보내지 않을 수 있다. (화면에 꼭 필요한 데이터만 보내줄 수 있다)
@@ -257,16 +263,14 @@ public class PostRequestDto {
     private String content;
     private PostStatus status;
     private PostCategory category;
-    private User user;
 
     @Builder
-    public PostRequestDto(String title, Long price, String content, PostStatus status, PostCategory category, User user) {
+    public PostRequestDto(String title, Long price, String content, PostStatus status, PostCategory category) {
         this.title = title;
         this.price = price;
         this.content = content;
         this.status = status;
         this.category = category;
-        this.user = user;
     }
 
     public Post toEntity() {
@@ -276,7 +280,6 @@ public class PostRequestDto {
                 .content(content)
                 .status(status)
                 .category(category)
-                .user(user)
                 .build();
     }
 }
@@ -428,3 +431,7 @@ public class PostController {
 
 }
 ```
+---
+Post 객체로 CRUD API를 만들어 보면서 DTO가 왜 필요하고 Controller와 Service 계층이 구체적으로 어떻게 동작하는지 이해할 수 있었다.
+특히 내가 구현한 도메인이 json 메세지로 어떻게 바뀌는지 고민해볼 수 있어서 좋았다. 
+확실히 내가 코드를 작성하면서 뜯어보는 게 빠르게 학습할 수 있는 방법인 것 같다.
