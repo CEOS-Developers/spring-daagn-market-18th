@@ -1,4 +1,4 @@
-package com.ceos18.market.core;
+package com.ceos18.market.domain.product;
 
 import com.ceos18.market.database.Product;
 import org.springframework.data.jpa.repository.JpaRepository;
