@@ -1,5 +1,6 @@
 package com.daagn.clonestudy.post.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 import com.daagn.clonestudy.common.service.ServiceTest;
@@ -9,6 +10,7 @@ import com.daagn.clonestudy.post.domain.PostImage;
 import com.daagn.clonestudy.post.domain.PostImageRepository;
 import com.daagn.clonestudy.post.domain.PostRepository;
 import com.daagn.clonestudy.post.dto.request.PostCreateRequest;
+import com.daagn.clonestudy.post.dto.response.PostListResponse;
 import com.daagn.clonestudy.post.dto.response.PostResponse;
 import java.io.File;
 import java.io.IOException;
@@ -57,6 +59,30 @@ class PostServiceTest extends ServiceTest {
     assertEquals(게시물_생성_요청.getTitle(), 생성된_게시글.getTitle());
   }
 
+  @Test
+  @DisplayName("게시물의 목록을 무한 스크롤로 조회한다.")
+  public void 게시물목록_조회하기(){
+    // given
+    Member 작성자 = 유저_등록하기("테스트유저", "마포구 노고산동", "00000000000");
+    Post 게시물1 = 게시물_등록하기("AAA", 3000, false, "BBB", "CCC", 작성자);
+    Post 게시물2 = 게시물_등록하기("DDD", 3000, false, "EEE", "FFF", 작성자);
+    Post 게시물3 = 게시물_등록하기("GGG", 3000, false, "HHH", "III", 작성자);
+    Post 게시물4 = 게시물_등록하기("JJJ", 3000, false, "KKK", "LLL", 작성자);
+    Post 게시물5 = 게시물_등록하기("MMM", 3000, false, "NNN", "OOO", 작성자);
+
+    // when
+    List<PostListResponse> 첫번째_스크롤 = postService.listAll(null, 2);
+    List<PostListResponse> 두번째_스크롤 = postService.listAll(게시물4.getId(), 2);
+
+    // then
+    assertThat(첫번째_스크롤).hasSize(2)
+        .extracting(PostListResponse::getTitle)
+        .contains("MMM", "JJJ");
+    assertThat(두번째_스크롤).hasSize(2)
+        .extracting(PostListResponse::getTitle)
+        .contains("GGG", "DDD");
+  }
+
   private MultipartFile 가짜이미지_가져오기(String imageName) throws IOException {
     String filePath = new File("").getAbsolutePath() + "/src/test/images/" + imageName + ".HEIC";
     byte[] fileContent = Files.readAllBytes(Path.of(filePath));
@@ -69,4 +95,14 @@ class PostServiceTest extends ServiceTest {
     return 이미지;
   }
 
+  private Post 게시물_등록하기(String title, Integer price, Boolean isAuction, String description, String address, Member writer){
+    return postRepository.save(Post.builder()
+        .title(title)
+        .price(price)
+        .isAuction(isAuction)
+        .description(description)
+        .address(address)
+        .writer(writer)
+        .build());
   }
+}
