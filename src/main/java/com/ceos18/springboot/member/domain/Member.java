@@ -38,13 +38,17 @@ public class Member extends BaseEntity {
     private Boolean activated;
 
     @Builder
-    public Member(String password, String nickname, String phone, Double temperature, String email, String imageUrl, Boolean activated) {
+    public Member(String password, String nickname, String phone, String email, String imageUrl) {
         this.password = password;
         this.nickname = nickname;
         this.phone = phone;
-        this.temperature = temperature;
+        this.temperature = 36.5;
         this.email = email;
         this.imageUrl = imageUrl;
-        this.activated = activated;
+        this.activated = true;
+    }
+
+    public void updateActivatedFalse() {
+        this.activated = false;
     }
 }
