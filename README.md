@@ -338,7 +338,24 @@ Hibernate:
 - **Method** : `DELETE`
 
 -----
-## 🥕구현 내용 및 추가 설명 (선택 모델 member)
+## 🥕API 동작 확인 (선택 모델 member)
+### 1️⃣ createMember
+![createMember1](https://github.com/letskuku/spring-daagn-market-18th/assets/90572599/aa000643-8d05-4351-a20e-7cdbf40c5fcf)
+![createMember2](https://github.com/letskuku/spring-daagn-market-18th/assets/90572599/8ce5f4b3-08f8-48a9-87d9-3751db23656e)
+
+### 2️⃣ getAllMembers
+![getAllMembers](https://github.com/letskuku/spring-daagn-market-18th/assets/90572599/5c387a53-22d2-4910-903a-f744d3db4043)
+
+### 3️⃣ getMember
+![getMember](https://github.com/letskuku/spring-daagn-market-18th/assets/90572599/92868a0e-fb9a-40ac-870f-a585d9973263)
+
+### 4️⃣ deleteMember
+![deleteMember](https://github.com/letskuku/spring-daagn-market-18th/assets/90572599/b67a6e79-0435-4d30-aa97-65f25a583122)
+
+삭제 후 조회되지 않음 확인
+![image](https://github.com/letskuku/spring-daagn-market-18th/assets/90572599/4966cc2d-1634-4903-9d09-de3f67c23ef3)
+
+## 🥕구현 내용 및 추가 설명
 ### 📌domain
 1️⃣ 회원 엔티티가 가지고 있어야 할 정보
 
