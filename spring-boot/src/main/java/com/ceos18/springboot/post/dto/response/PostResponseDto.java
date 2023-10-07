@@ -34,16 +34,32 @@ public class PostResponseDto {
     private List<PostImg> projectImages = new ArrayList<>();
 
     @Builder // Entity to Dto
-    public PostResponseDto(Post post) {
-        this.id = post.getId();
-        this.title = post.getTitle();
-        this.price = post.getPrice();
-        this.content = post.getContent();
-        this.status = post.getStatus();
-        this.created_at = post.getCreated_at();
-        this.updated_at = post.getUpdated_at();
-        this.category = post.getCategory();
-        this.user = post.getUser();
-        this.projectImages = post.getProjectImages();
+    public PostResponseDto(Long id, String title, Long price, String content, PostStatus status, LocalDateTime created_at, LocalDateTime updated_at, PostCategory category, User user, List<PostImg> projectImages) {
+        this.id = id;
+        this.title = title;
+        this.price = price;
+        this.content = content;
+        this.status = status;
+        this.created_at = created_at;
+        this.updated_at = updated_at;
+        this.category = category;
+        this.user = user;
+        this.projectImages = projectImages;
+    }
+
+    public static PostResponseDto from(Post post){
+        return PostResponseDto.builder()
+                .id(post.getId())
+                .title(post.getTitle())
+                .price(post.getPrice())
+                .content(post.getContent())
+                .status(post.getStatus())
+                .created_at(post.getCreated_at())
+                .updated_at(post.getUpdated_at())
+                .category(post.getCategory())
+                .user(post.getUser())
+                .projectImages(post.getProjectImages())
+                .build();
+
     }
 }
