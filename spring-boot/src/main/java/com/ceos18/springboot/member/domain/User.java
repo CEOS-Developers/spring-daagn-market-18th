@@ -20,6 +20,11 @@ import java.time.LocalDateTime;
 @EntityListeners(AuditingEntityListener.class)
 public class User extends BaseEntity {
 
+    @PrePersist
+    public void prePresist(){
+        this.temperature = this.temperature == null? 36.5:this.temperature;
+    }
+
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "user_id")
     private Long id;
@@ -44,7 +49,6 @@ public class User extends BaseEntity {
     private String email;
 
     @NotNull
-    @ColumnDefault("36.5")
     private Double temperature;
 
     @OneToOne(fetch = FetchType.LAZY)
