@@ -72,17 +72,13 @@ public class PostService {
     }
 
     PageRequest pageRequest = PageRequest.of(0, size);
-    List<Post> postList = postRepository.findAllByIdLessThanOrderByIdDesc(lastId, pageRequest).getContent();
+    List<Object[]> postList = postRepository.findAllWithImage(lastId, pageRequest).getContent();
 
     List<PostListResponse> responses = new ArrayList<>();
-    for(Post post: postList){
-      String image = null;
-      Optional<PostImage> postImageOptional = postImageRepository.findFirstByPost(post);
-      if (postImageOptional.isPresent()) {
-        PostImage postImage = postImageOptional.get();
-        image = postImage.getImageUrl();
-      }
-      responses.add(PostListResponse.fromEntity(post, image));
+    for(Object[] postAndImage: postList){
+      PostImage image = (PostImage)postAndImage[1];
+      String imageUrl = image == null ? null : image.getImageUrl();
+      responses.add(PostListResponse.fromEntity((Post)postAndImage[0], imageUrl));
     }
 
     return responses;
