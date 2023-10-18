@@ -35,4 +35,6 @@ public class PostImage {
   @Column(nullable = false)
   private String imageUrl;
 
+  @Column(nullable = false)
+  private Boolean isThumbnail;
 }

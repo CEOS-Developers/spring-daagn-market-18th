@@ -38,15 +38,23 @@ public class PostService {
   public PostResponse save(Member member, List<MultipartFile> images, PostCreateRequest request) throws IOException {
     Post post = postRepository.save(request.toEntity(member));
 
+    boolean isFirst = true;
     for(MultipartFile image: images){
       if(image != null && image.isEmpty()){
         // 우선 로컬에 저장
         String fullPath = localImagePath + image.getOriginalFilename();
         image.transferTo(new File(fullPath));
 
+        Boolean isThumbnail = false;
+        if(isFirst) {
+          isThumbnail = true;
+          isFirst = false;
+        }
+
         PostImage postImage = PostImage.builder()
             .post(post)
             .imageUrl(fullPath)
+            .isThumbnail(isThumbnail)
             .build();
 
         PostImage saved = postImageRepository.save(postImage);
