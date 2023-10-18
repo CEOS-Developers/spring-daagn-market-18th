@@ -12,6 +12,7 @@ import com.daagn.clonestudy.post.domain.PostRepository;
 import com.daagn.clonestudy.post.dto.request.PostCreateRequest;
 import com.daagn.clonestudy.post.dto.response.PostListResponse;
 import com.daagn.clonestudy.post.dto.response.PostResponse;
+import jakarta.persistence.EntityManager;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -83,6 +84,34 @@ class PostServiceTest extends ServiceTest {
         .contains("GGG", "DDD");
   }
 
+  @Test
+  @DisplayName("게시물의 목록을 조회할 때 대표이미지를 반환한다.")
+  void 이미지와_게시물목록_조회하기(){
+    // given
+    Member 테스트유저1 = 유저_등록하기("테스트 유저1", "테스트 주소", "00000000000");
+    Member 테스트유저2 = 유저_등록하기("테스트 유저2", "테스트 주소", "00000000000");
+
+    Post 게시글1 = 게시물_등록하기("테스트 제목1", 15000, false, "설명", "테스트 거래 주소1", 테스트유저1);
+    Post 게시글2 = 게시물_등록하기("테스트 제목2", 15000, false, "설명", "테스트 거래 주소2", 테스트유저1);
+    Post 게시글3 = 게시물_등록하기("테스트 제목3", 15000, false, "설명", "테스트 거래 주소3", 테스트유저2);
+    Post 게시글4 = 게시물_등록하기("테스트 제목4", 15000, false, "설명", "테스트 거래 주소4", 테스트유저2);
+
+    PostImage 게시글1_이미지1 = 게시물이미지_등록하기(게시글1, "게시글1_이미지1", true);
+    PostImage 게시글1_이미지2 = 게시물이미지_등록하기(게시글1, "게시글1_이미지2", false);
+    PostImage 게시글1_이미지3 = 게시물이미지_등록하기(게시글1, "게시글1_이미지3", false);
+    PostImage 게시글2_이미지1 = 게시물이미지_등록하기(게시글2, "게시글2_이미지1", true);
+    PostImage 게시글2_이미지2 = 게시물이미지_등록하기(게시글2, "게시글2_이미지2", false);
+    PostImage 게시글3_이미지1 = 게시물이미지_등록하기(게시글3, "게시글3_이미지1", true);
+
+    // when
+    List<PostListResponse> 조회결과 = postService.listAll(null, 10);
+
+    // then
+    assertThat(조회결과).hasSize(4)
+        .extracting(PostListResponse::getImage)
+        .contains("게시글1_이미지1", "게시글2_이미지1", "게시글3_이미지1", null);
+  }
+
   private MultipartFile 가짜이미지_가져오기(String imageName) throws IOException {
     String filePath = new File("").getAbsolutePath() + "/src/test/images/" + imageName + ".HEIC";
     byte[] fileContent = Files.readAllBytes(Path.of(filePath));
@@ -103,6 +132,14 @@ class PostServiceTest extends ServiceTest {
         .description(description)
         .address(address)
         .writer(writer)
+        .build());
+  }
+
+  private PostImage 게시물이미지_등록하기(Post post, String imageUrl, Boolean isThumbnail){
+    return postImageRepository.save(PostImage.builder()
+        .post(post)
+        .imageUrl(imageUrl)
+        .isThumbnail(isThumbnail)
         .build());
   }
 }
