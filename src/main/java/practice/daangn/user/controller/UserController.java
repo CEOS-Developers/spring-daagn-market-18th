@@ -23,8 +23,8 @@ public class UserController {
     }
 
     @GetMapping
-    public ResponseEntity findUsers(){
-        return new ResponseEntity(userService.findAllUSer(), HttpStatus.OK);
+    public ResponseEntity findUsers(@RequestParam(required = false, defaultValue = "0", value = "page") int pageNo){
+        return new ResponseEntity(userService.findAllUSer(pageNo), HttpStatus.OK);
     }
 
     @GetMapping("/{word}")
