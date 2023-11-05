@@ -38,15 +38,20 @@ public class UserService {
         List<User> users = userRepository.findByEmailContaining(word);
         return users.stream()
                 .map(UserResponseDto::from)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Transactional
     public void deleteUser(Long id){
-        if(userRepository.existsById(id)){
-            userRepository.deleteById(id);
-        } else {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "존재하지 않는 사용자입니다.");
-        }
+//        if(userRepository.existsById(id)){
+//            userRepository.deleteById(id);
+//        } else {
+//            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "존재하지 않는 사용자입니다.");
+//        }
+        userRepository.findById(id).orElseThrow(() ->
+                new ResponseStatusException(HttpStatus.BAD_REQUEST, "존재하지 않는 사용자입니다."));
+
+        userRepository.deleteById(id);
+
     }
 }

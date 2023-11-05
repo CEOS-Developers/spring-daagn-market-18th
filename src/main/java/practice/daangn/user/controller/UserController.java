@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import practice.daangn.user.dto.UserRequestDto;
 import practice.daangn.user.service.UserService;
@@ -16,7 +17,7 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping
-    public ResponseEntity saveUser(@Valid @RequestBody UserRequestDto dto){
+    public ResponseEntity saveUser(@Validated @RequestBody UserRequestDto dto){
         Long id = userService.saveUser(dto);
         return new ResponseEntity(id,HttpStatus.OK);
     }
