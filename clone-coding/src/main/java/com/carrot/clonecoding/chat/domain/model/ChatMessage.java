@@ -1,6 +1,8 @@
 package com.carrot.clonecoding.chat.domain.model;
 
 
+import com.carrot.clonecoding.common.base.BaseTimeEntity;
+import com.carrot.clonecoding.common.enums.MessageStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -11,22 +13,18 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "chat_message")
-@Getter
-@Setter
-public class ChatMessage {
+public class ChatMessage extends BaseTimeEntity {
 
-    public enum MessageStatus {
-        SENT, READ
-    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private Long id;
 
     @ManyToOne
     @JoinColumn(name = "chatroom_id")
     private ChatRoom chatRoomId;
 
+    @Column(name="sender_id")
     private int senderId;
 
     private String content;

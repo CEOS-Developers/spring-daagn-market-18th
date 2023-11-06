@@ -2,51 +2,51 @@ package com.carrot.clonecoding.user.domain.model;
 
 
 import com.carrot.clonecoding.achievement.domain.model.Achievement;
+import com.carrot.clonecoding.common.base.BaseTimeEntity;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
-
-import java.time.LocalDateTime;
+import lombok.*;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import java.util.List;
 
 @Entity
 @Table(name = "user")
 @Getter
-@Setter
-@EntityListeners(AuditingEntityListener.class)
-public class User {
+@Builder
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PROTECTED)
+public class User extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private Long id;
 
-    @Column(unique = true,nullable = false)
+    @Column(name = "nick_name",unique = true,nullable = false)
     private String nickName;
     @Column(nullable = false)
     private String password;
 
+    @Column(name="profile_url")
     private String profileUrl;
 
     @Column(nullable = false)
     private double temperature;
 
-    @Column(nullable = false)
+    @Column(name="retrading_rate", nullable = false)
     private double retradingRate;
 
-    @Column(nullable = false)
+    @Column(name="response_rate", nullable = false)
     private double responseRate;
 
     @OneToMany(mappedBy="user", cascade = CascadeType.PERSIST, fetch = FetchType.LAZY) //영속성 전이
     private List<Achievement> achievements;
 
-    @CreatedDate
-    @Column(updatable = false)
-    private LocalDateTime createdAt;
+    @Column(name = "email")
+    private String email;
 
-    @LastModifiedDate
-    private LocalDateTime updatedAt;
+    @Column(nullable=false)
+    private String phonenum;
 
+    public void passwordEncode(BCryptPasswordEncoder passwordEncoder) {
+        this.password = passwordEncoder.encode(this.password);
+    }
 }

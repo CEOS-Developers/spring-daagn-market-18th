@@ -376,3 +376,240 @@ userId를 참조하고 있기 때문에 user테이블에 없는 id이면 애초�
 역시 db 설계가 가장 어려운 것 같다. 테스트 특히 단위 테스트는 만들어 볼 기회가 없었는데 이번에 많이 배울 수 있었다.
 테스트 코드를 작성할 때 여러 기능을 써보면서 테스트 코드를 쓰는 여러 방법을 배울 수 있었다.
 이번 테스트 코드는 테스트가 종료되면 데이터베이스에는 테스트 데이터가 남아있지 않도록 하는 방향으로 짰다.
+
+# 3주차 미션
+
+## 2주차 수정사항
+
+1. db column을 camel case에서 snake case로 바꿨습니다.
+2. common/base폴더를 만들어서 BaseTimeEntity로 createdDate, updatedDate를 넣었습니다
+
+   ```java
+   @MappedSuperclass
+   @Setter
+   @Getter
+   @EntityListeners(AuditingEntityListener.class)
+   public class BaseTimeEntity {
+       @CreatedDate
+       @Column(updatable = false)
+       private LocalDateTime createdDate;
+
+       @LastModifiedDate
+       private LocalDateTime updatedDate;
+   }
+
+   ```
+
+3. common/enums를 만들어서 enum타입을 넣었습니다.
+4. primary key id를 int 에서 Long으로 바꾸었습니다.
+5. ProductImage에서 대표 이미지를 설정하기 위해 새로운 Column을 만들었습니다.
+
+## TODO
+
+address 테이블과 Region테이블 빠진 내용 포함하여 다시 설계하기
+</br></br>
+
+## CRUD를 만들 때 새로 배운 점
+
+- URI에 HTTP Method 가 들어가면 안됨
+  - 1.  RESTful 원칙 : REST 아키텍처 원칙에서는 URI는 자원을 나타냄
+  - 2. HTTP 메서드는 해당 자원에 대한 동작을 나타냄
+
+-> 장점 : 동일한 URI에 대해 다양한 HTTP 메서드 (GET, POST, PUT, DELETE 등)를 적용할 수 있음
+
+- URI에 특정 동작을 포함시키면, 새로운 동작을 추가할 때마다 URI를 변경해야 함 -> 확장성이 좋지 않음</br>
+- 동작을 URI에 포함시키면, 어떤 동작들이 가능한지 클라이언트가 알 수 있기 때문에 보안의 위험이 있음</br></br>
+
+**이번 과제는 User model을 뽑아서 만들었습니다!**</br></br>
+
+## 1️⃣ 새로운 데이터를 create하도록 요청하는 API 만들기
+
+### URL : api/user
+
+### Method : POST
+
+### Body 예시
+
+```json
+{
+  "nickName": "soh",
+  "password": "1234",
+  "email": "aaa@gmail.com",
+  "phonenum": "010-1111-1111"
+}
+```
+
+- 새로운 유저 데이터 행을 만드는 api
+- password는 그대로 저장하면 안되고 암호화해서 저장해야함
+- createUserDto를 만들어서 필요한 데이터만 저장할 수 있도록 함</br></br>
+
+### controller
+
+```java
+    @PostMapping("api/user")
+    public String createUser(@RequestBody final CreateUserDto createUserDto) throws Exception{
+        userService.createUser(createUserDto);
+        return "success";
+    }
+```
+
+</br>
+### service
+
+```java
+    @Transactional
+    public User createUser(final CreateUserDto createUserDto) throws Exception{
+        logger.info("phonenum {}",createUserDto.getPhonenum());
+        if (userRepository.findByPhonenum(createUserDto.getPhonenum()).isPresent()) {
+            logger.info("이미 존재");
+            throw new Exception("already exists");
+        }
+
+        User user = User.builder()
+                .nickName(createUserDto.getNickName())
+                .password(createUserDto.getPassword())
+                .email(createUserDto.getEmail())
+                .phonenum(createUserDto.getPhonenum())
+                .temperature(36.5)
+                .responseRate(0)
+                .retradingRate(0)
+                .build();
+        user.passwordEncode(passwordEncoder);
+        return userRepository.save(user);
+
+    }
+```
+
+![](https://velog.velcdn.com/images/aeyongdodam/post/4095df68-8b19-42e9-8b4a-a454a20cba74/image.png)</br></br>
+
+## 2️⃣ 모든 데이터를 가져오는 API 만들기
+
+### URL : api/user
+
+### Method : GET</br>
+
+### controller
+
+```java
+    @GetMapping("api/user")
+    public List<UserResponseDto> findAllUsers() {
+        return userService.findAllUsers();
+    }
+```
+
+</br>
+### service
+
+```java
+    public List<UserResponseDto> findAllUsers(){
+        List<User> users = userRepository.findAll();
+        return users.stream()
+                .map(UserResponseDto::new)
+                .collect(Collectors.toList());
+    }
+```
+
+User의 모든 정보를 단순히 findAll로 넘겨주게되면 password처럼 넘겨서는 안되는 정보가 포함될 수도 있음
+그렇기 때문에 UserResponseDto를 만들어서 넘겨줄 정보만 저장한 다음, 해당 리스트의 요소들에 대한 스트림을 생성하는 방식으로 모든 유저의 정보를 넘겨주는 api를 만들었음</br></br>
+
+```json
+[
+  {
+    "nickName": "soh",
+    "email": "aaa@gmail.com",
+    "phonenum": "010-1111-1111",
+    "temperature": 36.5,
+    "responseRate": 0.0,
+    "retradingRate": 0.0
+  },
+  {
+    "nickName": "soh2",
+    "email": "aaa@gmail.com",
+    "phonenum": "010-1111-1112",
+    "temperature": 36.5,
+    "responseRate": 0.0,
+    "retradingRate": 0.0
+  }
+]
+```
+
+</br></br>
+
+## 3️⃣ 특정 데이터를 가져오는 API 만들기
+
+### URL : api/user/{id}
+
+### Method : GET
+
+findAll과 마찬가지로 넘겨서 안되는 정보를 제외하기 위해 UserResponseDto를 만들어서 넘겨줄 정보만 저장</br></br>
+
+### Controller
+
+```java
+    @GetMapping("api/user/{id}")
+    public ResponseEntity<UserResponseDto> getUserById(@PathVariable("id") Long id) {
+        UserResponseDto userDto = userService.findUserById(id);
+        if (userDto == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(userDto);
+    }
+```
+
+</br></br>
+
+### Service
+
+```java
+    public UserResponseDto findUserById(Long id) {
+        return userRepository.findById(id)
+                .map(UserResponseDto::new)
+                .orElse(null);
+    }
+```
+
+```json
+{
+  "nickName": "soh",
+  "email": "aaa@gmail.com",
+  "phonenum": "010-1111-1111",
+  "temperature": 36.5,
+  "responseRate": 0.0,
+  "retradingRate": 0.0
+}
+```
+
+</br></br>
+
+## 4️⃣ 특정 데이터를 삭제 또는 업데이트하는 API
+
+### URL : api/user/{id}
+
+### Method : DELETE
+
+id에 해당하는 행을 삭제하는 방식으로 작동
+만약 없는 id가 있다면 nullpointerexception이 나지 않도록 예외처리
+</br></br>
+
+### Controller
+
+```java
+    public ResponseEntity<String> deleteUserById(@PathVariable("id") Long id) {
+        try {
+            userService.deleteUserById(id);
+            return ResponseEntity.ok("delete success");
+        } catch (EmptyResultDataAccessException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+```
+
+</br></br>
+
+### Service
+
+```java
+public void deleteUserById(Long id) {
+        userRepository.deleteById(id);
+    }
+```
