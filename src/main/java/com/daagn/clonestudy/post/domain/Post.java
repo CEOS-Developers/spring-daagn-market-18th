@@ -46,7 +46,7 @@ public class Post extends BaseTimeEntity {
   @Enumerated(EnumType.STRING)
   private PostStatus status;
 
-  @JoinColumn(nullable = false)
+  @JoinColumn
   @ManyToOne(fetch = FetchType.LAZY)
   @OnDelete(action = OnDeleteAction.CASCADE)
   private Member writer;
