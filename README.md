@@ -304,4 +304,70 @@ class PostRepositoryTest {
 
 #### ✦ 테스트 방식<br>
 - DatabaseCleaner: 각 테스트 시 데이터베이스와 영속성 컨텍스트를 지운다.<br>
-- SpringBootTest: 의존적인 레포지토리의 기능을 모두 사용하기 위해 스프링부트테스트로 진행하였다.
+- SpringBootTest: 의존적인 레포지토리의 기능을 모두 사용하기 위해 스프링부트테스트로 진행하였다.<br><br>
+
+#### ✦ 배운 점<br>
+- <b>조회 최적화: 쿼리 날리는 개수 즐이기</b><br><br>
+이전 서비스 코드
+   ```java
+    // 각 post에 대해 이미지를 찾음
+    for(Post post: postList){
+      String image = null;
+      Optional<PostImage> postImageOptional = postImageRepository.findFirstByPost(post);
+      if (postImageOptional.isPresent()) {
+          PostImage postImage = postImageOptional.get();
+          image = postImage.getImageUrl();
+      }
+      responses.add(PostListResponse.fromEntity(post, image));
+    }
+   ```
+  <br>
+  리팩토링 후 서비스 코드
+  
+   ```java
+  for(Object[] postAndImage: postList){
+    PostImage image = (PostImage)postAndImage[1];
+    String imageUrl = image == null ? null : image.getImageUrl();
+    responses.add(PostListResponse.fromEntity((Post)postAndImage[0], imageUrl));
+  }
+  ```
+  <br>
+  리팩토링 후 레포지토리 코드
+  
+   ```java
+  @Query("select p, i from Post p left join PostImage i on p.id = i.post.id and i.isThumbnail = true where p.id < :lastId order by p.id desc, i.id asc")
+  Page<Object[]> findAllWithImage(@Param("lastId") Long lastId, Pageable pageable);
+   ```
+  <br>
+- <b>지연 로딩 전략과 페치 조인 사용</b><br>
+   ```java
+  // Post.java (Entity)
+  @JoinColumn
+  @ManyToOne(fetch = FetchType.LAZY)
+  @OnDelete(action = OnDeleteAction.CASCADE)
+  private Member writer;
+  
+  // PostRepository.java
+  @Query("select p, i from Post p left join fetch p.writer left join PostImage i on p.id = i.post.id and i.isThumbnail = true where p.id < :lastId order by p.id desc, i.id asc")
+  
+  // PostResponse.java (DTO)
+    public static PostResponse fromEntity(Post post){
+    return PostResponse.builder()
+        .id(post.getId())
+        .title(post.getTitle())
+        .price(post.getPrice())
+        .isAuction(post.getIsAuction())
+        .description(post.getDescription())
+        .address(post.getAddress())
+        .status(post.getStatus())
+        .writer(post.getWriter())
+        .build();
+    }
+  ```
+  <br>
+- <b>요청할 때 사용하는 DTO에 생성자 빠뜨리지 않기</b><br>
+ ` cannot deserialize from Object value` 라는 `Exception` 이 발생한다.<br><br>
+
+#### ✦ 느낀 점 및 배운 점<br>
+직접 JPQL을 작성하고 문제를 해결하며 새로운 경험을 할 수 있어서 재미있었다. 또한 지연 로딩 전략, 페치 조인과 같은 비교적 최근에 공부한 내용을 바로 토이 프로젝트에 적용하며 복습할 수 있어서 좋았다.
+<br><br><br>
