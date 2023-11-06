@@ -1,6 +1,7 @@
 package com.ceos18.springboot.review.domain;
 
 import com.ceos18.springboot.chat.domain.ChatRoom;
+import com.ceos18.springboot.global.common.entity.BaseEntity;
 import com.ceos18.springboot.member.domain.User;
 import com.ceos18.springboot.post.domain.Post;
 import jakarta.persistence.*;
@@ -21,7 +22,7 @@ import java.time.LocalDateTime;
 @Builder
 @Getter
 @EntityListeners(AuditingEntityListener.class)
-public class Review {
+public class Review extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "review_id")
@@ -33,12 +34,6 @@ public class Review {
     @NotNull
     @Enumerated(EnumType.STRING)
     private PreferStatus preference;
-
-    @CreatedDate
-    private LocalDateTime created_at;
-
-    @LastModifiedDate
-    private LocalDateTime updated_at;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "reviewer_id", nullable = false)

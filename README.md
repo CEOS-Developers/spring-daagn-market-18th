@@ -191,3 +191,249 @@ test가 잘 안돌아가서 왜 그런가 했더니 application.yml 의 ddl-auto
 - notNull의 표기법 (@NotNull vs @Column(nullable = false) 둘 중에 뭐 써야되는건지 헷갈려서 찾아보니까 @NotNull 쓰는 게 좋다고는 하는데 곧 사라질 어노테이션이라고 경고떠서 뭐지 싶었다)
 
 파이팅 🤣
+
+---
+# 💙 CEOS 18th Backend Study 3주차 💙
+
+> POST 모델 선택해서 api 만들기
+
+## ⭐ 수정사항
+- BaseEntity 활용하기
+- JAVA CamelCase, SQL snake_case 적용
+- erd SQL TYPE 에 맞춰서 수정 & 구조 변경
+
+## ⭐ Dto 계층
+
+- PostRequestDto
+
+```java
+@NoArgsConstructor
+@Getter
+public class PostRequestDto {
+
+  private String title;
+  private Long price;
+  private String content;
+  private PostCategory category;
+  private User user;
+
+  @Builder
+  public PostRequestDto(String title, Long price, String content, PostCategory category, User user) {
+    this.title = title;
+    this.price = price;
+    this.content = content;
+    this.category = category;
+    this.user = user;
+  }
+
+  public Post toEntity() {
+    return Post.builder()
+            .title(title)
+            .price(price)
+            .content(content)
+            .status(PostStatus.SALE)
+            .category(category)
+            .user(user)
+            .build();
+  }
+}
+```
+status에 enum으로 설정한 SALE("판매중")를 기본값으로 넣어주었고, 아직 로그인 기능을 구현 못해서 일단 지금은 user도 받아올 수 있게 해주었다.
+
+- PostResponseDto
+```java
+@Getter
+@NoArgsConstructor
+public class PostResponseDto {
+
+  private Long id;
+  private String title;
+  private Long price;
+  private String content;
+  private PostStatus status;
+  private LocalDateTime createdAt;
+  private LocalDateTime updatedAt;
+  private String categoryName;
+  private String userNick;
+  private List<PostImg> projectImages = new ArrayList<>();
+
+  @Builder // Entity to Dto
+  public PostResponseDto(Long id, String title, Long price, String content, PostStatus status, LocalDateTime createdAt, LocalDateTime updatedAt, String categoryName, String userNick) {
+    this.id = id;
+    this.title = title;
+    this.price = price;
+    this.content = content;
+    this.status = status;
+    this.createdAt = createdAt;
+    this.updatedAt = updatedAt;
+    this.categoryName = categoryName;
+    this.userNick = userNick;
+//        this.projectImages = projectImages;
+  }
+
+  public static PostResponseDto from(Post post){
+    return PostResponseDto.builder()
+            .id(post.getId())
+            .title(post.getTitle())
+            .price(post.getPrice())
+            .content(post.getContent())
+            .status(post.getStatus())
+            .createdAt(post.getCreatedAt())
+            .updatedAt(post.getUpdatedAt())
+            .categoryName(post.getCategory().getName())
+            .userNick(post.getUser().getNick())
+//                .projectImages(post.getProjectImages())
+            .build();
+  }
+}
+```
+post_img 테이블에에 아직 데이터를 안 넣어둬서 지금은 무시해주었고, 카테고리 이름과 유저의 nickname을 출력해준다.
+
+## ⭐ Service 계층
+
+- PostService
+```java
+@Service
+@RequiredArgsConstructor
+public class PostService {
+
+  private final PostRepository postRepository;
+
+  @Transactional
+  public void createPost(PostRequestDto request) {
+    Post post = request.toEntity();
+    postRepository.save(post);
+  }
+
+  @Transactional
+  public List<PostResponseDto> getAllPosts() {
+    List<Post> postList = postRepository.findAll();
+    return postList.stream().map(post -> PostResponseDto.from(post)).toList();
+  }
+
+  @Transactional
+  public PostResponseDto getPost(Long id) {
+    return PostResponseDto.from(postRepository.findById(id)
+            .orElseThrow(() -> new PostNotFoundException()));
+  }
+
+  @Transactional
+  public void deletePost(Long id) {
+    Post post = postRepository.findById(id)
+            .orElseThrow(() -> new PostNotFoundException());
+    postRepository.delete(post);
+  }
+}
+```
+
+## ⭐ Controller 계층
+- PostController
+```java
+@Slf4j
+@RestController
+@RequiredArgsConstructor
+@RequestMapping(value = "danggun/posts")
+public class PostController {
+
+  private final PostService postService;
+  //@RequiredArgsConstructor를 사용했기 때문에 의존성이 자동 주입된다
+
+  @PostMapping
+  public ResponseEntity<Long> createPost(@RequestBody @Valid PostRequestDto request) {
+    log.info("상품 게시글 생성하기");
+    postService.createPost(request);
+    return ResponseEntity.status(HttpStatus.CREATED).build();
+  }
+
+  @GetMapping
+  public ResponseEntity<List<PostResponseDto>> getAllPosts() {
+    log.info("모든 상품 게시글 조회하기");
+    List<PostResponseDto> PostResponseList = postService.getAllPosts();
+    return ResponseEntity.status(HttpStatus.OK).body(PostResponseList);
+  }
+
+  @GetMapping("/{id}")
+  public ResponseEntity<PostResponseDto> getPost(@PathVariable Long id) {
+    log.info("상품 게시글 상세 조회하기");
+    PostResponseDto postResponse = postService.getPost(id);
+    return ResponseEntity.status(HttpStatus.OK).body(postResponse);
+  }
+
+  @DeleteMapping("/{id}")
+  public ResponseEntity<Void> deletePost(@PathVariable Long id) {
+    log.info("상품 게시글 삭제하기");
+    postService.deletePost(id);
+    return ResponseEntity.status(HttpStatus.OK).build();
+  }
+}
+```
+
+- (nullable=false)로 설정해두었기 때문에 town, user, category 테이블에 임의로 테스트용 데이터를 넣어두었음
+  
+  ![town](https://github.com/nzeong/new-piro-game-BE/assets/121355994/a527f7a7-db09-48d4-a257-398452bc3c23)
+  ![user](https://github.com/nzeong/new-piro-game-BE/assets/121355994/e58d95cc-fa52-4134-ae3b-567dae10f1c6)
+  ![cate](https://github.com/nzeong/new-piro-game-BE/assets/121355994/3ecf21b4-88af-4192-835f-fb11ef76b8cf)
+
+## 1️⃣새로운 데이터를 create하도록 요청하는 API 만들기
+
+- **URL**:`danggun/posts`
+- **Method**:`POST`
+- **Body**:`{
+  "title":"책상입니다",
+  "price": 2000,
+  "content": "완전 새거같아요",
+  "category": {
+  "id": 1
+  },
+  "user": {
+  "id": 1
+  }
+  }
+`
+`{
+  "title":"과자 팔아요",
+  "price": 500,
+  "content": "이거 맛있어요",
+  "category": {
+  "id": 2
+  },
+  "user": {
+  "id": 1
+  }
+  }
+`
+<br>
+
+![1](https://github.com/nzeong/new-piro-game-BE/assets/121355994/5b10d878-dbef-4bd1-bbe1-c22584fb2032)
+![2](https://github.com/nzeong/new-piro-game-BE/assets/121355994/5d398262-fdea-4ef6-bf79-331c88ae67d9)
+
+![post 테이블](https://github.com/nzeong/new-piro-game-BE/assets/121355994/cb0b8d3a-17ec-4b55-b66c-87446026ea4d)
+
+## 2️⃣모든 데이터를 가져오는 API 만들기
+
+- **URL**:`danggun/posts`
+- **Method**:`GET`
+
+![전체 내용](https://github.com/nzeong/new-piro-game-BE/assets/121355994/61aef303-287d-4def-9ed4-ad4f169e6d85)
+
+## 3️⃣ 특정 데이터를 가져오는 API 만들기
+
+- **URL**:`danggun/posts/<int:pk>`
+- **Method**:`GET`
+
+![1 내용](https://github.com/nzeong/new-piro-game-BE/assets/121355994/a4c17117-f16b-4d0d-a853-7ea5fe360530)
+![2 내용](https://github.com/nzeong/new-piro-game-BE/assets/121355994/291ede25-607a-4ee2-ae7f-bf3867c17bf5)
+
+## 4️⃣ 특정 데이터를 삭제 또는 업데이트하는 API
+
+### [삭제]
+- **URL**:`danggun/posts/<int:pk>`
+- **Method**:`DELETE`
+
+![delete](https://github.com/nzeong/new-piro-game-BE/assets/121355994/adb35f04-37de-4c9c-9627-1fe4c01731ae)
+![delete 결과](https://github.com/nzeong/new-piro-game-BE/assets/121355994/bb6ddbaf-70e8-4714-80d2-248f65101810)
+
+---
+Post 객체로 CRUD API를 만들어 보면서 DTO가 왜 필요하고 Controller와 Service 계층이 구체적으로 어떻게 동작하는지 이해할 수 있었다.
+특히 외래키로 연결된 데이터들에 대해서 어떻게 request를 받고, 어떤 response를 보내줄지 고민을 많이 했던 것 같다.
+해당 부분은 내가 코드를 작성하면서 뜯어보고 프로그램이 동작하는 것을 눈으로 보는 게 빠르게 학습할 수 있는 방법인 것 같다.
