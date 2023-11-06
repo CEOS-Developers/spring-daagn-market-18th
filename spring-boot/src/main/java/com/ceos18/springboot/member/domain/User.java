@@ -52,7 +52,7 @@ public class User extends BaseEntity {
     private Double temperature;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "town_id", nullable = false)
+    @JoinColumn(name = "town_id") // nullable=false
     private Town town;
 
 }

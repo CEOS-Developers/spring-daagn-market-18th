@@ -24,6 +24,7 @@ import java.util.List;
 @Getter
 @EntityListeners(AuditingEntityListener.class)
 public class Post extends BaseEntity {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "post_id")
@@ -42,7 +43,7 @@ public class Post extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private PostStatus status;
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id", nullable = false)
     private PostCategory category;
 

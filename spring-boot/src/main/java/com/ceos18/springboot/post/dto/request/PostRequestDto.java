@@ -24,16 +24,16 @@ public class PostRequestDto {
     private String title;
     private Long price;
     private String content;
-    private PostStatus status;
     private PostCategory category;
+    private User user;
 
     @Builder
-    public PostRequestDto(String title, Long price, String content, PostStatus status, PostCategory category) {
+    public PostRequestDto(String title, Long price, String content, PostCategory category, User user) {
         this.title = title;
         this.price = price;
         this.content = content;
-        this.status = status;
         this.category = category;
+        this.user = user;
     }
 
     public Post toEntity() {
@@ -41,8 +41,9 @@ public class PostRequestDto {
                 .title(title)
                 .price(price)
                 .content(content)
-                .status(status)
+                .status(PostStatus.SALE)
                 .category(category)
+                .user(user)
                 .build();
     }
 }
