@@ -30,4 +30,6 @@ public class User extends BaseEntity{
     @Enumerated(EnumType.STRING)
     private Role role;
 
+
+
 }

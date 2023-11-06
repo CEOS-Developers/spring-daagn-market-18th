@@ -154,3 +154,137 @@ Hibernate:
         count(*) 
     from
         activity_area a1_0
+```
+
+<br/>
+<br/>
+
+# CEOS 백엔드 스터디 - 3주차
+
+## 1️⃣ 새로운 데이터를 create하도록 요청하는 API 만들기
+
+### 📍Request Dto
+
+```java
+public class UserRequestDto {
+    private String email;
+    private String password;
+    private String phone_number;
+    private String name;
+    private String nickname;
+
+    @Builder
+    public User toEntity(){
+        return User.builder()
+                .email(email)
+                .password(password)
+                .phone_number(phone_number)
+                .name(name)
+                .nickname(nickname)
+                .rating(36.5)
+                .role(Role.ROLE_USER)
+                .build();
+    }
+}
+```
+
+- Request Body에서 데이터를 추출하여 dto 객체로 수신한 후 dto 내 toEntity() 메소드로 User 엔티티 생성, 저장
+- Response Body에는 데이터가 잘 들어갔는지 확인하기 위하여 User의 id를 일단 리턴
+
+<img width="500" alt="1" src="https://github.com/yj-leez/spring-daagn-market-18th/assets/77960090/55579a78-ecca-473e-890a-2ad3ec088d67">
+
+
+## 2️⃣ 모든 데이터를 가져오는 API 만들기
+
+### 📍 Response Dto
+
+```java
+@NoArgsConstructor
+@Getter
+public class UserResponseDto {
+    private String email;
+    private String password;
+    private String phone_number;
+    private String name;
+    private String nickname;
+
+    @Builder
+    private UserResponseDto(String email, String password, String phone_number, String name, String nickname){
+        this.email = email;
+        this.password = password;
+        this.phone_number = phone_number;
+        this.name = name;
+        this.nickname = nickname;
+    }
+
+    public static UserResponseDto from(User user){
+        return UserResponseDto.builder()
+                .email(user.getEmail())
+                .password(user.getPassword())
+                .phone_number(user.getPhone_number())
+                .name(user.getName())
+                .nickname(user.getNickname())
+                .build();
+    }
+}
+```
+
+- private 생성자를 사용하여 객체의 불변성을 보장하고 데이터의 은닉을 유지
+- from() 메소드와 빌더 패턴을 사용하여 초기화 로직 캡슐화
+
+### 📍Service
+
+```java
+public List<UserResponseDto> findAllUser(){
+    List<User> users = userRepository.findAll();
+    return users.stream()
+            .map(UserResponseDto::from)
+            .collect(Collectors.toList());
+ }
+```
+
+- JpaRepository 인터페이스가 기본적으로 제공하는 findAll() 메소드를 활용하여 모든 User 데이터 불러옴
+- users 컬렉션의 각 요소를 UserResponseDto와 매핑하고 그 결과를 리스트로 수집하여 리턴
+<img width="500" alt="2" src="https://github.com/yj-leez/spring-daagn-market-18th/assets/77960090/3fe749c7-56b6-4d7c-8758-5957d0fd3cda">
+
+
+## 3️⃣ 특정 데이터를 가져오는 API 만들기
+
+### 📍Service
+
+```java
+public List<UserResponseDto> findUserByWord(String word){
+        List<User> users = userRepository.findByEmailContaining(word);
+        return users.stream()
+                .map(UserResponseDto::from)
+                .collect(Collectors.toList());
+    }
+```
+
+- email에 특정 단어를 포함하고 있는 User들만 가져오고자 함
+- UserRepository에 사용자 정의 쿼리를 정의하고 매소드와 연결할 수 있는 `@Query` 애노테이션을 활용하려했으나 JpaRepository 인터페이스에서 제공하는 **findBy**를 이용한 동적 쿼리 메소드에서도 구현할 수 있음을 발견
+- 간단한 예시이기에 제공하는 메소드를 이용하여 구현
+<img width="500" alt="3" src="https://github.com/yj-leez/spring-daagn-market-18th/assets/77960090/4da5c7ed-1ae4-46fc-940b-dd21307b96a0">
+
+
+## 4️⃣ 특정 데이터를 삭제 또는 업데이트하는 API
+
+```java
+@Transactional
+public void deleteUser(Long id){
+    if(userRepository.existsById(id)){
+        userRepository.deleteById(id);
+    } else {
+        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "존재하지 않는 사용자입니다.");
+    }
+}
+```
+- 원본 보존의 이유 등으로 상황에 따라 `UPDATE`를 이용하여 is_del 컬럼을 바꾸는 방법을 권장하기도 하지만, 이번에는 `DELETE`를 사용하여 데이터를 영구적으로 삭제해보았음
+<img width="1117" alt="4" src="https://github.com/yj-leez/spring-daagn-market-18th/assets/77960090/273bdf50-6c52-47ab-bbb0-2a4672cc1319">
+
+
+
+## 추가적으로 보충해야 할 점
+
+- 더 직관적이고 통일성 있는 에러 처리
+- 저번 프로젝트의 코드리뷰에서 배운 Pageable 활용

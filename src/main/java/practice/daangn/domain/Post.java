@@ -37,7 +37,4 @@ public class Post extends BaseEntity{
     @JoinColumn(name = "seller_id")
     private User seller;
 
-    @OneToOne(fetch=FetchType.LAZY)
-    @JoinColumn(name = "purchase_id")
-    private Purchase purchase;
 }
