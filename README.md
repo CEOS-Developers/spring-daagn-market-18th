@@ -297,39 +297,10 @@ class PostRepositoryTest {
 
 #### ✦ API 문서<br>
 
-- <b>게시글을 생성한다.</b>
-1. Request URL<br>
-`POST` `/post` <br><br>
-2. Request Parameter
-```java
-@RequestPart final PostCreateRequest request
-@RequestPart List<MultipartFile> images
-``` 
-
-- <b>게시글 목록을 조회한다.</b>
-1. Request URL<br>
-`GET` `/post` <br><br>
-2. Request Parameter
-```java
-@RequestParam(value = "last-post-id", required = false) Long lastId // 무한 스크롤 방식
-@RequestParam int size
-``` 
-
-- <b>게시글을 조회한다.</b>
-1. Request URL<br>
-`GET` `/post/{post-id}` <br><br>
-2. Request Parameter
-```java
-@PathVariable Long postId
-```
-
-- <b>게시글을 삭제한다.</b>
-1. Request URL<br>
-   `DELETE` `/post/{post-id}` <br><br>
-2. Request Parameter
-```java
-@PathVariable Long postId
-```
+<img width="1012" alt="스크린샷 2023-11-06 오후 6 07 41" src="https://github.com/jongmee/spring-daagn-market-18th/assets/101439796/cc75179d-a3ae-4bcb-8232-0dcc5d37fccb">
+<img width="1012" alt="스크린샷 2023-11-06 오후 6 07 49" src="https://github.com/jongmee/spring-daagn-market-18th/assets/101439796/ac3e2f28-d20f-49fc-bae2-9780de811fd3">
+<img width="1012" alt="스크린샷 2023-11-06 오후 6 08 01" src="https://github.com/jongmee/spring-daagn-market-18th/assets/101439796/af80898a-688f-49d7-beae-eddb779c6dd0">
+<img width="1012" alt="스크린샷 2023-11-06 오후 6 08 08" src="https://github.com/jongmee/spring-daagn-market-18th/assets/101439796/bcee4e00-5fea-4544-8492-b2127c38d032">
 
 #### ✦ 테스트 방식<br>
 - DatabaseCleaner: 각 테스트 시 데이터베이스와 영속성 컨텍스트를 지운다.<br>
