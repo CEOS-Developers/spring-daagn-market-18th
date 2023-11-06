@@ -1,4 +1,4 @@
-package com.daagn.clonestudy;
+package com.daagn.clonestudy.member.domain;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -18,7 +18,7 @@ import org.hibernate.annotations.OnDeleteAction;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class PostImage {
+public class MannerEvaluation {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -27,9 +27,20 @@ public class PostImage {
   @JoinColumn(nullable = false)
   @ManyToOne(fetch = FetchType.LAZY)
   @OnDelete(action = OnDeleteAction.CASCADE)
-  private Post post;
+  private Member receiver;
+
+  @JoinColumn(nullable = false)
+  @ManyToOne(fetch = FetchType.LAZY)
+  @OnDelete(action = OnDeleteAction.CASCADE)
+  private Member sender;
 
   @Column(nullable = false)
-  private String imageUrl;
+  private String content;
+
+  @Column(nullable = false)
+  private Boolean isBuyer;
+
+  @Column(nullable = false)
+  private Boolean isPositive;
 
 }

@@ -1,5 +1,7 @@
-package com.daagn.clonestudy;
+package com.daagn.clonestudy.chat.domain;
 
+import com.daagn.clonestudy.member.domain.Member;
+import com.daagn.clonestudy.post.domain.Post;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;

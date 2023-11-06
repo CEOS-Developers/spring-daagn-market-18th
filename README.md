@@ -11,7 +11,8 @@
 
 
 ### 📒 목차
-[2주차 | DB 모델링과 JPA](#2주차-미션-주제) <br><br>
+[2주차 | DB 모델링과 JPA](#2주차-미션-주제) <br>
+[3주차 | CRUD API](#3주차-미션-주제) <br><br>
 
 ### 2주차 미션 주제
 ### 당근 마켓의 DB를 모델링한다 🥕
@@ -285,3 +286,88 @@ class PostRepositoryTest {
 #### ✦ 느낀 점 및 배운 점<br>
 레포지토리 계층 테스트는 처음 해보아서 실행 결과를 보고 스프링 컨테이너가 올라가는 줄 알았으나, @DataJpaTest는 JPA 관련 요소들만 읽어서 spring context를 만든다는 것을 알게 되었다. 앞으로 Data Jpa 메서드를 쿼리문을 직접 작성하는 등 커스텀 한다면 레포지토리 계층 테스트부터 차근차근 진행해야겠다.<br>
 추가 과제 질문들에 대한 답을 찾아보면서 프록시가 스프링에서 어떻게 사용되는지 실제 코드를 바탕으로 이해할 수 있었다. 그저 받아들이면서 공부를 끝내지 않을 수 있었고 미처 생각치 못한 의문을 해결할 수 있었다.
+<br><br><br>
+
+<div align="center">
+
+### 3주차 미션 주제
+### CRUD API 만들기
+
+</div>
+
+#### ✦ API 문서<br>
+
+<img width="1012" alt="스크린샷 2023-11-06 오후 6 07 41" src="https://github.com/jongmee/spring-daagn-market-18th/assets/101439796/cc75179d-a3ae-4bcb-8232-0dcc5d37fccb">
+<img width="1012" alt="스크린샷 2023-11-06 오후 6 07 49" src="https://github.com/jongmee/spring-daagn-market-18th/assets/101439796/ac3e2f28-d20f-49fc-bae2-9780de811fd3">
+<img width="1012" alt="스크린샷 2023-11-06 오후 6 08 01" src="https://github.com/jongmee/spring-daagn-market-18th/assets/101439796/af80898a-688f-49d7-beae-eddb779c6dd0">
+<img width="1012" alt="스크린샷 2023-11-06 오후 6 08 08" src="https://github.com/jongmee/spring-daagn-market-18th/assets/101439796/bcee4e00-5fea-4544-8492-b2127c38d032">
+
+#### ✦ 테스트 방식<br>
+- DatabaseCleaner: 각 테스트 시 데이터베이스와 영속성 컨텍스트를 지운다.<br>
+- SpringBootTest: 의존적인 레포지토리의 기능을 모두 사용하기 위해 스프링부트테스트로 진행하였다.<br><br>
+
+#### ✦ 배운 점<br>
+- <b>조회 최적화: 쿼리 날리는 개수 즐이기</b><br><br>
+이전 서비스 코드
+   ```java
+    // 각 post에 대해 이미지를 찾음
+    for(Post post: postList){
+      String image = null;
+      Optional<PostImage> postImageOptional = postImageRepository.findFirstByPost(post);
+      if (postImageOptional.isPresent()) {
+          PostImage postImage = postImageOptional.get();
+          image = postImage.getImageUrl();
+      }
+      responses.add(PostListResponse.fromEntity(post, image));
+    }
+   ```
+  <br>
+  리팩토링 후 서비스 코드
+  
+   ```java
+  for(Object[] postAndImage: postList){
+    PostImage image = (PostImage)postAndImage[1];
+    String imageUrl = image == null ? null : image.getImageUrl();
+    responses.add(PostListResponse.fromEntity((Post)postAndImage[0], imageUrl));
+  }
+  ```
+  <br>
+  리팩토링 후 레포지토리 코드
+  
+   ```java
+  @Query("select p, i from Post p left join PostImage i on p.id = i.post.id and i.isThumbnail = true where p.id < :lastId order by p.id desc, i.id asc")
+  Page<Object[]> findAllWithImage(@Param("lastId") Long lastId, Pageable pageable);
+   ```
+  <br>
+- <b>지연 로딩 전략과 페치 조인 사용</b><br>
+   ```java
+  // Post.java (Entity)
+  @JoinColumn
+  @ManyToOne(fetch = FetchType.LAZY)
+  @OnDelete(action = OnDeleteAction.CASCADE)
+  private Member writer;
+  
+  // PostRepository.java
+  @Query("select p, i from Post p left join fetch p.writer left join PostImage i on p.id = i.post.id and i.isThumbnail = true where p.id < :lastId order by p.id desc, i.id asc")
+  
+  // PostResponse.java (DTO)
+    public static PostResponse fromEntity(Post post){
+    return PostResponse.builder()
+        .id(post.getId())
+        .title(post.getTitle())
+        .price(post.getPrice())
+        .isAuction(post.getIsAuction())
+        .description(post.getDescription())
+        .address(post.getAddress())
+        .status(post.getStatus())
+        .writer(post.getWriter())
+        .build();
+    }
+  ```
+  <br>
+- <b>요청할 때 사용하는 DTO에 생성자 빠뜨리지 않기</b><br>
+ ` cannot deserialize from Object value` 라는 `Exception` 이 발생한다.<br><br>
+
+#### ✦ 느낀 점 및 배운 점<br>
+직접 JPQL을 작성하고 문제를 해결하며 새로운 경험을 할 수 있어서 재미있었다. 또한 지연 로딩 전략, 페치 조인과 같은 비교적 최근에 공부한 내용을 바로 토이 프로젝트에 적용하며 복습할 수 있어서 좋았다.
+<br><br><br>

@@ -1,4 +1,4 @@
-package com.daagn.clonestudy;
+package com.daagn.clonestudy.post.domain;
 
 public enum PostStatus {
 

@@ -1,5 +1,7 @@
-package com.daagn.clonestudy;
+package com.daagn.clonestudy.post.domain;
 
+import com.daagn.clonestudy.common.BaseTimeEntity;
+import com.daagn.clonestudy.member.domain.Member;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -19,7 +21,7 @@ import org.hibernate.annotations.OnDeleteAction;
 @Entity
 @NoArgsConstructor
 @Getter
-public class Post {
+public class Post extends BaseTimeEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -44,7 +46,7 @@ public class Post {
   @Enumerated(EnumType.STRING)
   private PostStatus status;
 
-  @JoinColumn(nullable = false)
+  @JoinColumn
   @ManyToOne(fetch = FetchType.LAZY)
   @OnDelete(action = OnDeleteAction.CASCADE)
   private Member writer;

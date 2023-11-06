@@ -1,4 +1,4 @@
-package com.daagn.clonestudy;
+package com.daagn.clonestudy.chat.domain;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 

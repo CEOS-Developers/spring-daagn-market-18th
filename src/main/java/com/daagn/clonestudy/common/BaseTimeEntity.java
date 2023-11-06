@@ -1,4 +1,4 @@
-package com.daagn.clonestudy;
+package com.daagn.clonestudy.common;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.EntityListeners;
