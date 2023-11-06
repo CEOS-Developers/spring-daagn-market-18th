@@ -19,16 +19,4 @@ public class BaseEntity {
 
     @LastModifiedDate
     private LocalDateTime updateAt;
-
-    @PrePersist
-    public void prePersist(){
-        LocalDateTime now = LocalDateTime.now();
-        createdAt = now;
-        updateAt = now;
-    }
-
-    @PreUpdate
-    public void preUpdate(){
-        updateAt = LocalDateTime.now();
-    }
 }
