@@ -2,9 +2,7 @@ package com.ceos18.springboot.domain.entity;
 
 import com.ceos18.springboot.domain.entity.base.BaseTimeEntity;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
 
 import java.math.BigDecimal;
@@ -12,6 +10,8 @@ import java.math.BigDecimal;
 @Entity
 @Table(name = "members")
 @Builder
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class Member extends BaseTimeEntity {
@@ -34,13 +34,24 @@ public class Member extends BaseTimeEntity {
 
 	// 회원탈퇴 여부
 	@ColumnDefault("false")
-	@Column(nullable = false)
+//	@Column(nullable = false)
 	private boolean isWithdrawal;
 
-	@Column(nullable = false)
+//	@Column(nullable = false)
 	private BigDecimal mannerRating;
 
-	@Column(nullable = false)
+//	@Column(nullable = false)
 	private String region;
+
+	@Builder
+	public Member(String phoneNumber, String email, String nickName, String profileImage, boolean isWithdrawal, BigDecimal mannerRating, String region) {
+		this.phoneNumber = phoneNumber;
+		this.email = email;
+		this.nickName = nickName;
+		this.profileImage = profileImage;
+		this.isWithdrawal = isWithdrawal;
+		this.mannerRating = mannerRating;
+		this.region = region;
+	}
 
 }

@@ -6,6 +6,7 @@ import com.ceos18.springboot.domain.entity.enums.PostStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
@@ -42,7 +43,7 @@ public class Post extends BaseTimeEntity {
 	private String dealPlace;
 
 	@Column(name = "price")
-	private String price;
+	private BigDecimal price;
 
 	@Column(name = "is_price_offer", nullable = false)
 	private Boolean isPriceOffer;

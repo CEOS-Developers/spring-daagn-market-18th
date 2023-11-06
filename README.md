@@ -308,3 +308,730 @@ public class PostRepositoryTest {
 - java springboot 에서는 패키지명으로 enum 이 안 된다
 - 정확한 실수 계산이 필요할 때에는 float, double 대신 BigDecimal 을 사용하자
 - [https://codingdog.tistory.com/entry/mysql-decimal-vs-double-고정-소수점과-부동-소수점](https://codingdog.tistory.com/entry/mysql-decimal-vs-double-%EA%B3%A0%EC%A0%95-%EC%86%8C%EC%88%98%EC%A0%90%EA%B3%BC-%EB%B6%80%EB%8F%99-%EC%86%8C%EC%88%98%EC%A0%90)
+
+---
+
+# 🌱3주차 미션
+
+# 프로젝트 패키지 구조
+
+![Untitled 17](https://github.com/CEOS-Developers/spring-daagn-market-18th/assets/48885608/6dc9be1f-9b94-4e58-953f-0ec5d8de0224)
+
+Post (게시글) 도메인에 대해 CRUD 를 만들어봅시다.
+
+현재 제 Post 엔티티는 아래와 같습니다.
+
+```java
+package com.ceos18.springboot.domain.entity;
+
+import com.ceos18.springboot.domain.entity.base.BaseTimeEntity;
+import com.ceos18.springboot.domain.entity.enums.DealType;
+import com.ceos18.springboot.domain.entity.enums.PostStatus;
+import jakarta.persistence.*;
+import lombok.*;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
+@Entity
+@Getter
+@Setter
+@Table(name = "posts")
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class Post extends BaseTimeEntity {
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long id; // PK
+
+	@ManyToOne
+	@JoinColumn(name = "category_id", nullable = false)
+	private Category category;
+
+	@ManyToOne
+	@JoinColumn(name = "seller_id", nullable = false)
+	private Member seller;
+
+	@Column(name = "title", nullable = false)
+	private String title;
+
+	@Column(name = "deal_type", nullable = false)
+	@Enumerated(EnumType.STRING)
+	private DealType dealType;
+
+	@Column(name = "description")
+	private String description;
+
+	@Column(name = "deal_place")
+	private String dealPlace;
+
+	@Column(name = "price")
+	private BigDecimal price;
+
+	@Column(name = "is_price_offer", nullable = false)
+	private Boolean isPriceOffer;
+
+	@Column(name = "status", nullable = false)
+	@Enumerated(EnumType.STRING)
+	private PostStatus status;
+
+	@Column(name = "liked_count", nullable = false)
+	private int likedCount;
+
+	@Column(name = "view_count", nullable = false)
+	private int viewCount;
+
+	@Column(name = "pullup_at")
+	private LocalDateTime pullupAt;
+
+}
+```
+
+Post 는 Category 와 Member(seller) 를 참조하고 있기 때문에 사전에 Category 와 Member 데이터가 필요합니다.
+
+따라서 임시로 InitDb 라는 클래스에서 스프링이 구동될 때 Category 와 Member DB 를 만들어주도록 했습니다.
+
+`InitDb`
+
+```java
+package com.ceos18.springboot;
+
+import com.ceos18.springboot.domain.entity.Category;
+import com.ceos18.springboot.domain.entity.Member;
+import com.ceos18.springboot.repository.CategoryRepository;
+import com.ceos18.springboot.repository.MemberRepository;
+import jakarta.annotation.PostConstruct;
+import jakarta.persistence.EntityManager;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+
+@Component
+@RequiredArgsConstructor
+public class InitDb {
+
+	private final InitService initService;
+
+	@PostConstruct
+	public void init() {
+		initService.dbInit1();
+	}
+
+	@Component
+	@Transactional
+	@RequiredArgsConstructor
+	static class InitService {
+
+		private final MemberRepository memberRepository;
+		private final CategoryRepository categoryRepository;
+
+		public void dbInit1() {
+			System.out.println("Init1" + this.getClass());
+
+			Member member = new Member();
+			member.setPhoneNumber("010-1111-2222");
+			member.setEmail("abc@gmail.com");
+
+			memberRepository.save(member);
+
+			Category category = new Category();
+			category.setName("전자기기");
+
+			categoryRepository.save(category);
+		}
+
+	}
+}
+```
+
+Category 와 Member 하나씩을 save 해줍니다.
+
+![Untitled 18](https://github.com/CEOS-Developers/spring-daagn-market-18th/assets/48885608/7fd61359-0a75-4713-be2b-19d424d6dbde)
+
+![Untitled 19](https://github.com/CEOS-Developers/spring-daagn-market-18th/assets/48885608/17955e5a-aac5-4f2e-b0f0-91a249b45af4)
+
+
+
+# API 설계
+
+![Untitled 20](https://github.com/CEOS-Developers/spring-daagn-market-18th/assets/48885608/c3309bb8-b973-46ae-b252-916161fb0ea3)
+
+## post 생성
+
+**POST : /api/v1/post**
+
+- parameter : 없음
+- request body
+
+```java
+{
+  "title": "string",
+  "categoryId": 0,
+  "dealType": "SELL",
+  "description": "string",
+  "dealPlace": "string",
+  "price": 0,
+  "isPriceOffer": true
+}
+```
+
+- 성공 response : post 의 id 를 반환
+
+```java
+1
+```
+
+## post 전체 조회
+
+**GET : /api/v1/post**
+
+- parameter : 없음
+- request body : 없음
+
+- 성공 response
+
+```java
+[
+  {
+    "id": 0,
+    "category": {
+      "id": 0,
+      "name": "string"
+    },
+    "seller": {
+      "id": 0,
+      "nickName": "string"
+    },
+    "title": "string",
+    "dealType": "SELL",
+    "description": "string",
+    "dealPlace": "string",
+    "price": 0,
+    "isPriceOffer": true,
+    "status": "SALE",
+    "likedCount": 0,
+    "viewCount": 0,
+    "pullupAt": "2023-10-07T14:29:51.516Z"
+  }
+]
+```
+
+## post 단건 조회
+
+**GET : /api/v1/post/{postId}**
+
+- parameter : postId
+- request body : 없음
+
+- 성공 response
+
+```java
+{
+  "id": 0,
+  "category": {
+    "id": 0,
+    "name": "string"
+  },
+  "seller": {
+    "id": 0,
+    "nickName": "string"
+  },
+  "title": "string",
+  "dealType": "SELL",
+  "description": "string",
+  "dealPlace": "string",
+  "price": 0,
+  "isPriceOffer": true,
+  "status": "SALE",
+  "likedCount": 0,
+  "viewCount": 0,
+  "pullupAt": "2023-10-07T14:32:25.278Z"
+}
+```
+
+## post 수정
+
+**PATCH : /api/v1/post/{postId}**
+
+- parameter : `postId`
+- request body
+
+    ```java
+    {
+      "title": "string",
+      "categoryId": 0,
+      "dealType": "SELL",
+      "description": "string",
+      "dealPlace": "string",
+      "price": 0,
+      "isPriceOffer": true
+    }
+    
+    ```
+
+
+- 성공 response : post 의 id 를 반환
+
+```java
+1
+```
+
+## post 삭제
+
+**DELETE : /api/v1/post/{postId}**
+
+- parameter : `postId`
+- request body : 없음
+
+- 성공 response : post 의 id 를 반환
+
+```java
+1
+```
+
+# Dto 생성
+
+## request dto
+
+`PostCreateRequestDto`
+
+```java
+@Getter
+@NoArgsConstructor
+public class PostCreateRequestDto {
+
+	private String title;
+	private Long categoryId;
+	private DealType dealType;
+	private String description;
+	private String dealPlace;
+	private BigDecimal price;
+	private Boolean isPriceOffer;
+
+}
+```
+
+- Post 를 생성할 때, 클라이언트 단에서 넘어올 값을 정의합니다.
+
+`PostUpdateRequestDto`
+
+```java
+@Getter
+@NoArgsConstructor
+public class PostUpdateRequestDto {
+	private String title;
+	private Long categoryId;
+	private DealType dealType;
+	private String description;
+	private String dealPlace;
+	private BigDecimal price;
+	private Boolean isPriceOffer;
+}
+```
+
+- Post 를 수정할 때, 클라이언트 단에서 넘어올 값을 정의합니다.
+
+## response dto
+
+```java
+@Getter
+@Setter
+public class PostReadResponseDto {
+	private Long id;
+	private CategoryVo category; // 연관관계
+	private MemberVo seller; // // 연관관계
+	private String title;
+	private DealType dealType;
+	private String description;
+	private String dealPlace;
+	private BigDecimal price;
+	private Boolean isPriceOffer;
+	private PostStatus status;
+	private int likedCount;
+	private int viewCount;
+	private LocalDateTime pullupAt;
+
+	public static PostReadResponseDto fromEntity(Post post) {
+		PostReadResponseDto dto = new PostReadResponseDto();
+		dto.setId(post.getId());
+		dto.setCategory(CategoryVo.fromEntity(post.getCategory()));
+		dto.setSeller(MemberVo.fromEntity(post.getSeller()));
+		dto.setTitle(post.getTitle());
+		dto.setDealType(post.getDealType());
+		dto.setDescription(post.getDescription());
+		dto.setDealPlace(post.getDealPlace());
+		dto.setPrice(post.getPrice());
+		dto.setIsPriceOffer(post.getIsPriceOffer());
+		dto.setStatus(post.getStatus());
+		dto.setLikedCount(post.getLikedCount());
+		dto.setViewCount(post.getViewCount());
+		dto.setPullupAt(post.getPullupAt());
+		return dto;
+	}
+
+}
+```
+
+dto 에서 response 값을 아래처럼 주기 위해 내부적으로 CategoryVo 와 MemberVo 를 사용했습니다.
+
+```java
+{
+  "id": 0,
+  "category": {
+    "id": 0,
+    "name": "string"
+  },
+  "seller": {
+    "id": 0,
+    "nickName": "string"
+  },
+  "title": "string",
+  "dealType": "SELL",
+  "description": "string",
+  "dealPlace": "string",
+  "price": 0,
+  "isPriceOffer": true,
+  "status": "SALE",
+  "likedCount": 0,
+  "viewCount": 0,
+  "pullupAt": "2023-10-07T14:32:25.278Z"
+}
+```
+
+`CategoryVo`
+
+```java
+@Getter
+@Setter
+public class CategoryVo {
+	private Long id;
+	private String name;
+
+	public static CategoryVo fromEntity(Category category) {
+		CategoryVo categoryVo = new CategoryVo();
+		categoryVo.setId(category.getId());
+		categoryVo.setName(category.getName());
+		return categoryVo;
+	}
+
+	public Category toEntity() {
+		Category category = new Category();
+		category.setId(this.id);
+		category.setName(this.name);
+		return category;
+	}
+}
+```
+
+`MemberVo`
+
+```java
+@Getter
+@Setter
+public class MemberVo {
+	private Long id;
+	private String nickName;
+
+	public static MemberVo fromEntity(Member member) {
+		MemberVo memberVo = new MemberVo();
+		memberVo.setId(member.getId());
+		memberVo.setNickName(member.getNickName());
+		return memberVo;
+	}
+
+	public Member toEntity() {
+		Member member = new Member();
+		member.setId(this.id);
+		member.setNickName(this.nickName);
+		return member;
+	}
+}
+```
+
+# Controller
+
+`PostApiController`
+
+```java
+@RequiredArgsConstructor
+@RestController
+@RequestMapping("/api")
+public class PostApiController {
+	private final PostService postService;
+
+	// 등록
+	@PostMapping("/v1/post")
+	public Long createPost(@RequestBody PostCreateRequestDto requestDto) {
+
+		// TODO : 나중에 헤더의 토큰에서 member id 뽑아오는 로직 필요
+		Long memberId = 1L; // 지금은 임시로 member id를 1 로 설정
+
+		return postService.createPost(requestDto, memberId);
+	}
+
+	// 전체 조회
+	@GetMapping("/v1/post/")
+	public List<PostReadResponseDto> findAllPosts() {
+		return postService.findAllPosts();
+	}
+
+	// 단건 조회
+	@GetMapping("/v1/post/{postId}")
+	public PostReadResponseDto findPost(@PathVariable("postId") Long postId) {
+		return postService.findPost(postId);
+	}
+
+	// 수정
+	@PatchMapping("/v1/post/{postId}")
+	public Long updatePost(@PathVariable("postId") Long postId, @RequestBody PostUpdateRequestDto requestDto) {
+
+		Long memberId = 1L; // 지금은 임시로 member id를 1 로 설정
+
+		return postService.updatePost(requestDto, postId, memberId);
+	}
+
+	//삭제
+	@DeleteMapping("/v1/post/{postId}")
+	public Long deletePost(@PathVariable("postId") Long postId) {
+
+		Long memberId = 1L; // 지금은 임시로 member id를 1 로 설정
+
+		return postService.deletePost(postId, memberId);
+	}
+
+}
+```
+
+- 권한 체크를 위해 memberId 를 임시로 설정하고 Service 단에 넘겨주어서 체크하도록 했습니다.
+
+# Service
+
+`PostService`
+
+```java
+@Service
+@Transactional(readOnly = true)
+@RequiredArgsConstructor
+public class PostService {
+
+	private final PostRepository postRepository;
+	private final CategoryRepository categoryRepository;
+	private final MemberRepository memberRepository;
+//	private final ModelMapper modelMapper;
+
+	/**
+	 * 게시글 등록
+	 */
+	@Transactional
+	public Long createPost(PostCreateRequestDto requestDto, Long memberId) {
+
+		Category category = categoryRepository.findById(requestDto.getCategoryId())
+				.orElseThrow(() -> new IllegalArgumentException("해당 카테고리가 없습니다. id=" + requestDto.getCategoryId()));
+
+		Member member = memberRepository.findById(memberId)
+				.orElseThrow(() -> new IllegalArgumentException("해당 멤버가 없습니다. id=" + memberId));
+
+		Post post = Post.builder()
+				.category(category)
+				.seller(member)
+				.title(requestDto.getTitle())
+				.dealType(requestDto.getDealType())
+				.description(requestDto.getDescription())
+				.dealPlace(requestDto.getDealPlace())
+				.price(requestDto.getPrice())
+				.isPriceOffer(requestDto.getIsPriceOffer())
+				.status(PostStatus.SALE)
+				.likedCount(0)
+				.viewCount(0)
+				.build();
+
+		return postRepository.save(post).getId();
+	}
+
+	/**
+	 * 게시글 전체 조회
+	 */
+	public List<PostReadResponseDto> findAllPosts() {
+		List<Post> posts = postRepository.findAll();
+		return posts.stream()
+				.map(PostReadResponseDto::fromEntity)
+				.collect(Collectors.toList());
+	}
+
+	/**
+	 * 게시글 단건 조회
+	 */
+	public PostReadResponseDto findPost(Long postId) {
+		Post post =  postRepository.findById(postId)
+				.orElseThrow(() -> new IllegalArgumentException("해당 게시글이 없습니다. id=" + postId));
+
+		// return modelMapper.map(post, PostReadResponseDto.class);
+		return PostReadResponseDto.fromEntity(post);
+	}
+
+	/**
+	 * 게시글 수정
+	 */
+	@Transactional
+	public Long updatePost(PostUpdateRequestDto requestDto, Long postId, Long memberId) {
+		Post post = postRepository.findById(postId)
+				.orElseThrow(() -> new IllegalArgumentException("해당 게시글이 없습니다. id=" + postId));
+
+		// 게시글 작성자와 수정 요청자가 같은지 확인
+		if (post.getSeller().getId() != memberId) {
+			throw new IllegalArgumentException("게시글 작성자와 수정 요청자가 같지 않습니다.");
+		}
+
+		// requestDto.getCategoryId 가 있을 때
+		Category category = null;
+		if (requestDto.getCategoryId() != null) {
+			category = categoryRepository.findById(requestDto.getCategoryId())
+					.orElseThrow(() -> new IllegalArgumentException("해당 카테고리가 없습니다. id=" + requestDto.getCategoryId()));
+		}
+
+		post.setTitle(requestDto.getTitle());
+
+		if (category != null) {
+			post.setCategory(category);
+		}
+
+		post.setDealType(requestDto.getDealType());
+		post.setDescription(requestDto.getDescription());
+		post.setDealPlace(requestDto.getDealPlace());
+		post.setPrice(requestDto.getPrice());
+		post.setIsPriceOffer(requestDto.getIsPriceOffer());
+
+		return postId;
+	}
+
+	/**
+	 * 게시글 삭제
+	 */
+	@Transactional
+	public Long deletePost(Long postId, Long memberId) {
+		Post post = postRepository.findById(postId)
+				.orElseThrow(() -> new IllegalArgumentException("해당 게시글이 없습니다. id=" + postId));
+
+		// 게시글 작성자와 삭제 요청자가 같은지 확인
+		if (post.getSeller().getId() != memberId) {
+			throw new IllegalArgumentException("게시글 작성자와 삭제 요청자가 같지 않습니다.");
+		}
+
+		postRepository.delete(post);
+		return postId;
+	}
+
+}
+```
+
+# Repository
+
+repository 는 별도의 커스텀메스더를 사용하지 않고 JpaRepository 에서 지원하는 메서드를 그대로 사용했습니다.
+
+```java
+package com.ceos18.springboot.repository;
+
+import com.ceos18.springboot.domain.entity.Post;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface PostRepository extends JpaRepository<Post, Long> {
+
+}
+```
+
+# api 테스트
+
+통합테스트 코드를 따로 짜진 않았고 swagger 상에서 직접 테스트를 진행했습니다.
+
+## post 생성
+
+![Untitled 21](https://github.com/CEOS-Developers/spring-daagn-market-18th/assets/48885608/b401da9d-0056-4af1-a915-2af86374ff5b)
+
+![Untitled 22](https://github.com/CEOS-Developers/spring-daagn-market-18th/assets/48885608/609e384e-ae02-4362-bcfa-4cc636e25235)
+
+![Untitled 23](https://github.com/CEOS-Developers/spring-daagn-market-18th/assets/48885608/dc4fa73f-539f-42c1-aabb-f8e9274caa97)
+
+## post 전체 조회
+
+
+![Untitled 24](https://github.com/CEOS-Developers/spring-daagn-market-18th/assets/48885608/3ed57c5e-0155-4e67-af40-e760ae665105)
+
+![Untitled 25](https://github.com/CEOS-Developers/spring-daagn-market-18th/assets/48885608/89914ad4-da64-483c-8136-928116c6ae1c)
+
+```java
+[
+  {
+    "id": 1,
+    "category": {
+      "id": 1,
+      "name": "전자기기"
+    },
+    "seller": {
+      "id": 1,
+      "nickName": null
+    },
+    "title": "t1",
+    "dealType": "SELL",
+    "description": "string",
+    "dealPlace": "string",
+    "price": 0,
+    "isPriceOffer": true,
+    "status": "SALE",
+    "likedCount": 0,
+    "viewCount": 0,
+    "pullupAt": null
+  },
+  {
+    "id": 2,
+    "category": {
+      "id": 1,
+      "name": "전자기기"
+    },
+    "seller": {
+      "id": 1,
+      "nickName": null
+    },
+    "title": "t2",
+    "dealType": "SELL",
+    "description": "string",
+    "dealPlace": "string",
+    "price": 0,
+    "isPriceOffer": true,
+    "status": "SALE",
+    "likedCount": 0,
+    "viewCount": 0,
+    "pullupAt": null
+  }
+]
+```
+
+## post 단건 조회
+
+![Untitled 26](https://github.com/CEOS-Developers/spring-daagn-market-18th/assets/48885608/dbb1132d-0a1a-4856-8e27-b132e3110182)
+
+![Untitled 27](https://github.com/CEOS-Developers/spring-daagn-market-18th/assets/48885608/57804ff0-8c12-4f63-b158-fc4d93069102)
+
+## post 수정
+
+![Untitled 28](https://github.com/CEOS-Developers/spring-daagn-market-18th/assets/48885608/d2f735c8-dc8d-4e48-a57c-dfd6fdbbc809)
+
+title 을 수정해보겠습니다
+
+![Untitled 29](https://github.com/CEOS-Developers/spring-daagn-market-18th/assets/48885608/81abe3ec-736d-4b34-a1b7-ff8afdbe72e6)
+
+## post 삭제
+
+![Untitled 30](https://github.com/CEOS-Developers/spring-daagn-market-18th/assets/48885608/ebe110fc-19aa-4fad-b689-965d6ae4c4a8)
+
+![Untitled 31](https://github.com/CEOS-Developers/spring-daagn-market-18th/assets/48885608/776af15d-7ea7-408f-b47d-a2a951e14b0f)
+
+---
+
+# 느낀 점 및 고민
+
+- 지연로딩 세팅 및 N+1 문제 해결해야 합니다
+- controller 에서 service 단에 데이터를 넘겨줄 때 어떻게 해야 더 깔끔하게 넘겨줄 수 있을 지 고민입니다.
+- service 단에서 인터페이스와 impl 패턴 사용 시 장단점과 프로젝트에서 적용 여부에 대한 고민
+- vo 를 이렇게 쓰는게 맞는건지에 대한 의문
+- 커맨드, 쿼리를 분리하는 패턴 또한 우리 수준 프로젝트에서 유의미한 장점이 있을까 하는 고민
