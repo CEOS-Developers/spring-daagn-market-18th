@@ -369,6 +369,7 @@ public class PostController {
 ```
 
 - (nullable=false)로 설정해두었기 때문에 town, user, category 테이블에 임의로 테스트용 데이터를 넣어두었음
+  
   ![town](https://github.com/nzeong/new-piro-game-BE/assets/121355994/a527f7a7-db09-48d4-a257-398452bc3c23)
   ![user](https://github.com/nzeong/new-piro-game-BE/assets/121355994/e58d95cc-fa52-4134-ae3b-567dae10f1c6)
   ![cate](https://github.com/nzeong/new-piro-game-BE/assets/121355994/3ecf21b4-88af-4192-835f-fb11ef76b8cf)
@@ -389,7 +390,6 @@ public class PostController {
   }
   }
 `
-<br>
 `{
   "title":"과자 팔아요",
   "price": 500,
