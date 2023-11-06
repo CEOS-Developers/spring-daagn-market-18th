@@ -2,11 +2,13 @@ package com.ceos18.dangn.domain;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-import lombok.Getter;
+import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
 
 @Entity
 @Getter
+@NoArgsConstructor
+@AllArgsConstructor(access = AccessLevel.PROTECTED)
 public class Post extends BaseEntity {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "post_id")
@@ -17,6 +19,7 @@ public class Post extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     @ColumnDefault("\"SALE\"")
+    @Setter
     private TradeMethod tradeMethod;
 
     //엥 가격이 없어도 된다
@@ -42,12 +45,31 @@ public class Post extends BaseEntity {
     @ColumnDefault("\"SALE\"")
     private PostStatus postStatus;
 
+    @ColumnDefault("0")
+    private int view;
+
+    @Column(columnDefinition = "TINYINT(0) DEFAULT 0")
+    private boolean isDel;
+
     //카테고리는 필수
-    @OneToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id")
+    @Setter
     private Category category;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "seller_id")
     private User seller;
+
+    @Builder
+    public Post(User seller, String thumbnail, String title, int price, boolean isPriceOffer, String description, String wishPlace, int townRange) {
+        this.seller = seller;
+        this.thumbnail = thumbnail;
+        this.title = title;
+        this.price = price;
+        this.isPriceOffer = isPriceOffer;
+        this.description = description;
+        this.wishPlace = wishPlace;
+        this.townRange = townRange;
+    }
 }
