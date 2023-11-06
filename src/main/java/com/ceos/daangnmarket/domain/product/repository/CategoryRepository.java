@@ -1,9 +1,9 @@
 package com.ceos.daangnmarket.domain.product.repository;
 
-import com.ceos.daangnmarket.domain.product.entity.Product;
+import com.ceos.daangnmarket.domain.product.entity.Category;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface ProductRepository extends JpaRepository<Product, Long> {
+public interface CategoryRepository extends JpaRepository<Category, Long> {
 }
