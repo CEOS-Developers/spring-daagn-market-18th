@@ -5,6 +5,8 @@ import com.ceos18.market.database.enums.ClothesSize;
 import com.ceos18.market.database.enums.TradingCode;
 import com.ceos18.market.database.enums.StatusCode;
 import com.ceos18.market.database.enums.TradingStatus;
+import com.ceos18.market.domain.product.dto.ProductRequest;
+import com.ceos18.market.domain.product.dto.ProductResponse;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -12,10 +14,8 @@ import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
 
 @Entity(name = "PROD_LIST")
-@Builder
 @Getter
-@AllArgsConstructor
-@NoArgsConstructor(access = AccessLevel.PROTECTED) // 테스트만 하고 빌더패턴 다시 구현할게요 ㅜㅜ
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Product extends BaseTimeEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -39,12 +39,10 @@ public class Product extends BaseTimeEntity {
     @NotNull
     private String content;
 
-    // Cell, Share
     @Enumerated(EnumType.STRING)
     @Column(name = "TRD_CD", columnDefinition = "CHAR(5)")
     private TradingCode tradingCode;
 
-    // 거래 방식 밑에 체크 했는지
     @Enumerated(EnumType.STRING)
     @Column(name = "TRD_OPT_CD", columnDefinition = "CHAR(1)")
     private StatusCode tradingOptionCode;
@@ -65,4 +63,35 @@ public class Product extends BaseTimeEntity {
     @Column(name = "TRD_STAT", columnDefinition = "CHAR(11)")
     @ColumnDefault("'PROCEEDING'")
     private TradingStatus tradingStatus;
+
+    @Builder
+    public Product(User userNo, String title, String keyword,
+                   String content, TradingCode tradingCode, StatusCode tradingOptionCode,
+                   int price, String brand, ClothesSize size, TradingStatus tradingStatus) {
+        this.userNo = userNo;
+        this.title = title;
+        this.keyword = keyword;
+        this.content = content;
+        this.tradingCode = tradingCode;
+        this.tradingOptionCode = tradingOptionCode;
+        this.price = price;
+        this.brand = brand;
+        this.size = size;
+        this.tradingStatus = tradingStatus;
+    }
+
+    public static Product of(ProductRequest productRequest, User user) {
+        return Product.builder()
+                .userNo(user)
+                .title(productRequest.getTitle())
+                .keyword(productRequest.getKeyword())
+                .content(productRequest.getContent())
+                .tradingCode(productRequest.getTradingCode())
+                .tradingOptionCode(productRequest.getTradingOptionCode())
+                .price(productRequest.getPrice())
+                .brand(productRequest.getBrand())
+                .size(productRequest.getSize())
+                .tradingStatus(productRequest.getTradingStatus())
+                .build();
+    }
 }

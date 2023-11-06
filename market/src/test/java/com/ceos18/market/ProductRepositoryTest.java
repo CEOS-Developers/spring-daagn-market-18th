@@ -1,20 +1,17 @@
 package com.ceos18.market;
 
-import com.ceos18.market.core.ProductRepository;
-import com.ceos18.market.core.UserRepository;
+import com.ceos18.market.domain.product.ProductRepository;
+import com.ceos18.market.domain.UserRepository;
 import com.ceos18.market.database.Product;
 import com.ceos18.market.database.User;
 import com.ceos18.market.database.enums.StatusCode;
 import com.ceos18.market.database.enums.TradingCode;
 import com.ceos18.market.database.enums.TradingStatus;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-
-import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -49,7 +46,7 @@ public class ProductRepositoryTest {
                 .title("test")
                 .keyword("test")
                 .content("test")
-                .tradingCode(TradingCode.Cell)
+                .tradingCode(TradingCode.SELL)
                 .tradingOptionCode(StatusCode.N)
                 .price(12300)
                 .tradingStatus(TradingStatus.COMPLETED)

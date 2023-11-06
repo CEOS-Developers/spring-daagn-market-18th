@@ -58,3 +58,296 @@ CEOS 18th Backend Study - Carrot Market
 ### 설계하며 고려했던 사항들
 
 기본적으로 개인 취향에 따라 디비를 설계하는 방법은 다르겠지만, 개인적으로 테이블, 컬럼 등 대문자와 약어를 사용하는 것을 좋아합니다.. 풀네임으로 컬럼의 이름을 작성하면 너무 오브젝트의 명이 너무 길어 코딩하기에 어려워진다는?? 생각과 이전에는 dbms 자체에서 30바이트로 이름을 설계할 수 있는 것을 제한했었는데,, 물론 요즘에는 100바이트 넘게 가능하다고 하나, 여러모로 길면 불편하다는 판단하에 대부분의 사람들이 30을 기준으로 설계한다고 들었습니다. 이번에는 char와 varchar의 차이점에 대해서 구글링을 통해 알아낸 결과, 고정 크기는 char라는 정보를 알고 이게 또 연산이 더 빠르다는 장점이 있다고 해서 Enum 값으로 설계할 수 있는 부분은 모두 char로 작성해봤습니다. Id 값은 필드를 구분하기 위한 것이면 Varchar, 서로 계산하기 위한 목적이면 INT를 사용한다고 합니다. 물론 체계를 어떻게 나누는지에 따라 다르겠지만, 이번 당근마켓을 기준으로 봤을 때 유저의 Id 값은 #GH249124 등 순서대로 증가하는 것이 아닌, 문자가 섞여 있는 것으로 확인하여 Varchar 작성했습니다. 하나의 테이블에 많은 컬럼을 다 넣은 경향이 없지는 않지만, 조인하는 것이 비용적으로 많이 든다는 생각을 계속 가져가면서 실제로 사용하면서 이 부분은 나눠야겠다라고 판단할 때 나누는 것이 더 좋다고 했던 조언이 기억에 남아 한 테이블에 넣었습니다. 테이블을 쪼개는 것은 성능보다도 사실 데이터 무결성과 정합성 차원에서 먼저 검토를 해야 한다고 하지만, 이 부분에 대해서 이해를 완벽하게 하지 못해 일단 시간이 부족하여 돌아갈 수 있도록 설계했습니다. 여기까지가 이번 모델링을 하면서 고려했던 부분들 입니다.
+
+---
+
+# 3주차 - CRUD API 만들기
+
+이번 주차에는 하나의 모델을 설정하여 REST API를 설계하고, 구현하는 것이 과제였다.<br>
+과제에 사용한 모델은 `Product`였고, 이는 당근마켓 서비스에서 중심이 되는 모델이라고 판단했기 때문이다.<br>
+4가지의 API를 만드는 것을 목표로 했다. API 목록은 아래와 같다.<br>
+
+- `POST` 새로운 데이터
+- `GET` 모든 데이터
+- `GET` 특정 데이터
+- `DELETE` 특정 데이터
+
+설계하기 위한 개념과 방법은 미션을 안내해주는 페이지에 정리가 잘 되어 있기 때문에 구현하며 고민했던 부분과 알게 된 점을 정리해보려고 한다. <br>
+
+우선 설계한 API를 먼저 소개하겠다.
+
+## Product
+
+### 새로운 데이터 생성 기능 - POST /api/product
+
+RequestBody
+
+```json
+{
+    // URL : http://localhost:8080/api/product
+    // Method : POST
+
+    "userNo" : string,
+    "title": string,
+    "keyword": string,
+    "content": string,
+    "tradingCode": string,
+    "tradingOptioncode": string,
+    "price": int,
+    "brand": string,
+    "size": string,
+    "tradingStatus": string
+}
+```
+
+ResponseBody
+
+```json
+{
+    "productNo": int
+}
+```
+
+구현하며 알았던 정보가 두가지 존재한다.<br>
+
+1. Entity 상에서 `User`를 저장하는 user column이 존재하는데, 이를 DTO로 값을 받을 때는 User 객체를 RequestBody에 전달할 수 없다는 것.
+   - 해결 방법은 단순했다. 원하는 user의 ID 값을 전달 받은 후, Service Layer에서 `findById`로 객체를 찾아서 DTO에서 Entity로 변결할 때 저장하는 방법이다. 오랜만에 해서 헷갈려서 적어봤습니다.
+2. ENUM값도 RequestBody에 String으로 전달할 수 있다는 점.
+   - 정확한 워딩으로 작성해야 한다는 것이 문제이지만, String 형태로 Body에 전달하면 이를 DTO 상에서는 ENUM으로 받을 수 있다는 것을 알게 되었다.
+
+### 모든 데이터 조회 - GET api/product
+
+ResponseBody
+
+```
+{
+    [
+        {
+            "productNo": int,
+            "userNo" : string,
+            "title": string,
+            "keyword": string,
+            "content": string,
+            "tradingCode": string,
+            "tradingOptioncode": string,
+            "price": int,
+            "brand": string,
+            "size": string,
+            "tradingStatus": string
+        },
+        ...
+    ]
+}
+```
+
+Service Layer에서 `List<DTO>`를 하기 위해 Stream 방식을 활용했다.<br>
+<img width="758" alt="스크린샷 2023-10-07 오후 5 55 24" src="https://github.com/CEOS-Developers/spring-daagn-market-18th/assets/89639470/c280eb83-3949-42df-94cc-f24a9092aeef">
+
+### 특정 데이터 조회 - GET api/product/{id}
+
+ResponseBody
+
+```
+{
+    "productNo": int,
+    "userNo" : string,
+    "title": string,
+    "keyword": string,
+    "content": string,
+    "tradingCode": string,
+    "tradingOptioncode": string,
+    "price": int,
+    "brand": string,
+    "size": string,
+    "tradingStatus": string
+}
+```
+
+### 특정 데이터 삭제 - DELETE api/product/{id}
+
+단순히 실행 결과의 상태값(status)만 전달한다.<br>
+
+## 추가 학습한 부분
+
+1. DTO를 만들 때 정적 팩토리 메서드 명칭 컨벤션?
+   - `of`는 매개변수를 2개 이상의 값을 받을 때 사용하고, `from`은 매개변수가 1개일 때 사용한다고 하는데 왜 이렇게 사용하는지 알 수는 없다. 물론 `toEntity`, `toDto`같은 명칭도 있지만 개인적으로 위와 같은 방법을 더 주로 사용한다.
+2. 새로운 폴더 구조
+   - 기본적으로 폴더 구조는 layer끼리 모아두는 방법, domain 별로 묶어두는 방법 크게 2가지가 보편적으로 사용되는 것 같다. 이번에는 새로운 방법을 도입해봤다. 서비스의 크기가 커지고, 멀티 모듈로 코드를 나눈다고 했을 때를 가정하고 mysql에 들어가는 Entity를 묶어두는 폴더, 다른 기능들은(Controller, Service, Repository) domain 별로 묶었고, 마지막으로 global 폴더를 만들었다.
+   - Entity와 Repository를 한 군데에 묶어 domain 폴더에는 Controller, Service, Dto 정도만 남겨두는 구조는 어떨까 고민하고 있다. 조금 바보같은 생각일까..?<br>
+     <img width="211" alt="스크린샷 2023-10-07 오후 6 11 18" src="https://github.com/CEOS-Developers/spring-daagn-market-18th/assets/89639470/fa791377-333a-4ea6-8bcc-4718c3f9f917">
+3. 한가지 궁금한 점
+   - 항상 고민했던 부분이지만, `ProductController`는 `ProductService`를 참고하고, Service는 Repository를 참조하도록 설계가 되어있다. 여기서 `ProductService`가 `UserRepository`를 찾고하는 방법은 뭔가 이상하지 않은가..? 유저 정보가 필요하다고 해서 `ProductRepository` 이외의 다른 `Repoistory`를 참고하는 방법이 뭔가 이래도 되나? 라는 고민이 들긴 하지만 기능 구현을 위해 일단 작성했다.
+   - 여기서 궁금한 점은 한마디로 자신의 도메인이 아닌 다른 도메인의 `Repository`를 가져와서 사용해도 되는가?
+   - 이것도 바보같은 고민이다..
+
+## 생성자 대신 정적 팩터리 매서드를 고려하라
+
+핵심을 정리하면 다음과 같다.<br>
+
+1. 정적 팩터리 메서드와 public 생성자 각자의 상대적인 장단점이 존재한다.
+2. 정적 팩터리 메서드 사용이 유리한 경우가 더 많다.
+
+정적 팩터리의 장점은 다음과 같다.
+
+1. 이름을 가질 수 있다.
+   - public 생성자보다 객체의 특성을 제대로 설명
+   - 한 클래스에 시그니처가 같은 생성자를 여러 개 생성 가능
+2. 호출될 때마다 인스턴스를 새로 생성하지 않아도 된다.
+   - 불변 클래스(immutable class)는 `Instance`를 재활용 -> 불필요한 객체 생성 X
+   - 인스턴스 통제 가능 -> 싱글턴으로 만들 수 있고, 인스턴스화 불가로 만들 수 있음
+3. 반환 타입의 하위 타입 객체를 반환할 능력이 있다.
+   - 객체 생성 시, 분기 처리를 통해 하위 타입의 객체를 반환할 수 있음<br>
+   ```
+   public class Grade {
+   ...
+   private static Grade of(int semester) {
+           if(0 < semester && semester <= 2) {
+               return new Freshman();
+   	    }
+           if(2 < semester && semester <= 4) {
+               return new Sophomore();
+           }
+           ...
+      }
+   }
+   ```
+4. 입력 매개벼수에 따른 다른 클래스 객체를 반환할 수 있다.
+5. 정적 팩터리 메서드를 작성하는 시점에는 반환할 객체의 클래스가 존재하지 않아도 된다.
+
+단점은 다음과 같다.
+
+1. 상속하려면 public, protected 생성자가 필요함으로, 정적 팩터리 메서드만 제공할 시 하위 클래스를 만들 수 없다.
+2. 정적 팩터리 메서드는 프로그래머가 찾기가 어렵다.
+   - 생성자처럼 API설명에 명확히 들어나지 않기 때문에 인스턴스화하는 방법을 알아야 한다.
+
+### 매서드 시그니처
+
+메서드 명과 파라미터의 순서, 타입, 개수를 의미. 리턴 타입과 Exceptions은 포함되지 않음.
+
+```java
+// 서로 다른 시그니처
+void doSomething(String[] x); // doSomething(String[]) - 메서드 시그니처 예 1
+void doSomething(String x); // doSomething(String)
+
+// 같은 시그니처
+int doSomething(int x); // doSomething(int)
+void doSomething(int y) throws Exception; // doSomething(int)
+```
+
+## Builder 패턴
+
+- 점층적 생성자 패턴의 안정성 + 자바빈즈 패턴의 가독성
+- **필요한 매개변수만으로 생성자를 호출**해 빌더 객체 생성
+- 생성할 클래스 안에 **정적 멤버 클래스**로 만들어두는 게 일반적이다
+  - **플루어트 API(fluent API)** - 물 흐르듯 연결된다는 의미
+  - **메서드 연쇄(method chaining)**
+
+```java
+public class NutritionFacts {
+	private final int servingSize;
+	private final int servings;
+	private final int fat;
+	...
+
+	// 정적 멤버 클래스로 생성할 클래스 안에 빌더 만들기
+	public static class Builder {
+		// 필수 매개변수
+		private final int servingSize;
+		private final int servings;
+
+		// 선택 매개변수
+		private int fat = 0;
+		...
+
+		public Builder(int servingSize, int servings) {
+			this.servingSize = servingSize;
+			this.servings = servings;
+		}
+
+		public Builder fat(int val) {
+			fat = val; return this;
+		}
+		...
+
+		// 마지막에 매개변수 없는 build 메서드를 호출하여 객체 생성
+		public NutritionFacts build() {
+			return new NutritionFacts(this);
+		}
+	}
+
+	private NutritionFacts(Builder builder) {
+		servingSize = builder.servingSize;
+		servings = builder.servings;
+		fat = builder.fat;
+		...
+	}
+}
+
+// 클라이언트 코드
+NutritionFacts food = new NutritionFacts.Builder(240,8)
+								.fat(50).build();
+```
+
+- **빌더 패턴은 계층적으로 설계된 클래스와 함께 쓰기에 좋다**
+  - 가변인 매개변수를 여러 개 사용할 수 있다는 장점
+  - 하단의 `addTopping` 메서드 참고
+
+```java
+// 루트 추상 클래스
+public abstract class Pizza {
+	public enum Topping { HAM, ... }
+	final Set<Topping> toppings;
+
+	// 추상 클래스는 추상 빌더를 가짐. 하위 클래스에서 구체 빌더로 구현
+	abstract static class Builder<T extends Builder<T>> {
+		EnumSet<Topping> toppings = EnumSet.noneOf(Topping.class);
+		public T addTopping(Topping topping) {
+			toppings.add(Objects.requireNonNull(topping)); // Null 체크
+	    return self();
+    }
+
+		abstract Pizza build();
+
+		// 하위 클래스에서 메소드 재정의하여 "this"를 반환하게 해야 함.
+    protected abstract T self();
+	}
+
+  Pizza(Builder<?> builder) {
+		toppings = builder.toppings.clone(); // 복사본 만들기
+	}
+}
+
+// 뉴욕 피자
+public class NyPizza extends Pizza {
+	public enum Size { SMALL, ... }
+	private final Size size;
+
+	public static class Builder extends Pizza.Builder<Builder> {
+		private final Size size;
+
+		public Builder(Size size) {
+			// 잘못된 매개변수 확인하는 용도 -> invariant(불변식) 만족하는 조건
+			this.size = Objects.requireNonNull(size);
+		}
+
+		@Override public NyPizza build() {
+			return new NyPizza(this);
+		}
+
+		@Override protected Builder self() { return this; }
+	}
+
+	private NyPizza(Builder builder) {
+		super(builder);
+		size = builder.size;
+	}
+}
+
+// 클라이언트 코드
+NyPizza pizza = new NyPizza(SMALL)
+						.addTopping(SAUSAGE).addTopping(ONION).build();
+```
+
+## 후기
+
+이번 주차에는 간단한 CRUD API를 만들어보면서 새로운 폴더 구조를 만들어봤다. Entity를 수정, 열람하는 일이 많고 도메인에 Entity까지 저장하게 되면, 한번에 폴더를 열 때 복잡해서 간소화하기 위한 벙법? 으로 한번 테스트 해봤는데 생각보다 괜찮은 것 같다. 물론 왜 이렇게 했는지 이상하게 보일 수 있다는 점..
