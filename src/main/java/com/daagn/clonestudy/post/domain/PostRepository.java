@@ -12,6 +12,6 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 
   Optional<Post> findTopByOrderByIdDesc();
 
-  @Query("select p, i from Post p left join PostImage i on p.id = i.post.id and i.isThumbnail = true where p.id < :lastId order by p.id desc, i.id asc")
+  @Query("select p, i from Post p left join fetch p.writer left join PostImage i on p.id = i.post.id and i.isThumbnail = true where p.id < :lastId order by p.id desc, i.id asc")
   Page<Object[]> findAllWithImage(@Param("lastId") Long lastId, Pageable pageable);
 }
