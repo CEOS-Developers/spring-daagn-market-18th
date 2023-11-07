@@ -17,7 +17,7 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping
-    public ResponseEntity saveUser(@Validated @RequestBody UserRequestDto dto){
+    public ResponseEntity saveUser(@Valid @RequestBody UserRequestDto dto){
         Long id = userService.saveUser(dto);
         return new ResponseEntity(id,HttpStatus.OK);
     }

@@ -14,6 +14,7 @@ public class User extends BaseEntity{
     @Column(name = "user_id")
     private Long id;
 
+    @Column(unique = true, nullable = false)
     private String email;
     private String password;
 
