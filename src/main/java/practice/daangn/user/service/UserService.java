@@ -6,33 +6,64 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.server.ResponseStatusException;
 import practice.daangn.domain.User;
+import practice.daangn.global.TokenProvider;
 import practice.daangn.repository.UserRepository;
-import practice.daangn.user.dto.UserRequestDto;
+import practice.daangn.user.dto.UserSignUpRequestDto;
 import practice.daangn.user.dto.UserResponseDto;
 
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
+@Transactional
 @Service
 public class UserService {
 
     private final UserRepository userRepository;
-    @Transactional
-    public Long saveUser(UserRequestDto dto){
+    private final PasswordEncoder passwordEncoder;
+    private final TokenProvider tokenProvider;
+
+
+    public Long signUp(UserSignUpRequestDto requestDto) throws Exception {
+        if (userRepository.findByEmail(requestDto.getEmail()).isPresent()){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "중복된 이메일입니다"); //이메일 중복 시 400 에러 반환
+        }
+
+        User user = userRepository.save(requestDto.toEntity());
+        user.setPassword(passwordEncoder.encode(user.getPassword())); // 비밀번호 암호화
+        userRepository.save(user);
+
+        return user.getId();
+    }
+
+
+
+
+
+
+
+
+
+
+
+    /**
+     * week 3
+     * crud api 개발 과제
+     */
+
+    public Long saveUser(UserSignUpRequestDto dto){
         User user = dto.toEntity();
         userRepository.save(user);
 
         return user.getId();
     }
 
+    @Transactional(readOnly = true)
     public List<UserResponseDto> findAllUSer(int pageNo){
 //        List<User> users = userRepository.findAll();
 //        return users.stream()
@@ -44,6 +75,7 @@ public class UserService {
         return page.getContent();
     }
 
+    @Transactional(readOnly = true)
     public List<UserResponseDto> findUserByWord(String word){
         List<User> users = userRepository.findByEmailContaining(word);
         return users.stream()
@@ -51,7 +83,8 @@ public class UserService {
                 .toList(); // 수정 불가, null 값 허용
     }
 
-    @Transactional
+
+
     public void deleteUser(Long id){
 //        if(userRepository.existsById(id)){
 //            userRepository.deleteById(id);

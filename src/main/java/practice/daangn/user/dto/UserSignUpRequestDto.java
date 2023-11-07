@@ -3,7 +3,6 @@ package practice.daangn.user.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -14,7 +13,7 @@ import practice.daangn.domain.User;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserRequestDto {
+public class UserSignUpRequestDto {
     @Email
     private String email;
     @NotBlank

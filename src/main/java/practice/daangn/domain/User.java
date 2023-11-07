@@ -31,6 +31,8 @@ public class User extends BaseEntity{
     @Enumerated(EnumType.STRING)
     private Role role;
 
-
+    public void setPassword(String password){
+        this.password = password;
+    }
 
 }
