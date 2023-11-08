@@ -13,6 +13,8 @@ import org.springframework.web.server.ResponseStatusException;
 import practice.daangn.domain.User;
 import practice.daangn.global.TokenProvider;
 import practice.daangn.repository.UserRepository;
+import practice.daangn.user.dto.TokenResponseDto;
+import practice.daangn.user.dto.UserSignInRequestDto;
 import practice.daangn.user.dto.UserSignUpRequestDto;
 import practice.daangn.user.dto.UserResponseDto;
 
@@ -39,6 +41,27 @@ public class UserService {
         userRepository.save(user);
 
         return user.getId();
+    }
+
+    public TokenResponseDto signIn(UserSignInRequestDto requestDto) throws Exception {
+        User user = userRepository.findByEmail(requestDto.getEmail())
+                .orElseThrow(()-> new ResponseStatusException(HttpStatus.BAD_REQUEST,"잘못된 이메일입니다"));
+
+        if(!passwordEncoder.matches(requestDto.getPassword(), user.getPassword())){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "잘못된 비밀번호입니다");
+        }
+
+        // 원본에서는 user가 userdetail 상속
+        String accessToken = tokenProvider.createAccessToken(user.getEmail(), user.getRole().name());
+        String refreshToken = tokenProvider.createRefreshToken();
+
+        // refresh token redis에 저장
+
+        return TokenResponseDto.builder()
+                .grantType("Bearer")
+                .jwtAccessToken(accessToken)
+                .jwtRefreshToken(refreshToken)
+                .build();
     }
 
 

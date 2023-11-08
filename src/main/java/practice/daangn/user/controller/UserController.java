@@ -5,6 +5,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import practice.daangn.user.dto.TokenResponseDto;
+import practice.daangn.user.dto.UserSignInRequestDto;
 import practice.daangn.user.dto.UserSignUpRequestDto;
 import practice.daangn.user.service.UserService;
 
@@ -15,10 +17,28 @@ public class UserController {
 
     private final UserService userService;
 
-    @PostMapping
+    /**
+     * 회원가입
+     * @param requestDto
+     * @return
+     * @throws Exception
+     */
+    @PostMapping("/signup")
     public ResponseEntity signUp(@Valid @RequestBody UserSignUpRequestDto requestDto) throws Exception {
-        userService.signUp(requestDto);
+        Long id = userService.signUp(requestDto);
         return new ResponseEntity(HttpStatus.CREATED);
+    }
+
+    /**
+     * 로그인
+     * @param requestDto
+     * @return responseDto
+     * @throws Exception
+     */
+    @PostMapping("/signin")
+    public ResponseEntity singIn(@Valid @RequestBody UserSignInRequestDto requestDto) throws Exception {
+        TokenResponseDto responseDto = userService.signIn(requestDto);
+        return new ResponseEntity(responseDto, HttpStatus.OK);
     }
 
 
