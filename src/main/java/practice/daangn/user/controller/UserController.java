@@ -4,10 +4,13 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-import practice.daangn.user.dto.TokenResponseDto;
-import practice.daangn.user.dto.UserSignInRequestDto;
-import practice.daangn.user.dto.UserSignUpRequestDto;
+import practice.daangn.domain.User;
+import practice.daangn.user.dto.response.TokenResponseDto;
+import practice.daangn.user.dto.response.UserResponseDto;
+import practice.daangn.user.dto.request.UserSignInRequestDto;
+import practice.daangn.user.dto.request.UserSignUpRequestDto;
 import practice.daangn.user.service.UserService;
 
 @RequiredArgsConstructor
@@ -19,9 +22,6 @@ public class UserController {
 
     /**
      * 회원가입
-     * @param requestDto
-     * @return
-     * @throws Exception
      */
     @PostMapping("/signup")
     public ResponseEntity signUp(@Valid @RequestBody UserSignUpRequestDto requestDto) throws Exception {
@@ -31,14 +31,20 @@ public class UserController {
 
     /**
      * 로그인
-     * @param requestDto
-     * @return responseDto
-     * @throws Exception
      */
     @PostMapping("/signin")
     public ResponseEntity singIn(@Valid @RequestBody UserSignInRequestDto requestDto) throws Exception {
         TokenResponseDto responseDto = userService.signIn(requestDto);
         return new ResponseEntity(responseDto, HttpStatus.OK);
+    }
+
+    /**
+     * 내 정보 가져오기
+     */
+    @GetMapping("/info")
+    public ResponseEntity getMyInfo(@AuthenticationPrincipal(expression = "user") User user){
+        UserResponseDto info = userService.getMyInfo(user);
+        return new ResponseEntity(info, HttpStatus.OK);
     }
 
 

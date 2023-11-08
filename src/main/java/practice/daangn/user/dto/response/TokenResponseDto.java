@@ -1,4 +1,4 @@
-package practice.daangn.user.dto;
+package practice.daangn.user.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

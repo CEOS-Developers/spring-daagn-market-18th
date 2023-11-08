@@ -37,8 +37,8 @@ public class WebSecurityConfig {
                 .sessionManagement(sessionManagement ->
                         sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // 세션을 사용하지 않기 때문에 STATELESS로 설정
                 .authorizeRequests() // 요청에 대한 접근 권한을 설정하는 메서드
-                .requestMatchers(HttpMethod.POST, "/signup").permitAll()
-                .requestMatchers(HttpMethod.POST, "/signin").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/v1/users/signup").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/v1/users/signin").permitAll()
                 .anyRequest().authenticated();
         http
 

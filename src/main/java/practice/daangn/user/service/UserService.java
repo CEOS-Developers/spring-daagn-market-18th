@@ -13,10 +13,10 @@ import org.springframework.web.server.ResponseStatusException;
 import practice.daangn.domain.User;
 import practice.daangn.global.TokenProvider;
 import practice.daangn.repository.UserRepository;
-import practice.daangn.user.dto.TokenResponseDto;
-import practice.daangn.user.dto.UserSignInRequestDto;
-import practice.daangn.user.dto.UserSignUpRequestDto;
-import practice.daangn.user.dto.UserResponseDto;
+import practice.daangn.user.dto.response.TokenResponseDto;
+import practice.daangn.user.dto.request.UserSignInRequestDto;
+import practice.daangn.user.dto.request.UserSignUpRequestDto;
+import practice.daangn.user.dto.response.UserResponseDto;
 
 
 import java.util.List;
@@ -36,7 +36,7 @@ public class UserService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "중복된 이메일입니다"); //이메일 중복 시 400 에러 반환
         }
 
-        User user = userRepository.save(requestDto.toEntity());
+        User user = requestDto.toEntity();
         user.setPassword(passwordEncoder.encode(user.getPassword())); // 비밀번호 암호화
         userRepository.save(user);
 
@@ -62,6 +62,14 @@ public class UserService {
                 .jwtAccessToken(accessToken)
                 .jwtRefreshToken(refreshToken)
                 .build();
+    }
+
+    @Transactional(readOnly = true)
+    public UserResponseDto getMyInfo(User user){
+        System.out.println("확인");
+        if(user == null)
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "사용자 정보가 없습니다."); //없어도 서비스 단까지 안 오지 않나?
+        return UserResponseDto.from(user);
     }
 
 
