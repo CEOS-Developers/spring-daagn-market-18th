@@ -6,15 +6,17 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.web.util.ContentCachingRequestWrapper;
 
 import java.io.IOException;
 
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
-    private final TokenProvider jwtAuthenticationProvider;
+    private final TokenProvider tokenProvider;
 
     public JwtAuthenticationFilter(TokenProvider provider) {
-        this.jwtAuthenticationProvider = provider;
+        this.tokenProvider = provider;
     }
 
     /**
@@ -24,19 +26,27 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
      */
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        String token = jwtAuthenticationProvider.getAccessToken(request); //request 헤더에서 토큰을 가져옴
-        System.out.println(token);
-        if (token != null && jwtAuthenticationProvider.validateAccessToken(token)) {
+        ContentCachingRequestWrapper cachingRequestWrapper = new ContentCachingRequestWrapper(request); // 요청 본문을 캐시에 저장
+        String token = parseBearerToken(cachingRequestWrapper); //request 헤더에서 토큰을 가져옴
+
+        if (token != null && tokenProvider.validateToken(token)) {
 
             //유효한 토큰이면 TokenProvider를 통해 Authentication 객체를 생성
-            Authentication authentication = jwtAuthenticationProvider.getAuthentication(token);
+            Authentication authentication = tokenProvider.getAuthentication(token);
             System.out.println(authentication.getAuthorities());
             // 현재 스레드의 Security Context에 인증 정보를 저장 -> 해당 요청을 처리하는 동안 인증된 사용자로서 권한이 부여
             SecurityContextHolder.getContext().setAuthentication(authentication);
         }
-
-        filterChain.doFilter(request, response);
+        filterChain.doFilter(cachingRequestWrapper, response);
     }
 
+
+    private String parseBearerToken(HttpServletRequest request){
+        String bearerToken = request.getHeader("Authorization");
+        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer")) {
+            return bearerToken.substring(7);
+        }
+        return bearerToken;
+    }
 
 }

@@ -5,14 +5,12 @@ import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Component;
 import io.jsonwebtoken.io.Decoders;
 
@@ -52,9 +50,6 @@ public class TokenProvider implements InitializingBean {
                 .signWith(SignatureAlgorithm.HS256, this.key) // 비밀키로 서명
                 .compact();
     }
-    public String getAccessToken(HttpServletRequest request) {
-        return request.getHeader("X-ACCESS-TOKEN");
-    }
 
     //JWT Refresh Token 생성
     public String createRefreshToken(){
@@ -64,9 +59,6 @@ public class TokenProvider implements InitializingBean {
                 .setExpiration(new Date(now.getTime() + refreshTokenValidTime))
                 .signWith(SignatureAlgorithm.HS256, this.key)
                 .compact();
-    }
-    public String getRefreshToken(HttpServletRequest request) {
-        return request.getHeader("X-REFRESH-TOKEN");
     }
 
     public Authentication getAuthentication(String token) {
@@ -79,9 +71,9 @@ public class TokenProvider implements InitializingBean {
     }
 
     // Access Token의 유효성 + 만료일자 확인
-    public boolean validateAccessToken(String accessToken) {
+    public boolean validateToken(String token) {
         try {
-            Jws<Claims> claims = Jwts.parser().setSigningKey(secret).parseClaimsJws(accessToken);
+            Jws<Claims> claims = Jwts.parser().setSigningKey(secret).parseClaimsJws(token);
             return !claims.getBody().getExpiration().before(new Date());
         } catch (Exception e) {
             return false;

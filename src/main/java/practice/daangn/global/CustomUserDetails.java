@@ -3,7 +3,7 @@ package practice.daangn.global;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.userdetails.UserDetails;
-import practice.daangn.domain.User;
+import practice.daangn.domain.users.entity.User;
 
 import java.util.Collection;
 

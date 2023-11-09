@@ -6,12 +6,12 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import practice.daangn.domain.ActivityArea;
-import practice.daangn.domain.Area;
-import practice.daangn.domain.User;
-import practice.daangn.repository.ActivityAreaRepository;
-import practice.daangn.repository.AreaRepository;
-import practice.daangn.repository.UserRepository;
+import practice.daangn.domain.users.entity.ActivityArea;
+import practice.daangn.domain.users.entity.Area;
+import practice.daangn.domain.users.entity.User;
+import practice.daangn.domain.users.repository.ActivityAreaRepository;
+import practice.daangn.domain.users.repository.AreaRepository;
+import practice.daangn.domain.users.repository.UserRepository;
 
 import java.util.Optional;
 
