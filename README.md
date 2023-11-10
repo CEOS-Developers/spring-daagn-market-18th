@@ -437,3 +437,106 @@ public class PostController {
 Post 객체로 CRUD API를 만들어 보면서 DTO가 왜 필요하고 Controller와 Service 계층이 구체적으로 어떻게 동작하는지 이해할 수 있었다.
 특히 외래키로 연결된 데이터들에 대해서 어떻게 request를 받고, 어떤 response를 보내줄지 고민을 많이 했던 것 같다.
 해당 부분은 내가 코드를 작성하면서 뜯어보고 프로그램이 동작하는 것을 눈으로 보는 게 빠르게 학습할 수 있는 방법인 것 같다.
+---
+# 💙 CEOS 18th Backend Study 4주차 💙
+
+
+## 1️⃣ JWT 인증(Authentication) 방법에 대해서 알아보기
+
+- JWT를 이용한 인증 방식(액세스토큰, 리프레쉬 토큰)에 대해서 조사해봐요
+- 추가로 세션, 쿠키, OAuth 등 다른 방식도 조사해봐요
+- 자세하게 조사할수록 도움이 되겠죠? 🤩
+
+## 2️⃣ 액세스 토큰 발급 및 검증 로직 구현하기
+> 로그인은 email과 pwd로 진행
+
+- TokenProvider 클래스에 적절한 메서드 구현
+- TokenProvider를 이용해서 custom filter 내용 채우기
+  
+### ⭐ UserDetails, UserDetailsService 왜 사용해야하는 것일까?
+![context](https://github.com/nzeong/new-piro-game-BE/assets/121355994/3b3e2f12-8dc7-4af9-a620-b803344931a2)
+스프링 시큐리티는 로그인 완료 시 Authenticication을 생성하게 되는데, Authenticication 객체는 UserDetails type으로 인증된 사용자 정보를 저장하기 때문이다.
+따라서 나는 UserDetails를 상속받는 PrincipalDetails와 PrincipalDetails를 생성하는 PrincipalDetailsService를 만들어주었다.
+
+```java
+@Data
+public class PrincipalDetails implements UserDetails {
+    private final User user;
+
+    public PrincipalDetails(User user) {
+        this.user = user;
+    }
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        Collection<GrantedAuthority> collection = new ArrayList<>();
+        collection.add(new SimpleGrantedAuthority("ROLE_USER"));
+        return collection;
+    }
+
+    @Override
+    public String getPassword() {
+        return user.getPwd();
+    }
+
+    // 이메일이 id 역할을 하기 때문에 user email 반환
+    @Override
+    public String getUsername() {
+        return user.getEmail();
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return true;
+    }
+}
+```
+
+```java
+@Slf4j
+@Service
+@RequiredArgsConstructor
+public class PrincipalDetailsService implements UserDetailsService {
+
+    private final UserRepository userRepository;
+    @Override // email로 user 찾아 UserDetails 타입의 PrincipalDetails 객체를 반환해준다
+    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+        log.info("PrincipalDetailsService.loadUserByUsername");
+        log.info("Login");
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("존재하지 않는 유저입니다."));
+        return new PrincipalDetails(user);
+    }
+}
+```
+
+## 3️⃣ 로그인 API 구현하고 테스트하기
+
+- 앞에서 구현한 `TokenProvider`를 이용해요
+- 연결한 DB에 회원을 만든 후, 로그인 API가 잘 작동하는지 테스트를 해봐요(회원가입 API를 만들어서 테스트 한다면 더욱 좋겠죠?)
+
+## 4️⃣ 토큰이 필요한 API 1개 이상 구현하고 테스트하기
+
+- 구현 후 API 테스트를 해봐요
+- 요청에 토큰이 포함되지 않았다면 어떻게 할까요?
+
+## 5️⃣ (도전 미션~!) 리프레쉬 토큰 발급 로직 구현하고 테스트하기
+
+- 시간이 남는다면 `TokenProvider`에 리프레쉬 토큰 발급 로직을 구현해봐요
+- 발급한 리프레쉬 토큰은 어떻게 사용할 수 있을까요?
