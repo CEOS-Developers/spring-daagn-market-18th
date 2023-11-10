@@ -1,5 +1,6 @@
 package com.ceos18.springboot.chat.domain;
 
+import com.ceos18.springboot.global.common.entity.BaseEntity;
 import com.ceos18.springboot.member.domain.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -19,7 +20,7 @@ import java.time.LocalDateTime;
 @Builder
 @Getter
 @EntityListeners(AuditingEntityListener.class)
-public class ChatMsg {
+public class ChatMsg extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "msg_id")
@@ -27,12 +28,6 @@ public class ChatMsg {
 
     @NotNull
     private String content;
-
-    @CreatedDate
-    private LocalDateTime created_at;
-
-    @LastModifiedDate
-    private LocalDateTime updated_at;
 
     @NotNull // TRUE[읽음] FALSE[읽지않음]
     private boolean msg_check_status;

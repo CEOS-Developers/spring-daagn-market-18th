@@ -1,5 +1,6 @@
 package com.ceos18.springboot.post.domain;
 
+import com.ceos18.springboot.global.common.entity.BaseEntity;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
@@ -10,7 +11,7 @@ import org.antlr.v4.runtime.misc.NotNull;
 @AllArgsConstructor
 @Builder
 @Entity
-public class PostImg {
+public class PostImg extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "post_img_id")
