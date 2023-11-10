@@ -282,9 +282,250 @@ public void deleteUser(Long id){
 - 원본 보존의 이유 등으로 상황에 따라 `UPDATE`를 이용하여 is_del 컬럼을 바꾸는 방법을 권장하기도 하지만, 이번에는 `DELETE`를 사용하여 데이터를 영구적으로 삭제해보았음
 <img width="1117" alt="4" src="https://github.com/yj-leez/spring-daagn-market-18th/assets/77960090/273bdf50-6c52-47ab-bbb0-2a4672cc1319">
 
+# CEOS 백엔드 스터디 - 4주차
+
+## 1️⃣ JWT 인증(Authentication) 방법에 대해서 알아보기
+
+### 1. Access Token + Refresh Token을 이용한 인증
+
+![1](https://github.com/yj-leez/spring-daagn-market-18th/assets/77960090/a340cd71-383a-4452-949e-157c22b089d0)
 
 
-## 추가적으로 보충해야 할 점
+1 ~ 4. 사용자가 로그인을 하면 서버에서 확인 후 Access Token과 Refresh Token을 발급해줌
 
-- 더 직관적이고 통일성 있는 에러 처리
-- 저번 프로젝트의 코드리뷰에서 배운 Pageable 활용
+5. 그 이후 사용자는 데이터 요청을 할 때마다 헤더에 Access Token을 같이 보냄
+
+6 ~ 7.서버는 Access Token으로 사용자를 확인하고 응답
+
+8 ~ 13. 만약 서버가 만료된 Access Token을 받았다면 만료 신호를 사용자에게 보냄. 신호를 받은 사용자는 Refresh Token을 헤더에 보내고 서버는 이를 확인하여 새로운 Access Token, Refresh Token을 발급.
+
+### 2. OAuth 2.0을 이용한 인가 + 인증
+![2](https://github.com/yj-leez/spring-daagn-market-18th/assets/77960090/f78d92a6-cc66-4007-9edd-1d67f8746fcb)
+
+- Resource Owner: 우리의 애플리케이션을 이용하면서, 구글, 페이스북 등의 플랫폼에서 리소스를 소유하고 있는 사용자
+- Client: 사용자의 인증과 권한 부여를 관리하기 위해 이미 인증된 서비스를 이용하는 애플리케이션(= 우리)
+- Authorization Sever: 토큰을 발급하는 인증 과정을 담당하는 서버
+- Resource Server: 해당 토큰을 사용해 보호된 자원에 접근하는 것을 관리하는 서버
+- Authorization Server와 Resource Server는 같은 서비스 제공자
+
+1 ~ 3. 로그인 요청 시 Client는 Authorization Server에 필요한 매개변수를 포함하여 Resource Owner를 특정 URL(로그인하는 URL)로 이동시킴. 
+
+4 ~ 6. 로그인을 하면 지정된 Redirect URI에 Authorization Code를 포함하여 resource owner를 리디렉션시킴. Authorization Code란 Client가 Access Token을 획득하기 위해 사용하는 임시 코드.
+
+7 ~ 8. 유효한 Authorization Code로 Authorization Server에게서 Access token을 발급 받음.
+
+9 ~ 13. lient는 위 과정에서 발급받고 저장해둔 Resource Owner의 Access Token을 사용하여 제한된 리소스에 접근하고, Resource Owner에게 자사의 서비스를 제공.
+
+### 3. OIDC을 이용한 인증
+
+![3](https://github.com/yj-leez/spring-daagn-market-18th/assets/77960090/bc46602f-154e-43f0-a5b3-12627f4a5c9c)
+
+OIDC(OpenID Connect) : OAuth 2.0 위에서 동작하는 얇은 ID 계층으로, 사용자 인증을 OAuth 2.0 프로세스를 확장하여 구현.
+
+1 ~ 6. OAuth와 과정이 비슷함
+
+7. Access Token뿐 만 아니라 ID token도 발급해주며, 이 ID token으로는 별도의 요청을 보낼 필요 없이 해당 token을 decode하여 요청한 scope에 대한 유저의 정보를 바로 획득할 수 있음
+    
+    예를 들어, 구글에 OAuth 2.0에서 token을 요청할 때 scope에 필요한 정보(e.g. email, phone number)에 대해서 명시하게 되어있는데, 이 scope에 명시한 정보들을 ID token에 포함되어 전달 받음.
+    
+
+*⇒ OAuth을 통한 API호출이 아닌 단순 유저 인증 및 기본정보 등을 알기위해서라면 OIDC를 사용하는것을 더 추천*
+
+## 2️⃣ 액세스 토큰 발급 및 검증 로직 구현하기
+
+### 액세스 토큰 발급
+
+global/jwt/TokenProvider
+
+```java
+public String createAccessToken(String email, String role) {
+        Claims claims = Jwts.claims().setSubject(email); // JWT payload 에 저장되는 정보단위
+        claims.put("role", role); // 정보는 key/value 쌍으로 저장
+        Date now = new Date();
+        return Jwts.builder()
+                .setClaims(claims) // 정보 저장
+                .setIssuedAt(now) // 토큰 발행 시간 정보
+                .setExpiration(new Date(now.getTime() + accessTokenValidTime)) // set Expire Time
+                .signWith(SignatureAlgorithm.HS256, this.key) // 비밀키로 서명
+                .compact();
+}
+```
+
+### 검증 로직
+
+global/jwt/JwtAuthenticationFilter
+
+```java
+@Override
+protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+        ContentCachingRequestWrapper cachingRequestWrapper = new ContentCachingRequestWrapper(request); // 요청 본문을 캐시에 저장
+        String token = parseBearerToken(cachingRequestWrapper); //request 헤더에서 토큰을 가져옴
+
+        if (token != null && tokenProvider.validateToken(token)) {
+
+            //유효한 토큰이면 TokenProvider를 통해 Authentication 객체를 생성
+            Authentication authentication = tokenProvider.getAuthentication(token);
+
+            // 현재 스레드의 Security Context에 인증 정보를 저장 -> 해당 요청을 처리하는 동안 인증된 사용자로서 권한이 부여
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+        }
+        filterChain.doFilter(cachingRequestWrapper, response);
+}
+```
+
+1. 토큰 검증 및 사용자 식별
+    
+    global/jwt/TokenProvider
+    
+    ```java
+    public boolean validateToken(String token) {
+            try {
+                Jws<Claims> claims = Jwts.parser().setSigningKey(secret).parseClaimsJws(token);
+                return !claims.getBody().getExpiration().before(new Date());
+            } catch (Exception e) {
+                return false;
+            }
+        }
+    ```
+    
+2. UserDetails 로드 후 Authentication 반환
+    
+    global/jwt/TokenProvider
+    
+    ```java
+    public Authentication getAuthentication(String token) {
+            UserDetails userDetails = customUserDetailsService.loadUserByUsername(this.getUserEmail(token));
+            return new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
+    }
+    ```
+    
+    - `UsernamePasswordAuthenticationToken` 객체는 보통 사용자 이름과 비밀번호를 사용하여 인증을 처리하지만, JWT의 경우 이미 토큰을 통해 사용자의 신원이 검증되었으므로, 비밀번호 대신 빈 문자열(””)이나 null을 사용 가능
+    - 이 객체는 `Authentication` 인터페이스를 구현하고 있으므로, 이를 반환
+  
+3. `Authentication` 객체를 Spring Security의 보안 컨텍스트에 저장
+
+## 3️⃣ 로그인 API 구현하고 테스트하기
+
+/domain/users/dto/request/UserSignInRequestDto
+
+```java
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class UserSignInRequestDto {
+    @Email
+    private String email;
+    @NotBlank
+    private String password;
+}
+```
+
+/domain/users/UserService
+
+```java
+public TokenResponseDto signIn(UserSignInRequestDto requestDto) throws Exception {
+        User user = userRepository.findByEmail(requestDto.getEmail())
+                .orElseThrow(()-> new ResponseStatusException(HttpStatus.BAD_REQUEST,"잘못된 이메일입니다"));
+
+        if(!passwordEncoder.matches(requestDto.getPassword(), user.getPassword())){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "잘못된 비밀번호입니다");
+        }
+
+        // 원본에서는 user가 userdetail 상속
+        String accessToken = tokenProvider.createAccessToken(user.getEmail(), user.getRole().name());
+        String refreshToken = tokenProvider.createRefreshToken();
+
+        // refresh token redis에 저장
+
+        return TokenResponseDto.builder()
+                .grantType("Bearer")
+                .jwtAccessToken(accessToken)
+                .jwtRefreshToken(refreshToken)
+                .build();
+    }
+```
+
+email과 비밀번호 확인 후 Access Token과 Refresh Token 발급
+
+<img width="1392" alt="4" src="https://github.com/yj-leez/spring-daagn-market-18th/assets/77960090/d132058c-3d10-42d2-8be0-fe009dd2d86c">
+
+## 4️⃣ 토큰이 필요한 API 1개 이상 구현하고 테스트하기
+
+/domain/users/UserController
+
+```java
+@GetMapping("/info")
+    public ResponseEntity getMyInfo(@AuthenticationPrincipal(expression = "user") User user){
+        UserResponseDto info = userService.getMyInfo(user);
+        return new ResponseEntity(info, HttpStatus.OK);
+    }
+```
+
+/domain/users/UserService
+
+```java
+@Transactional(readOnly = true)
+public UserResponseDto getMyInfo(User user){
+        if(user == null)
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "사용자 정보가 없습니다.");
+        return UserResponseDto.from(user);
+}
+```
+
+### @AuthenticationPrincipal
+
+- Security Context에서 `Authentication`객체를 가져와서 그 안에서 Principal을 매개변수로 사용하는 어노테이션
+- 현재 Principal이 `CustomUserDetails`로 되어있으므로 이 중 User 필드를 사용하기 위해 (expression = "user")를 명시
+    
+    → User가 UserDetails를 implements하면 expression을 명시하지 않아도 되지만 UserDetails는 사용자의 기본적인 정보만을 포함하고 있고, 책임을 분리하기 위해 CustomUserDetails를 따로 구현함
+    
+<img width="1392" alt="5" src="https://github.com/yj-leez/spring-daagn-market-18th/assets/77960090/e8fc9210-346b-4c91-b0bf-20a8fe3ffc17">
+
+## 5️⃣ 리프레쉬 토큰 발급 로직 구현하고 테스트하기
+
+### 리프레시 토큰 발급
+
+global/jwt/TokenProvider
+
+```java
+public String createRefreshToken(String email){
+        Date now = new Date();
+
+        String refreshToken = Jwts.builder()
+                .setIssuedAt(now)
+                .setExpiration(new Date(now.getTime() + refreshTokenValidTime))
+                .signWith(SignatureAlgorithm.HS256, this.key)
+                .compact();
+
+        redisDao.setValues(email, refreshToken, getExpiration(refreshToken)); //redis에 key: email, value: refreshToken 저장
+        return refreshToken;
+    }
+```
+
+domain/users/UserService
+
+```java
+@Transactional
+    public TokenResponseDto reIssue(User user, TokenRequestDto tokenRequestDto) throws Exception {
+
+        if(!tokenProvider.validateToken(tokenRequestDto.getRefreshToken())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "올바르지 않은 refresh token입니다.");
+        }
+
+        String accessToken = tokenProvider.createAccessToken(user.getEmail(), user.getRole().name());
+        String refreshToken = tokenProvider.createRefreshToken(user.getEmail());
+
+        return TokenResponseDto.builder()
+                .grantType("Bearer")
+                .jwtAccessToken(accessToken)
+                .jwtRefreshToken(refreshToken)
+                .build();
+    }
+```
+
+- 프론트에서 Access token이 만료될 쯤 Refresh token을 Request Body로 보낸다는 가정하에, Refresh token이 유효하다면 Access token과 Refresh token 재발급하여 응답.
+<img width="1392" alt="6" src="https://github.com/yj-leez/spring-daagn-market-18th/assets/77960090/ad33f059-e7f2-4f6c-984c-6de88fa3d10e">
+
+
+
