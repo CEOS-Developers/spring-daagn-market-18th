@@ -326,7 +326,7 @@ OIDC(OpenID Connect) : OAuth 2.0 위에서 동작하는 얇은 ID 계층으로, 
 
 7. Access Token뿐 만 아니라 ID token도 발급해주며, 이 ID token으로는 별도의 요청을 보낼 필요 없이 해당 token을 decode하여 요청한 scope에 대한 유저의 정보를 바로 획득할 수 있음
     
-    예를 들어, 구글에 OAuth 2.0에서 token을 요청할 때 scope에 필요한 정보(e.g. email, phone number)에 대해서 명시하게 되어있는데, 이 scope에 명시한 정보들을 ID token에 포함되어 전달 받음.
+    예를 들어, 구글에 OAuth 2.0에서 token을 요청할 때 scope에 필요한 정보(e.g. email, phone number)에 대해서 명시하게 되어있다면, 이 scope에 명시한 정보들을 ID token에 포함되어 전달 받음.
     
 
 *⇒ OAuth을 통한 API호출이 아닌 단순 유저 인증 및 기본정보 등을 알기위해서라면 OIDC를 사용하는것을 더 추천*
@@ -373,7 +373,7 @@ protected void doFilterInternal(HttpServletRequest request, HttpServletResponse 
 }
 ```
 
-1. 토큰 검증 및 사용자 식별
+1. 토큰 유효성 검증
     
     global/jwt/TokenProvider
     
@@ -432,11 +432,9 @@ public TokenResponseDto signIn(UserSignInRequestDto requestDto) throws Exception
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "잘못된 비밀번호입니다");
         }
 
-        // 원본에서는 user가 userdetail 상속
-        String accessToken = tokenProvider.createAccessToken(user.getEmail(), user.getRole().name());
-        String refreshToken = tokenProvider.createRefreshToken();
 
-        // refresh token redis에 저장
+        String accessToken = tokenProvider.createAccessToken(user.getEmail(), user.getRole().name());
+        String refreshToken = tokenProvider.createRefreshToken(user.getEmail());
 
         return TokenResponseDto.builder()
                 .grantType("Bearer")
