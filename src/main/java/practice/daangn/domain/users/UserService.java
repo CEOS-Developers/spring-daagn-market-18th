@@ -73,9 +73,12 @@ public class UserService {
     }
 
     @Transactional
-    public TokenResponseDto reIssue(User user, TokenRequestDto tokenRequestDto){
-        if(!tokenProvider.validateToken(tokenRequestDto.getRefreshToken()))
+    public TokenResponseDto reIssue(User user, TokenRequestDto tokenRequestDto) throws Exception {
+
+        System.out.println(tokenRequestDto.getRefreshToken());
+        if(!tokenProvider.validateToken(tokenRequestDto.getRefreshToken())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "올바르지 않은 refresh token입니다.");
+        }
 
         String accessToken = tokenProvider.createAccessToken(user.getEmail(), user.getRole().name());
         String refreshToken = tokenProvider.createRefreshToken(user.getEmail());

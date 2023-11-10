@@ -1,9 +1,6 @@
 package practice.daangn.global.jwt;
 
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jws;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.InitializingBean;
@@ -83,7 +80,7 @@ public class TokenProvider implements InitializingBean {
     public boolean validateToken(String token) {
         try {
             Jws<Claims> claims = Jwts.parser().setSigningKey(secret).parseClaimsJws(token);
-            return !claims.getBody().getExpiration().before(new Date());
+            return !claims.getBody().getExpiration().before(new Date()); // 만료시간 안지났다면 true
         } catch (Exception e) {
             return false;
         }

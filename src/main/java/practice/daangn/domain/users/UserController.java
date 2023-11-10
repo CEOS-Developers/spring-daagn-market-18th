@@ -51,7 +51,7 @@ public class UserController {
      * refresh token 재발급 요청
      */
     @PostMapping("/reIssue")
-    public ResponseEntity reIssueToken(@AuthenticationPrincipal(expression = "user") User user, TokenRequestDto requestDto){
+    public ResponseEntity reIssueToken(@AuthenticationPrincipal(expression = "user") User user, @Valid @RequestBody TokenRequestDto requestDto) throws Exception {
         TokenResponseDto tokenResponseDto = userService.reIssue(user, requestDto);
         return new ResponseEntity(tokenResponseDto, HttpStatus.OK);
     }
