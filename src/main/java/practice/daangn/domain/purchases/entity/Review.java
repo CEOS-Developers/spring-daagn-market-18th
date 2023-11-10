@@ -5,7 +5,7 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import practice.daangn.global.entity.BaseEntity;
+import practice.daangn.global.common.BaseEntity;
 import practice.daangn.domain.posts.entity.Post;
 import practice.daangn.domain.users.entity.User;
 

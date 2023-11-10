@@ -1,9 +1,10 @@
-package practice.daangn.global;
+package practice.daangn.global.jwt;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.util.StringUtils;
@@ -14,9 +15,11 @@ import java.io.IOException;
 
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final TokenProvider tokenProvider;
+    private final RedisTemplate redisTemplate;
 
-    public JwtAuthenticationFilter(TokenProvider provider) {
+    public JwtAuthenticationFilter(TokenProvider provider, RedisTemplate redisTemplate) {
         this.tokenProvider = provider;
+        this.redisTemplate = redisTemplate;
     }
 
     /**
@@ -30,14 +33,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String token = parseBearerToken(cachingRequestWrapper); //request 헤더에서 토큰을 가져옴
 
         if (token != null && tokenProvider.validateToken(token)) {
-
             //유효한 토큰이면 TokenProvider를 통해 Authentication 객체를 생성
             Authentication authentication = tokenProvider.getAuthentication(token);
-            System.out.println(authentication.getAuthorities());
             // 현재 스레드의 Security Context에 인증 정보를 저장 -> 해당 요청을 처리하는 동안 인증된 사용자로서 권한이 부여
             SecurityContextHolder.getContext().setAuthentication(authentication);
         }
-        filterChain.doFilter(cachingRequestWrapper, response);
+
+        filterChain.doFilter(cachingRequestWrapper,response);
     }
 
 

@@ -1,4 +1,4 @@
-package practice.daangn.global;
+package practice.daangn.global.jwt;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
@@ -13,8 +13,12 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import io.jsonwebtoken.io.Decoders;
+import practice.daangn.global.inmemory.RedisDao;
+import practice.daangn.global.security.CustomUserDetailsService;
 
 import java.security.Key;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Date;
 
 
@@ -23,6 +27,7 @@ import java.util.Date;
 public class TokenProvider implements InitializingBean {
     private Key key;
     private final CustomUserDetailsService customUserDetailsService;
+    private final RedisDao redisDao;
 
     @Value("${jwt.token.key}")
     private String secret;
@@ -52,13 +57,17 @@ public class TokenProvider implements InitializingBean {
     }
 
     //JWT Refresh Token 생성
-    public String createRefreshToken(){
+    public String createRefreshToken(String email){
         Date now = new Date();
-        return Jwts.builder()
+
+        String refreshToken = Jwts.builder()
                 .setIssuedAt(now)
                 .setExpiration(new Date(now.getTime() + refreshTokenValidTime))
                 .signWith(SignatureAlgorithm.HS256, this.key)
                 .compact();
+
+        redisDao.setValues(email, refreshToken, getExpiration(refreshToken)); //redis에 key: email, value: refreshToken 저장
+        return refreshToken;
     }
 
     public Authentication getAuthentication(String token) {
@@ -70,7 +79,7 @@ public class TokenProvider implements InitializingBean {
         return Jwts.parser().setSigningKey(secret).parseClaimsJws(token).getBody().getSubject();
     }
 
-    // Access Token의 유효성 + 만료일자 확인
+    // token의 유효성 + 만료일자 확인
     public boolean validateToken(String token) {
         try {
             Jws<Claims> claims = Jwts.parser().setSigningKey(secret).parseClaimsJws(token);
@@ -80,11 +89,10 @@ public class TokenProvider implements InitializingBean {
         }
     }
 
-    //access token의 만료일자 가져오기
-    public Long getExpiration(String accessToken){
+    // token의 만료일자 가져오기
+    public Duration getExpiration(String accessToken) {
         Date expiration = Jwts.parser().setSigningKey(secret).parseClaimsJws(accessToken).getBody().getExpiration();
-        Long now = new Date().getTime();
-        return (expiration.getTime() - now);
+        return Duration.between(Instant.now(), expiration.toInstant()); // 현재 시간과 토큰의 만료 시간 사이의 Duration 계산
     }
 
 

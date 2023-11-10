@@ -1,4 +1,4 @@
-package practice.daangn.global;
+package practice.daangn.global.security;
 
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
@@ -18,7 +18,7 @@ public class CustomUserDetails implements UserDetails {
     private final boolean enabled;
     private final User user;
 
-    // CustomUserDetails 생성자에서 User 객체를 받아 UserDetails를 구성합니다.
+    // CustomUserDetails 생성자에서 User 객체를 받아 UserDetails를 구성
     public CustomUserDetails(User user) {
         this.email = user.getEmail();
         this.password = user.getPassword();

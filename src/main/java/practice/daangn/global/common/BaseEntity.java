@@ -1,4 +1,4 @@
-package practice.daangn.global.entity;
+package practice.daangn.global.common;
 
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.MappedSuperclass;

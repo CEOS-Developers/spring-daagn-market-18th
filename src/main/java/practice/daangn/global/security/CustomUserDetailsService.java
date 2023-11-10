@@ -1,4 +1,4 @@
-package practice.daangn.global;
+package practice.daangn.global.security;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -7,6 +7,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import practice.daangn.domain.users.entity.User;
 import practice.daangn.domain.users.repository.UserRepository;
+import practice.daangn.global.security.CustomUserDetails;
 
 @RequiredArgsConstructor
 @Service

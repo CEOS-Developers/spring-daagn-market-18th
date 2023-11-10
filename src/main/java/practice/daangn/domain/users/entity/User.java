@@ -2,7 +2,7 @@ package practice.daangn.domain.users.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import practice.daangn.global.entity.BaseEntity;
+import practice.daangn.global.common.BaseEntity;
 
 @Entity
 @Getter

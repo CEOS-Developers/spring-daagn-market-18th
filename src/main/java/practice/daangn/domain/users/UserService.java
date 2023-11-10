@@ -10,10 +10,11 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
+import practice.daangn.domain.users.dto.request.TokenRequestDto;
 import practice.daangn.domain.users.entity.User;
 import practice.daangn.domain.users.dto.request.UserSignInRequestDto;
 import practice.daangn.domain.users.dto.response.TokenResponseDto;
-import practice.daangn.global.TokenProvider;
+import practice.daangn.global.jwt.TokenProvider;
 import practice.daangn.domain.users.repository.UserRepository;
 import practice.daangn.domain.users.dto.request.UserSignUpRequestDto;
 import practice.daangn.domain.users.dto.response.UserResponseDto;
@@ -29,6 +30,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final TokenProvider tokenProvider;
+
 
 
     public Long signUp(UserSignUpRequestDto requestDto) throws Exception {
@@ -51,11 +53,9 @@ public class UserService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "잘못된 비밀번호입니다");
         }
 
-        // 원본에서는 user가 userdetail 상속
-        String accessToken = tokenProvider.createAccessToken(user.getEmail(), user.getRole().name());
-        String refreshToken = tokenProvider.createRefreshToken();
 
-        // refresh token redis에 저장
+        String accessToken = tokenProvider.createAccessToken(user.getEmail(), user.getRole().name());
+        String refreshToken = tokenProvider.createRefreshToken(user.getEmail());
 
         return TokenResponseDto.builder()
                 .grantType("Bearer")
@@ -66,21 +66,26 @@ public class UserService {
 
     @Transactional(readOnly = true)
     public UserResponseDto getMyInfo(User user){
+
         if(user == null)
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "사용자 정보가 없습니다."); //없어도 서비스 단까지 안 오지 않나?
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "사용자 정보가 없습니다.");
         return UserResponseDto.from(user);
     }
 
     @Transactional
-    public TokenResponseDto reIssue(){
-        // token 재발급
+    public TokenResponseDto reIssue(User user, TokenRequestDto tokenRequestDto){
+        if(!tokenProvider.validateToken(tokenRequestDto.getRefreshToken()))
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "올바르지 않은 refresh token입니다.");
+
+        String accessToken = tokenProvider.createAccessToken(user.getEmail(), user.getRole().name());
+        String refreshToken = tokenProvider.createRefreshToken(user.getEmail());
+
+        return TokenResponseDto.builder()
+                .grantType("Bearer")
+                .jwtAccessToken(accessToken)
+                .jwtRefreshToken(refreshToken)
+                .build();
     }
-
-
-
-
-
-
 
 
 

@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import practice.daangn.domain.users.dto.request.TokenRequestDto;
 import practice.daangn.domain.users.entity.User;
 import practice.daangn.domain.users.dto.request.UserSignInRequestDto;
 import practice.daangn.domain.users.dto.response.TokenResponseDto;
@@ -22,7 +23,7 @@ public class UserController {
     /**
      * 회원가입
      */
-    @PostMapping("/signup")
+    @PostMapping("/signUp")
     public ResponseEntity signUp(@Valid @RequestBody UserSignUpRequestDto requestDto) throws Exception {
         Long id = userService.signUp(requestDto);
         return new ResponseEntity(HttpStatus.CREATED);
@@ -31,7 +32,7 @@ public class UserController {
     /**
      * 로그인
      */
-    @PostMapping("/signin")
+    @PostMapping("/signIn")
     public ResponseEntity singIn(@Valid @RequestBody UserSignInRequestDto requestDto) throws Exception {
         TokenResponseDto responseDto = userService.signIn(requestDto);
         return new ResponseEntity(responseDto, HttpStatus.OK);
@@ -44,6 +45,15 @@ public class UserController {
     public ResponseEntity getMyInfo(@AuthenticationPrincipal(expression = "user") User user){
         UserResponseDto info = userService.getMyInfo(user);
         return new ResponseEntity(info, HttpStatus.OK);
+    }
+
+    /**
+     * refresh token 재발급 요청
+     */
+    @PostMapping("/reIssue")
+    public ResponseEntity reIssueToken(@AuthenticationPrincipal(expression = "user") User user, TokenRequestDto requestDto){
+        TokenResponseDto tokenResponseDto = userService.reIssue(user, requestDto);
+        return new ResponseEntity(tokenResponseDto, HttpStatus.OK);
     }
 
 
