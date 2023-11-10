@@ -55,7 +55,6 @@ public class TokenProvider implements InitializingBean {
                 authentication.getAuthorities().stream()
                         .map(GrantedAuthority::getAuthority)
                         .collect(Collectors.joining(","));
-        System.out.println("authorit: \n"+authorities);
         long now = (new Date()).getTime();
         Date validity = new Date(now + this.tokenValidationTime);
         return Jwts.builder()
