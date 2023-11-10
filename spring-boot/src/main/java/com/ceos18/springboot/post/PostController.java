@@ -1,8 +1,6 @@
 package com.ceos18.springboot.post;
 
 
-import com.ceos18.springboot.member.domain.User;
-import com.ceos18.springboot.member.repository.UserRepository;
 import com.ceos18.springboot.post.dto.request.PostRequestDto;
 import com.ceos18.springboot.post.dto.response.PostResponseDto;
 import com.ceos18.springboot.post.service.PostService;

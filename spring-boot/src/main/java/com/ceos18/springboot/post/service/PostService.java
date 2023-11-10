@@ -1,12 +1,9 @@
 package com.ceos18.springboot.post.service;
 
-import com.ceos18.springboot.member.domain.User;
 import com.ceos18.springboot.post.domain.Post;
 import com.ceos18.springboot.post.dto.request.PostRequestDto;
 import com.ceos18.springboot.post.dto.response.PostResponseDto;
 import com.ceos18.springboot.post.exception.PostNotFoundException;
-import com.ceos18.springboot.post.repository.PostCategoryRepository;
-import com.ceos18.springboot.post.repository.PostImgRepository;
 import com.ceos18.springboot.post.repository.PostRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
