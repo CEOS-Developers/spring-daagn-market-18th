@@ -7,6 +7,9 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 @Entity
@@ -29,10 +32,14 @@ public class Member extends BaseEntity {
     @Column(nullable = false)
     private Double temperature;
 
+    @Column(nullable = false)
     private String email;
 
     @Column(name = "image_url")
     private String imageUrl;
+
+    @ElementCollection(fetch = FetchType.EAGER)
+    private List<String> roles;
 
     @Column(nullable = false)
     private Boolean activated;
@@ -45,7 +52,14 @@ public class Member extends BaseEntity {
         this.temperature = 36.5;
         this.email = email;
         this.imageUrl = imageUrl;
+        this.roles = new ArrayList<>() {{
+            add("USER");
+        }};
         this.activated = true;
+    }
+
+    public void encodePassword(String password) {
+        this.password = password;
     }
 
     public void updateActivatedFalse() {
