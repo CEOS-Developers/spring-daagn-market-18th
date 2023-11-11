@@ -17,6 +17,7 @@ import java.io.IOException;
 
 import static com.ceos18.springboot.user.exception.ExceptionManager.setErrorResponse;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
@@ -35,13 +36,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
             return;
         }
+
         if (StringUtils.isNotBlank(token) && tokenProvider.validateAccessToken(token)) {
+
             Authentication authentication = tokenProvider.getAuthentication(token);
             SecurityContextHolder.getContext().setAuthentication(authentication);
 
-            logger.debug("Security Context에 " + authentication.getName() + "인증 정보를 저장했습니다, uri: " + requestURI);
+            logger.info("Security Context에 " + authentication.getName() + "인증 정보를 저장했습니다, uri: " + requestURI);
         } else {
-            logger.debug("유효한 JWT 토큰이 없습니다, uri: " + requestURI);
+            logger.info("유효한 JWT 토큰이 없습니다, uri: " + requestURI);
             setErrorResponse(response, ErrorCode.INVALID_TOKEN);
         }
 

@@ -27,7 +27,9 @@ public class TokenProvider implements InitializingBean {
 
     @Value("${jwt.token.secret}")
     private String secret;
+
     private Key key;
+
     private Long expireTimeMs = 1000 * 60 * 60L; // 1시간
 
     private final PrincipalDetailsService principalDetailsService;
@@ -40,13 +42,14 @@ public class TokenProvider implements InitializingBean {
 
     public String getAccessToken(HttpServletRequest request) {
         String bearerToken = request.getHeader("Authorization");
+
         if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
             return bearerToken.substring("Bearer ".length());
         }
         return null;
     }
 
-    public String createAccessToken(Long id, String email, Authentication authentication){
+    public String createAccessToken(Long id, String email, Authentication authentication) {
         String authorities =
                 authentication.getAuthorities().stream()
                         .map(GrantedAuthority::getAuthority)
@@ -64,25 +67,27 @@ public class TokenProvider implements InitializingBean {
                 .setClaims(claims)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + expireTimeMs))
-                .signWith(SignatureAlgorithm.HS256, key)
+                .signWith(key)
                 .compact()
                 ;
     }
 
     // 토큰
     public String getTokenUserEmail(String token) {
-        return Jwts.parserBuilder()
+        Claims claims = Jwts.parserBuilder()
                 .setSigningKey(key)
                 .build()
                 .parseClaimsJws(token)
-                .getBody()
-                .getSubject();
+                .getBody();
+
+        return (String) claims.get("email");
     }
 
     public Authentication getAuthentication(String token) {
         PrincipalDetails principalDetails =
                 (PrincipalDetails)
                         principalDetailsService.loadUserByUsername(getTokenUserEmail(token));
+
         return new UsernamePasswordAuthenticationToken(
                 principalDetails, token, principalDetails.getAuthorities());
     }
@@ -92,13 +97,16 @@ public class TokenProvider implements InitializingBean {
             Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
             return true;
         } catch (io.jsonwebtoken.security.SecurityException | MalformedJwtException e) {
+            log.info(e.toString());
             log.info("잘못된 JWT 서명입니다.");
         } catch (ExpiredJwtException e) {
             log.info(e.toString());
             log.info("만료된 JWT 토큰입니다.");
         } catch (UnsupportedJwtException e) {
+            log.info(e.toString());
             log.info("지원되지 않는 JWT 토큰입니다.");
         } catch (IllegalArgumentException e) {
+            log.info(e.toString());
             log.info("JWT 토큰이 잘못되었습니다.");
         }
         return false;
