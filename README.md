@@ -299,9 +299,10 @@ public class UserController {
   private final UserService userService;
 
   @GetMapping("")
-  @PreAuthorize("hasAnyRole('USER','ADMIN')")
-  public ResponseEntity<User> getCurUserInfo() {
-    return ResponseEntity.ok(userService.getCurUserInfo());
+  public ResponseEntity<User> getCurUserInfo(
+    HttpServletRequest request
+  ) {
+    return ResponseEntity.ok(userService.getCurUserInfo((Long) request.getAttribute("id")));
   }
 }
 ```
