@@ -434,6 +434,464 @@ public class PostController {
 ![delete 결과](https://github.com/nzeong/new-piro-game-BE/assets/121355994/bb6ddbaf-70e8-4714-80d2-248f65101810)
 
 ---
+
 Post 객체로 CRUD API를 만들어 보면서 DTO가 왜 필요하고 Controller와 Service 계층이 구체적으로 어떻게 동작하는지 이해할 수 있었다.
 특히 외래키로 연결된 데이터들에 대해서 어떻게 request를 받고, 어떤 response를 보내줄지 고민을 많이 했던 것 같다.
 해당 부분은 내가 코드를 작성하면서 뜯어보고 프로그램이 동작하는 것을 눈으로 보는 게 빠르게 학습할 수 있는 방법인 것 같다.
+
+---
+
+# 💙 CEOS 18th Backend Study 4주차 💙
+
+## ⭐ 수정사항
+- softDelete로 수정
+
+## 1️⃣ JWT 인증(Authentication) 방법에 대해서 알아보기
+
+### JWT Access Token + Refresh Token
+JWT는 JSON Web Token의 약자로 사용자를 인증하고 식별하는데 필요한 JSON 데이터들을 URL로 이용할 수 있는 문자(Base64 URL-safe Encode)로 인코딩하여 직렬화, 암호화시킨 토큰을 말한다. 전자 서명도 있어 JSON의 변조를 체크할 수 있다. 단순히 HTTP 요청시 헤더에 토큰을 첨부하는 것만으로 데이터를 요청하고 응답을 받아올 수 있다. JWT를 생성하기 위해서는 Header, Payload, Verify Signature 객체를 필요로 한다. Header, Payload는 누구나 디코딩하여 확인할 수 있기에 정보가 쉽게 노출될 수 있습니다. 하지만 Verify Signature는 SECRET KEY를 알지 못하면 복호화할 수 없어 보안에 좋다.
+<br><br>
+JWT는 Access Token만으로도 인증 방식을 구현할 수 있다. 하지만 한 번 발급되면 유효기간이 만료될 때까지 삭제를 할 수 없어 만료 전에 해커에게 정보가 털린다면 대처할 방법이 없다. 그렇다고 유효기간을 짧게 하면 자주 인증해야된 불편함이 생긴다. 이에  Access Token과 같은 형태인 Refresh Token을 같이 발급하여 이 문제를 해결할 수 있다. Refresh Token은 Access Token보다 긴 유효기간을 가지고, Access Token이 만료됐을 때 새로 발급해주는 열쇠가 된다.
+
+### OAuth (현재 범용적으로 사용되고 있는 것은 OAuth 2.0)
+OAuth는 외부서비스의 인증 및 권한부여를 관리하는 범용적인 프로토콜로, 카카오 로그인, 구글 로그인 등을 구현할 때 사용한다.
+- 자원 서버(Resource Server): Client가 제어하고자 하는 자원 보유하고 있는 서버
+- 자원 소유자(Resource Owner): 자원의 소유자(로그인하는 실제 사용자)
+- 클라이언트(Client): 자원 서버에 접속해서 정보를 가져오고자 하는 클라이언트(우리의 웹 어플리케이션)
+- 권한 서버(Authorization Server): 권한 관리 및 Access Token, Refresh Token을 발급해주는 서버(ex. 구글, 페이스북 등)
+- Access Token: 자원 서버에 자원을 요청할 수 있는 토큰
+- Refresh Token: 권한 서버에 접근 토큰을 요청할 수 있는 토큰
+
+![스터디 4444444](https://github.com/nzeong/Spring-study/assets/121355994/b871e1b6-36a4-40d8-a1fb-297e672d5a19)
+1. 자원 소유자(사용자)가 구글 로그인을 요청한다.
+2. 클라이언트는 인증 서버에 로그인 페이지를 요청한다.
+3. 인증 서버가 로그인 페이지를 제공한다.
+4. 사용자는 제공받은 로그인 페이지에 ID와 비밀번호를 입력한다.
+5. 입력받은 값으로 인증 서버에 요청한다.
+6. 인증 서버에 Authorization code를 발급한다.
+7. 이 code로 인증 서버에 Access Token를 요청한다.
+8. 인증 서버에서 Access Token을 발급해준다.
+9. 인증이 완료되었다.
+10. 자원 서버에 Access Token을 담아 데이터를 요청한다.
+11. Access Token을 검증 후 응답을 준다. (만일 Access Token이 만료됐거나 위조되었다면, Client는 Authorization Server에 Refresh Token을 보내 Access Token을 재발급 받는다)
+
+    
+### 쿠키
+Key/Value 쌍으로 이루어진 문자열로, 사용자 브라우저에 저장된다. 용량이 제한되어 있으며 브라우저마다 쿠키 지원 형태가 달라 브라우저간 공유가 불가능하고 보안에 취약하다는 단점이 있다.
+
+### 세션
+쿠키의 보안 문제를 해결할 수 있는데, Key/Value 쌍으로 이루어져 비밀번호같은 민감한 인증 정보를 브라우저가 아닌 서버 측에 저장하고 관리하는 것이다. 사용자가 많아지면 정보를 찾는 데이터 매칭에 오랜 시간이 걸리면서 부하가 가해질 수 있고 해커가 세션 ID 자체를 탈취하여 위장하여 접근할 수 있다는 한계가 있다.
+
+
+
+
+## 2️⃣ 액세스 토큰 발급 및 검증 로직 구현하기
+> 로그인은 email과 pwd로 진행
+
+- TokenProvider 클래스에 적절한 메서드 구현
+```java
+@Slf4j
+@Component
+@RequiredArgsConstructor
+public class TokenProvider implements InitializingBean {
+
+    @Value("${jwt.token.secret}")
+    private String secret; // 환경변수로 secret key 설정
+
+    private Key key;
+
+    private Long expireTimeMs = 1000 * 60 * 60L; // 1시간
+
+    private final PrincipalDetailsService principalDetailsService;
+
+    @Override
+    public void afterPropertiesSet() {
+        byte[] keyBytes = Decoders.BASE64.decode(secret);
+        this.key = Keys.hmacShaKeyFor(keyBytes);
+    }
+
+    public String getAccessToken(HttpServletRequest request) {
+        String bearerToken = request.getHeader("Authorization");
+
+        if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
+            return bearerToken.substring("Bearer ".length());
+        }
+        return null;
+    }
+
+    public String createAccessToken(Long id, String email, Authentication authentication) {
+        String authorities =
+                authentication.getAuthorities().stream()
+                        .map(GrantedAuthority::getAuthority)
+                        .collect(Collectors.joining(","));
+
+        Claims claims = Jwts.claims(); // 일종의 map
+        claims.put("id", id);
+        claims.put("email", email); // 이메일(로그인 id) 넣어주기
+        claims.put("auth", authorities);
+        claims.put("type", "access");
+
+        return Jwts.builder()
+                .setHeaderParam(Header.TYPE, Header.JWT_TYPE)
+                .setSubject(email)
+                .setClaims(claims)
+                .setIssuedAt(new Date(System.currentTimeMillis()))
+                .setExpiration(new Date(System.currentTimeMillis() + expireTimeMs))
+                .signWith(key)
+                .compact()
+                ;
+    }
+
+    // 토큰
+    public String getTokenUserEmail(String token) {
+        Claims claims = Jwts.parserBuilder()
+                .setSigningKey(key)
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+
+        return (String) claims.get("email"); // 이메일(로그인 id) 꺼내기
+    }
+
+    public Authentication getAuthentication(String token) {
+        PrincipalDetails principalDetails =
+                (PrincipalDetails)
+                        principalDetailsService.loadUserByUsername(getTokenUserEmail(token));
+
+        // 여기의 return 값이 @AuthenticationPrincipal 사용시의 파라미터로 사용됨
+        return new UsernamePasswordAuthenticationToken(
+                principalDetails, token, principalDetails.getAuthorities()); 
+    }
+
+    public boolean validateAccessToken(String token) {
+        try {
+            Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
+            return true;
+        } catch (io.jsonwebtoken.security.SecurityException | MalformedJwtException e) {
+            log.info(e.toString());
+            log.info("잘못된 JWT 서명입니다.");
+        } catch (ExpiredJwtException e) {
+            log.info(e.toString());
+            log.info("만료된 JWT 토큰입니다.");
+        } catch (UnsupportedJwtException e) {
+            log.info(e.toString());
+            log.info("지원되지 않는 JWT 토큰입니다.");
+        } catch (IllegalArgumentException e) {
+            log.info(e.toString());
+            log.info("JWT 토큰이 잘못되었습니다.");
+        }
+        return false;
+    }
+}
+```
+
+### ⭐ UserDetails, UserDetailsService 왜 사용해야하는 것일까?
+![context](https://github.com/nzeong/new-piro-game-BE/assets/121355994/3b3e2f12-8dc7-4af9-a620-b803344931a2) <br><br>
+스프링 시큐리티는 로그인 완료 시 Authenticication을 생성하게 되는데, Authenticication 객체는 UserDetails type으로 인증된 사용자 정보를 저장하기 때문이다.
+따라서 UserDetails를 상속받는 PrincipalDetails와 PrincipalDetails를 생성하는 PrincipalDetailsService를 만들어주었다.
+
+```java
+@Data
+public class PrincipalDetails implements UserDetails {
+    private final User user;
+
+    public PrincipalDetails(User user) {
+        this.user = user;
+    }
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        Collection<GrantedAuthority> collection = new ArrayList<>();
+        collection.add(new SimpleGrantedAuthority("ROLE_USER")); // "USER" 권한
+        return collection;
+    }
+
+    @Override
+    public String getPassword() {
+        return user.getPwd();
+    }
+
+    // 이메일이 id 역할을 하기 때문에 user email 반환
+    @Override
+    public String getUsername() {
+        return user.getEmail();
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return true;
+    }
+}
+```
+
+```java
+@Slf4j
+@Service
+@RequiredArgsConstructor
+public class PrincipalDetailsService implements UserDetailsService {
+
+    private final UserRepository userRepository;
+    @Override // email로 user 찾아 UserDetails 타입의 PrincipalDetails 객체를 반환해준다
+    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+        log.info("PrincipalDetailsService.loadUserByUsername");
+        log.info("Login");
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("존재하지 않는 유저입니다."));
+        return new PrincipalDetails(user);
+    }
+}
+```
+<br>
+
+- TokenProvider를 이용해서 custom filter 내용 채우기
+  
+```java
+@Component
+@RequiredArgsConstructor
+public class JwtAuthenticationFilter extends OncePerRequestFilter {
+
+    private final TokenProvider tokenProvider;
+
+    @Override
+    protected void doFilterInternal(
+            HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+            throws ServletException, IOException {
+
+        String token = tokenProvider.getAccessToken(request);
+        String requestURI = request.getRequestURI();
+
+        if (token == null) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+        if (StringUtils.isNotBlank(token) && tokenProvider.validateAccessToken(token)) {
+            Authentication authentication = tokenProvider.getAuthentication(token);
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+
+            logger.info("Security Context에 " + authentication.getName() + "인증 정보를 저장했습니다, uri: " + requestURI);
+        } else {
+            logger.info("유효한 JWT 토큰이 없습니다, uri: " + requestURI);
+            setErrorResponse(response, ErrorCode.INVALID_TOKEN);
+        }
+
+        filterChain.doFilter(request, response);
+    }
+}
+```
+
+JwtAuthenticationFilter는 HttpServletRequest에서 토큰 추출해서 토큰에 대한 유효성을 검사하고, 유효하다면 Authentication 객체를 생성해서 SecurityContextHolder에 추가하는 역할을 한다.
+
+```java
+@Slf4j
+@Component
+@RequiredArgsConstructor
+public class JwtExceptionHandlerFilter extends OncePerRequestFilter {
+
+    @Override
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+        try {
+            filterChain.doFilter(request, response);
+
+        } catch (ExpiredJwtException e) {
+            log.error("만료된 토큰입니다");
+            setErrorResponse(response, ErrorCode.EXPIRED_TOKEN);
+
+        } catch (JwtException | IllegalArgumentException e) {
+            log.error("유효하지 않은 토큰이 입력되었습니다.");
+            setErrorResponse(response, ErrorCode.INVALID_TOKEN);
+
+        } catch (NoSuchElementException e) {
+            log.error("사용자를 찾을 수 없습니다.");
+            setErrorResponse(response, ErrorCode.USEREMAIL_NOT_FOUND);
+
+        } catch (ArrayIndexOutOfBoundsException e) {
+            log.error("토큰을 추출할 수 없습니다.");
+            setErrorResponse(response, ErrorCode.INVALID_TOKEN);
+
+        } catch (NullPointerException e) {
+            filterChain.doFilter(request, response);
+        }
+    }
+}
+```
+
+JwtExceptionHandlerFilter는 JwtAuthenticationFilter 전에 호출되어 Security 필터에서 발생하는 오류를 예외처리한다.
+
+## 3️⃣ 로그인 API 구현하고 테스트하기
+
+- 앞에서 구현한 `TokenProvider`를 이용해요
+- 연결한 DB에 회원을 만든 후, 로그인 API가 잘 작동하는지 테스트를 해봐요(회원가입 API를 만들어서 테스트 한다면 더욱 좋겠죠?)
+  
+![user table 데이터 삽입](https://github.com/nzeong/Spring-study/assets/121355994/05c19978-d57a-43f5-ae63-e0f58ab981c1) <br>
+
+```java
+@Service
+@RequiredArgsConstructor
+public class UserService {
+
+    private final UserHelper userHelper;
+    private final TokenProvider tokenProvider;
+
+    public TokenResponse login(UserLoginRequest request){
+        String email = request.getEmail();
+        String pwd = request.getPwd();
+
+        final User selectedUser = userHelper.findByEmail(email);
+        final Authentication authentication = userHelper.adminAuthorizationInput(selectedUser); // 유저의 권한 반환
+
+        // password 맞는지 확인하기
+        userHelper.validatePwd(selectedUser, pwd);
+
+        //access 토큰 생성
+        String accessToken = tokenProvider.createAccessToken(selectedUser.getId(), selectedUser.getEmail(), authentication);
+
+        return TokenResponse.from(accessToken);
+    }
+}
+```
+
+```java
+@RestController
+@RequiredArgsConstructor
+public class UserController {
+    private final UserService userService;
+    @PostMapping("/login")
+    public ResponseEntity<TokenResponse> login(@RequestBody UserLoginRequest request){
+
+        //로그인 시 TokenResponse return
+        return ResponseEntity.status(HttpStatus.CREATED).body(userService.login(request));
+    }
+}
+```
+### ⭐ 로그인 성공한 경우
+![로그인 성공 후 accessToken 발급](https://github.com/nzeong/Spring-study/assets/121355994/0afe25de-039c-4372-8c28-3027e69e1803)
+
+### ⭐ 비밀번호 잘못된 경우
+![비번 잘못됨](https://github.com/nzeong/Spring-study/assets/121355994/ad44bc8e-8735-4251-80da-753d8aa15008)
+
+### ⭐ 유저가 존재하지 않는 경우
+![존재안함](https://github.com/nzeong/Spring-study/assets/121355994/d0d34997-37af-45b6-a2c0-57d1d7d2143d)
+
+## 4️⃣ 토큰이 필요한 API 1개 이상 구현하고 테스트하기
+
+- 구현 후 API 테스트를 해봐요 (POST API)
+  
+```java
+@EnableWebSecurity
+@Configuration
+@RequiredArgsConstructor
+public class WebSecurityConfig {
+
+    private final JwtExceptionHandlerFilter jwtExceptionHandlerFilter;
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception{
+        http
+                .httpBasic(Customizer.withDefaults())
+                .csrf((csrf) -> csrf.disable())
+                .formLogin(formLogin -> formLogin.disable())
+                .cors(Customizer.withDefaults())
+                .sessionManagement(configurer -> configurer.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(authorize -> authorize
+                        .requestMatchers(HttpMethod.POST, "/login").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/posts/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/posts/**").hasAnyRole("USER") // USER 권한 있어야지 POST 가능
+                        .requestMatchers(HttpMethod.DELETE, "/api/posts/**").hasAnyRole("USER")
+                        .anyRequest().authenticated()
+                );
+
+        http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+        http.addFilterBefore(jwtExceptionHandlerFilter, JwtAuthenticationFilter.class);
+        return http.build();
+    }
+}
+```
+```java
+public class PostController {
+
+    @PostMapping
+    public ResponseEntity<Long> createPost(
+            @RequestBody @Valid PostRequestDto request,
+            @AuthenticationPrincipal PrincipalDetails user) {
+            //@AuthenticationPrincipal 이용해서 PrincipalDetails type의 로그인 유저 정보 가지고 오기
+
+        log.info("상품 게시글 생성하기");
+        postService.createPost(request, user.getUser());
+        return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+
+...
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deletePost(
+            @PathVariable Long id,
+            @AuthenticationPrincipal PrincipalDetails user) {
+        log.info("상품 게시글 삭제하기");
+        postService.deletePost(id, user.getUser());
+        return ResponseEntity.status(HttpStatus.OK).build();
+    }
+}
+```
+### ⭐ 전체 조회
+![전체 조회](https://github.com/nzeong/Spring-study/assets/121355994/5e9dc1b0-3da2-4e81-9ebe-91772562d904)
+
+### ⭐ 게시글 생성
+![헤더 토큰](https://github.com/nzeong/Spring-study/assets/121355994/4e4e2b86-5196-4032-9e2e-15ce0973a610)
+![게시글 생성](https://github.com/nzeong/Spring-study/assets/121355994/9cf99347-f61d-4cad-8969-5286998ff14e)
+![게시글 생성 db](https://github.com/nzeong/Spring-study/assets/121355994/233f3158-37da-4308-9cf6-364a388c64f0)
+
+### ⭐ 삭제(soft delete)
+![권한 x](https://github.com/nzeong/Spring-study/assets/121355994/3f7e0c73-a5ec-4eee-b1fe-737153ddab75)
+![soft delete 성공](https://github.com/nzeong/Spring-study/assets/121355994/9dcdf3a3-65a1-45de-ad74-05af21c22743)
+![삭제되어 나타남](https://github.com/nzeong/Spring-study/assets/121355994/3bb94db1-c869-4bff-897c-26745a54e0f3)
+
+- 요청에 토큰이 포함되지 않았다면 어떻게 할까요?
+```java
+public class JwtAuthenticationFilter extends OncePerRequestFilter {
+...
+
+        if (token == null) {
+            // 값이 들어오지 않은 경우
+            logger.info("토큰을 찾을 수 없습니다.");
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        if (StringUtils.isNotBlank(token) && tokenProvider.validateAccessToken(token)) {
+...
+            //잘못된 token인 경우
+            logger.info("Security Context에 " + authentication.getName() + "인증 정보를 저장했습니다, uri: " + requestURI);
+        } else {
+            logger.info("유효한 JWT 토큰이 없습니다, uri: " + requestURI);
+            setErrorResponse(response, ErrorCode.INVALID_TOKEN);
+...
+```
+---
+
+#### 참고한 사이트 
+- https://velog.io/@jsang_log/Security-Filter-%EC%98%88%EC%99%B8%EC%B2%98%EB%A6%AC%ED%95%98%EA%B8%B0-JWT
+- https://ws-pace.tistory.com/251
+- https://velog.io/@seho100/Spring-boot%EB%A5%BC-%ED%99%9C%EC%9A%A9%ED%95%9C-JWT-%EA%B5%AC%ED%98%84
+
+---
+
+스프링 Security랑 jwt 토큰을 연동해서 제대로 구현해본 건 이번이 처음인데, configuration, dependency 등 구현해야하는 내용도 많고 복잡하다보니 정말 쉽지 않은 과제였다. 개발 도중 자잘한 에러들이 많았는데, 에러를 해결하면서 힘들었던 점은 어디서 에러가 생겼는지 바로 알기 어렵다는 것이었다. 처음에 코드를 짤 때부터 생길 수 있는 여러가지 예외사항을 고려해서 예외/response/log 등을 반환해주는 것이 중요하다는 것을 느꼈다. 이번에 제대로 구현을 해보았으니 다음에 개발할 때는 개발 속도가 좀 더 빨라졌으면 좋겠고, refresh 토큰도 구현해보고 싶다.
+
+---
