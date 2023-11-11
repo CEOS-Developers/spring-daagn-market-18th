@@ -1,6 +1,6 @@
 package com.ceos18.springboot.service;
 
-import com.ceos18.springboot.domain.entity.Member;
+import com.ceos18.springboot.entity.Member;
 import com.ceos18.springboot.dto.signIn.request.SignInRequestDto;
 import com.ceos18.springboot.dto.signIn.response.SignInResponseDto;
 import com.ceos18.springboot.dto.signUp.request.SignUpRequestDto;

@@ -1,10 +1,8 @@
-package com.ceos18.springboot.dto.response;
+package com.ceos18.springboot.dto.post.response;
 
-import com.ceos18.springboot.domain.entity.Category;
-import com.ceos18.springboot.domain.entity.Member;
-import com.ceos18.springboot.domain.entity.Post;
-import com.ceos18.springboot.domain.entity.enums.DealType;
-import com.ceos18.springboot.domain.entity.enums.PostStatus;
+import com.ceos18.springboot.entity.Post;
+import com.ceos18.springboot.entity.enums.DealType;
+import com.ceos18.springboot.entity.enums.PostStatus;
 import com.ceos18.springboot.vo.CategoryVo;
 import com.ceos18.springboot.vo.MemberVo;
 import lombok.Getter;

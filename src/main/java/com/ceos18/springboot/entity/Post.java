@@ -1,8 +1,8 @@
-package com.ceos18.springboot.domain.entity;
+package com.ceos18.springboot.entity;
 
-import com.ceos18.springboot.domain.entity.base.BaseTimeEntity;
-import com.ceos18.springboot.domain.entity.enums.DealType;
-import com.ceos18.springboot.domain.entity.enums.PostStatus;
+import com.ceos18.springboot.entity.base.BaseTimeEntity;
+import com.ceos18.springboot.entity.enums.DealType;
+import com.ceos18.springboot.entity.enums.PostStatus;
 import jakarta.persistence.*;
 import lombok.*;
 

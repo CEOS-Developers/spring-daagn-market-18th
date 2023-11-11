@@ -1,6 +1,6 @@
 package com.ceos18.springboot.vo;
 
-import com.ceos18.springboot.domain.entity.Category;
+import com.ceos18.springboot.entity.Category;
 import lombok.Getter;
 import lombok.Setter;
 

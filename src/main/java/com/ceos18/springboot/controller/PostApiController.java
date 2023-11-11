@@ -1,8 +1,8 @@
 package com.ceos18.springboot.controller;
 
-import com.ceos18.springboot.dto.request.PostCreateRequestDto;
-import com.ceos18.springboot.dto.request.PostUpdateRequestDto;
-import com.ceos18.springboot.dto.response.PostReadResponseDto;
+import com.ceos18.springboot.dto.post.request.PostCreateRequestDto;
+import com.ceos18.springboot.dto.post.request.PostUpdateRequestDto;
+import com.ceos18.springboot.dto.post.response.PostReadResponseDto;
 import com.ceos18.springboot.security.authorize.UserAuthorize;
 import com.ceos18.springboot.service.PostService;
 import lombok.RequiredArgsConstructor;

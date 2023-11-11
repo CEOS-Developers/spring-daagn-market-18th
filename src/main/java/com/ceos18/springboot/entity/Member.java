@@ -1,7 +1,7 @@
-package com.ceos18.springboot.domain.entity;
+package com.ceos18.springboot.entity;
 
-import com.ceos18.springboot.domain.entity.base.BaseTimeEntity;
-import com.ceos18.springboot.domain.entity.enums.MemberRole;
+import com.ceos18.springboot.entity.base.BaseTimeEntity;
+import com.ceos18.springboot.entity.enums.MemberRole;
 import com.ceos18.springboot.dto.signUp.request.SignUpRequestDto;
 import jakarta.persistence.*;
 import lombok.*;

@@ -1,11 +1,10 @@
 package com.ceos18.springboot;
 
-import com.ceos18.springboot.domain.entity.Category;
-import com.ceos18.springboot.domain.entity.Member;
+import com.ceos18.springboot.entity.Category;
+import com.ceos18.springboot.entity.Member;
 import com.ceos18.springboot.repository.CategoryRepository;
 import com.ceos18.springboot.repository.MemberRepository;
 import jakarta.annotation.PostConstruct;
-import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;

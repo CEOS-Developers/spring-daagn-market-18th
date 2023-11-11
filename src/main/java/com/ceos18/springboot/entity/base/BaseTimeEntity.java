@@ -1,4 +1,4 @@
-package com.ceos18.springboot.domain.entity.base;
+package com.ceos18.springboot.entity.base;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.EntityListeners;

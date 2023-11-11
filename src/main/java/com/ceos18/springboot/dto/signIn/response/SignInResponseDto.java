@@ -1,8 +1,7 @@
 package com.ceos18.springboot.dto.signIn.response;
 
-import com.ceos18.springboot.domain.entity.enums.MemberRole;
+import com.ceos18.springboot.entity.enums.MemberRole;
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.persistence.Column;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;

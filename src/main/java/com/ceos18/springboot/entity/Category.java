@@ -1,6 +1,6 @@
-package com.ceos18.springboot.domain.entity;
+package com.ceos18.springboot.entity;
 
-import com.ceos18.springboot.domain.entity.base.BaseTimeEntity;
+import com.ceos18.springboot.entity.base.BaseTimeEntity;
 import jakarta.persistence.*;
 import lombok.*;
 

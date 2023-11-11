@@ -1,6 +1,6 @@
-package com.ceos18.springboot.dto.request;
+package com.ceos18.springboot.dto.post.request;
 
-import com.ceos18.springboot.domain.entity.enums.DealType;
+import com.ceos18.springboot.entity.enums.DealType;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -8,7 +8,9 @@ import java.math.BigDecimal;
 
 @Getter
 @NoArgsConstructor
-public class PostUpdateRequestDto {
+public class PostCreateRequestDto {
+
+
 	private String title;
 	private Long categoryId;
 	private DealType dealType;
@@ -16,4 +18,5 @@ public class PostUpdateRequestDto {
 	private String dealPlace;
 	private BigDecimal price;
 	private Boolean isPriceOffer;
+
 }

@@ -1,6 +1,6 @@
 package com.ceos18.springboot.dto.signUp.response;
 
-import com.ceos18.springboot.domain.entity.Member;
+import com.ceos18.springboot.entity.Member;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.Setter;
