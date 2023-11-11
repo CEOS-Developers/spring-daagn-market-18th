@@ -50,6 +50,9 @@ public class Member extends BaseTimeEntity implements UserDetails {
   @Column(nullable = false)
   private Integer responseRate;
 
+  @ElementCollection(fetch = FetchType.EAGER)
+  private List<String> roles = new ArrayList<>();
+
   @Builder
   public Member(String nickname, String town, String icon,
       String phoneNumber, String password, List<String> roles){
@@ -63,9 +66,6 @@ public class Member extends BaseTimeEntity implements UserDetails {
     this.responseRate = 0;
     this.roles = roles;
   }
-
-  @ElementCollection(fetch = FetchType.EAGER)
-  private List<String> roles = new ArrayList<>();
 
   @Override
   public String getUsername() {
