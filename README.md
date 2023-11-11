@@ -1493,7 +1493,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
   OncePerRequestFilter 를 상속받아서 구현한 시큐리티 필터
 
-  모든 요청에 대해 한 번만 실행되고, 아래의 ****`parseBearerToken` 와 `parseUserSpecification`** 를 호출함으로써 토큰에서 사용자 정보를 추출함
+  모든 요청에 대해 한 번만 실행되고, 아래의 **`parseBearerToken` 와 `parseUserSpecification`** 를 호출함으로써 토큰에서 사용자 정보를 추출함
 
 
 - ****`parseBearerToken`****
@@ -1573,7 +1573,7 @@ PostApiController 에 USER role 을 가진 사용자만 호출하게끔 설정
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/v1")
-**@UserAuthorize**
+@UserAuthorize
 public class PostApiController {
 	// 생략..
 }
