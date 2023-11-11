@@ -293,4 +293,15 @@ public class AuthController {
 
 # 사용자 프로필 API
 > 토큰이 필요한 API
+```java
+public class UserController {
 
+  private final UserService userService;
+
+  @GetMapping("")
+  @PreAuthorize("hasAnyRole('USER','ADMIN')")
+  public ResponseEntity<User> getCurUserInfo() {
+    return ResponseEntity.ok(userService.getCurUserInfo());
+  }
+}
+```
