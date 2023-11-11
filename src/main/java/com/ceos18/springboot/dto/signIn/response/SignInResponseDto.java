@@ -1,5 +1,7 @@
 package com.ceos18.springboot.dto.signIn.response;
 
+import com.ceos18.springboot.domain.entity.enums.MemberRole;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Column;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -14,11 +16,14 @@ public class SignInResponseDto {
 	String accessToken;
 	String refreshToken;
 	String nickName;
+	@Schema(description = "회원 롤", example = "USER")
+	MemberRole role;
 
-	public SignInResponseDto(String email, String accessToken, String refreshToken, String nickName) {
+	public SignInResponseDto(String email, String accessToken, String refreshToken, String nickName, MemberRole role) {
 		this.email = email;
 		this.accessToken = accessToken;
 		this.refreshToken = refreshToken;
 		this.nickName = nickName;
+		this.role = role;
 	}
 }

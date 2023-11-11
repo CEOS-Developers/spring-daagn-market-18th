@@ -1,6 +1,7 @@
 package com.ceos18.springboot.domain.entity;
 
 import com.ceos18.springboot.domain.entity.base.BaseTimeEntity;
+import com.ceos18.springboot.domain.entity.enums.MemberRole;
 import com.ceos18.springboot.dto.signUp.request.SignUpRequestDto;
 import jakarta.persistence.*;
 import lombok.*;
@@ -26,6 +27,9 @@ public class Member extends BaseTimeEntity {
 
 	@Column(nullable = false)
 	private String password;
+
+	@Enumerated(EnumType.STRING)
+	private MemberRole role;
 
 //	@Column(nullable = false, unique = true, length = 20)
 	private String phoneNumber;
@@ -70,6 +74,7 @@ public class Member extends BaseTimeEntity {
 				.password(encoder.encode(request.getPassword()))
 				.email(request.getEmail())
 				.nickName(request.getNickName())
+				.role(MemberRole.USER) // 회원가입시 USER로 고정
 				.build();
 	}
 

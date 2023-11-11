@@ -38,9 +38,9 @@ public class SignService {
 				.orElseThrow(() -> new IllegalArgumentException("아이디 또는 비밀번호가 일치하지 않습니다."));
 
 
-		String token = tokenProvider.createToken(String.format("%s", member.getId()));
+		String token = tokenProvider.createToken(String.format("%s:%s", member.getId(), member.getRole().name()));
 
 		// email, refresh token, nickName
-		return new SignInResponseDto(member.getEmail(), token, member.getRefreshToken(), member.getNickName());
+		return new SignInResponseDto(member.getEmail(), token, member.getRefreshToken(), member.getNickName(), member.getRole());
 	}
 }

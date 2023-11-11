@@ -3,6 +3,7 @@ package com.ceos18.springboot.controller;
 import com.ceos18.springboot.dto.request.PostCreateRequestDto;
 import com.ceos18.springboot.dto.request.PostUpdateRequestDto;
 import com.ceos18.springboot.dto.response.PostReadResponseDto;
+import com.ceos18.springboot.security.authorize.UserAuthorize;
 import com.ceos18.springboot.service.PostService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -12,6 +13,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/v1")
+@UserAuthorize
 public class PostApiController {
 	private final PostService postService;
 
