@@ -10,6 +10,7 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -27,9 +28,9 @@ public class PostController {
   private final PostService postService;
 
   @PostMapping("/post")
-  public ResponseEntity<PostResponse> postSave(@RequestPart final PostCreateRequest request,
-                                            @RequestPart List<MultipartFile> images) throws IOException {
-    return ResponseEntity.status(HttpStatus.CREATED).body(postService.save(null, images, request));
+  public ResponseEntity<PostResponse> postSave(@AuthenticationPrincipal final Member member,
+      @RequestPart final PostCreateRequest request, @RequestPart List<MultipartFile> images) throws IOException {
+    return ResponseEntity.status(HttpStatus.CREATED).body(postService.save(member, images, request));
   }
 
   @GetMapping("/post")
