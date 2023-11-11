@@ -270,6 +270,26 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
 ```
 
 # 로그인 API
+- AuthController
+```java
+public class AuthController {
+
+  private AuthService authService;
+
+  @PostMapping("/signup")
+  public ResponseEntity<User> signup(@RequestBody SignUpDto signUpDto
+  ) {
+    return ResponseEntity.ok(authService.signUp(signUpDto));
+  }
+
+  @PostMapping("signin")
+  public ResponseEntity<TokenDto> signIn(@RequestBody SignInDto signInDto
+  ) {
+    return ResponseEntity.ok(authService.signIn(signInDto));
+  }
+
+}
+```
 
 # 사용자 프로필 API
 > 토큰이 필요한 API
