@@ -6,6 +6,7 @@ import com.ceos18.springboot.dto.signIn.response.SignInResponseDto;
 import com.ceos18.springboot.dto.signUp.request.SignUpRequestDto;
 import com.ceos18.springboot.dto.signUp.response.SignUpResponseDto;
 import com.ceos18.springboot.repository.MemberRepository;
+import com.ceos18.springboot.security.TokenProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -16,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class SignService {
 	private final MemberRepository memberRepository;
+	private final TokenProvider tokenProvider;
 	private final PasswordEncoder encoder;
 
 	@Transactional
@@ -34,7 +36,11 @@ public class SignService {
 		Member member = memberRepository.findByAccount(request.getAccount())
 				.filter(it -> encoder.matches(request.getPassword(), it.getPassword()))	// 암호화된 비밀번호와 비교하도록 수정
 				.orElseThrow(() -> new IllegalArgumentException("아이디 또는 비밀번호가 일치하지 않습니다."));
+
+
+		String token = tokenProvider.createToken(String.format("%s", member.getId()));
+
 		// email, refresh token, nickName
-		return new SignInResponseDto(member.getEmail(), member.getRefreshToken(), member.getNickName());
+		return new SignInResponseDto(member.getEmail(), token, member.getRefreshToken(), member.getNickName());
 	}
 }

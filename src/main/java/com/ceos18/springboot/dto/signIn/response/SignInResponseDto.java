@@ -11,13 +11,13 @@ import lombok.Setter;
 public class SignInResponseDto {
 
 	String email;
-
+	String accessToken;
 	String refreshToken;
-
 	String nickName;
 
-	public SignInResponseDto(String email, String refreshToken, String nickName) {
+	public SignInResponseDto(String email, String accessToken, String refreshToken, String nickName) {
 		this.email = email;
+		this.accessToken = accessToken;
 		this.refreshToken = refreshToken;
 		this.nickName = nickName;
 	}
