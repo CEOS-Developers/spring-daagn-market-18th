@@ -1,6 +1,7 @@
 package com.ceos18.springboot.domain.entity;
 
 import com.ceos18.springboot.domain.entity.base.BaseTimeEntity;
+import com.ceos18.springboot.dto.signUp.request.SignUpRequestDto;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
@@ -18,6 +19,12 @@ public class Member extends BaseTimeEntity {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
+
+	@Column(nullable = false, unique = true)
+	private String account;
+
+	@Column(nullable = false)
+	private String password;
 
 	@Column(nullable = false, unique = true, length = 20)
 	private String phoneNumber;
@@ -52,6 +59,17 @@ public class Member extends BaseTimeEntity {
 		this.isWithdrawal = isWithdrawal;
 		this.mannerRating = mannerRating;
 		this.region = region;
+	}
+
+	// SignUpRequestDto
+	// 일부 필드 빠져있음
+	public static Member from(SignUpRequestDto request) {
+		return Member.builder()
+				.account(request.getAccount())
+				.password(request.getPassword())
+				.email(request.getEmail())
+				.nickName(request.getNickName())
+				.build();
 	}
 
 }
