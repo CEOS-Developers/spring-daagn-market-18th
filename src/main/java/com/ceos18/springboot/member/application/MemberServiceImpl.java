@@ -1,5 +1,6 @@
 package com.ceos18.springboot.member.application;
 
+import com.ceos18.springboot.global.jwt.CustomUserDetails;
 import com.ceos18.springboot.global.jwt.TokenProvider;
 import com.ceos18.springboot.member.domain.Member;
 import com.ceos18.springboot.member.dto.request.LoginMemberRequest;
@@ -44,9 +45,10 @@ public class MemberServiceImpl implements MemberService {
 
         Authentication authentication = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
 
+        Member member = ((CustomUserDetails) authentication.getPrincipal()).getMember();
         String token = tokenProvider.createAccessToken(authentication);
 
-        return LoginMemberResponse.fromEntity(authentication.getName(), token);
+        return LoginMemberResponse.fromEntity(member, token);
     }
 
     public List<MemberResponse> getAllMembers() {

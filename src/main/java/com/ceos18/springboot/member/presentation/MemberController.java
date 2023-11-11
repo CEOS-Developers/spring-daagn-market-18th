@@ -32,7 +32,9 @@ public class MemberController {
     @PostMapping("/login")
     public ResponseEntity<LoginMemberResponse> login(@RequestBody LoginMemberRequest loginMemberRequest) {
 
-        return ResponseEntity.ok(memberService.login(loginMemberRequest));
+        LoginMemberResponse loginMemberResponse = memberService.login(loginMemberRequest);
+
+        return ResponseEntity.ok(loginMemberResponse);
     }
 
     @GetMapping("/admin")
@@ -46,7 +48,7 @@ public class MemberController {
     @GetMapping
     public ResponseEntity<MemberResponse> getMember(@AuthenticationPrincipal CustomUserDetails customUserDetails) {
 
-        MemberResponse memberResponse = memberService.getMember(customUserDetails.getId());
+        MemberResponse memberResponse = memberService.getMember(customUserDetails.getMember().getId());
 
         return ResponseEntity.ok(memberResponse);
     }
@@ -54,7 +56,7 @@ public class MemberController {
     @DeleteMapping
     public ResponseEntity<Void> deleteMember(@AuthenticationPrincipal CustomUserDetails customUserDetails) {
 
-        memberService.deleteMember(customUserDetails.getId());
+        memberService.deleteMember(customUserDetails.getMember().getId());
 
         return ResponseEntity.ok().build();
     }

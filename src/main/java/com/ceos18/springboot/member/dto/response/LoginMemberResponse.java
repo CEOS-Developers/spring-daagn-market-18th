@@ -1,5 +1,6 @@
 package com.ceos18.springboot.member.dto.response;
 
+import com.ceos18.springboot.member.domain.Member;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -15,9 +16,9 @@ public class LoginMemberResponse {
         this.accessToken = accessToken;
     }
 
-    public static LoginMemberResponse fromEntity(String nickname, String accessToken) {
+    public static LoginMemberResponse fromEntity(Member member, String accessToken) {
         return LoginMemberResponse.builder()
-                .nickname(nickname)
+                .nickname(member.getNickname())
                 .accessToken(accessToken)
                 .build();
     }
