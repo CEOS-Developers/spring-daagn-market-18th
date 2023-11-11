@@ -5,6 +5,7 @@ import com.ceos18.springboot.dto.signUp.request.SignUpRequestDto;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.math.BigDecimal;
 
@@ -26,7 +27,7 @@ public class Member extends BaseTimeEntity {
 	@Column(nullable = false)
 	private String password;
 
-	@Column(nullable = false, unique = true, length = 20)
+//	@Column(nullable = false, unique = true, length = 20)
 	private String phoneNumber;
 
 	@Column(unique = true)
@@ -61,12 +62,12 @@ public class Member extends BaseTimeEntity {
 		this.region = region;
 	}
 
-	// SignUpRequestDto
+	// SignUpRequestDto -> Member 생성
 	// 일부 필드 빠져있음
-	public static Member from(SignUpRequestDto request) {
+	public static Member from(SignUpRequestDto request, PasswordEncoder encoder) {
 		return Member.builder()
 				.account(request.getAccount())
-				.password(request.getPassword())
+				.password(encoder.encode(request.getPassword()))
 				.email(request.getEmail())
 				.nickName(request.getNickName())
 				.build();

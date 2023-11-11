@@ -33,10 +33,10 @@ public class InitDb {
 			System.out.println("Init1" + this.getClass());
 
 			Member member = new Member();
-			member.setAccount("abc123");
+			member.setAccount("abc");
 			member.setPassword("1234");
 			member.setPhoneNumber("010-1111-2222");
-			member.setEmail("abc@gmail.com");
+			member.setEmail("abc@naver.com");
 
 			memberRepository.save(member);
 
