@@ -4,6 +4,7 @@ import com.daagn.clonestudy.common.BaseTimeEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -50,18 +51,20 @@ public class Member extends BaseTimeEntity implements UserDetails {
   private Integer responseRate;
 
   @Builder
-  public Member(String nickname, String town, String icon, String phoneNumber){
+  public Member(String nickname, String town, String icon,
+      String phoneNumber, String password, List<String> roles){
     this.nickname = nickname;
     this.town = town;
     this.icon = icon;
     this.phoneNumber = phoneNumber;
+    this.password = password;
     this.temperature = 36.5;
     this.redeal = 0;
     this.responseRate = 0;
+    this.roles = roles;
   }
 
-  @ElementCollection
-  @Builder.Default
+  @ElementCollection(fetch = FetchType.EAGER)
   private List<String> roles = new ArrayList<>();
 
   @Override
@@ -101,4 +104,11 @@ public class Member extends BaseTimeEntity implements UserDetails {
     return true;
   }
 
+  public String getPhoneNumber() {
+    return phoneNumber;
+  }
+
+  public List<String> getRoles() {
+    return roles;
+  }
 }
