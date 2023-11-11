@@ -43,18 +43,18 @@ public class MemberController {
         return ResponseEntity.ok(memberResponseList);
     }
 
-    @GetMapping("/{memberId}")
-    public ResponseEntity<MemberResponse> getMember(@PathVariable Long memberId) {
+    @GetMapping
+    public ResponseEntity<MemberResponse> getMember(@AuthenticationPrincipal CustomUserDetails customUserDetails) {
 
-        MemberResponse memberResponse = memberService.getMember(memberId);
+        MemberResponse memberResponse = memberService.getMember(customUserDetails.getId());
 
         return ResponseEntity.ok(memberResponse);
     }
 
-    @DeleteMapping("/{memberId}")
-    public ResponseEntity<Void> deleteMember(@PathVariable Long memberId) {
+    @DeleteMapping
+    public ResponseEntity<Void> deleteMember(@AuthenticationPrincipal CustomUserDetails customUserDetails) {
 
-        memberService.deleteMember(memberId);
+        memberService.deleteMember(customUserDetails.getId());
 
         return ResponseEntity.ok().build();
     }
