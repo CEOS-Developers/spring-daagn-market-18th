@@ -31,19 +31,14 @@ public class WebSecurityConfig {
                 .sessionManagement(configurer -> configurer.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // jwt 사용하는 경우 쓴다
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(HttpMethod.POST, "/login").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/posts/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/posts/**").hasAnyRole("USER")
+                        .requestMatchers(HttpMethod.DELETE, "/api/posts/**").hasAnyRole("USER")
                         .anyRequest().authenticated()
-
                 );
 
         http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
         http.addFilterBefore(jwtExceptionHandlerFilter, JwtAuthenticationFilter.class);
-
-
-//                .exceptionHandling(authenticationManager -> authenticationManager
-//                        .authenticationEntryPoint(new CustomAuthenticationEntryPoint())
-//                        .accessDeniedHandler(new CustomAccessDeniedHandler()))
-
-
         return http.build();
     }
 

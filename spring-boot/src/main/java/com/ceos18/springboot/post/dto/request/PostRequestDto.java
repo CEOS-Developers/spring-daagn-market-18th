@@ -16,18 +16,16 @@ public class PostRequestDto {
     private Long price;
     private String content;
     private PostCategory category;
-    private User user;
 
     @Builder
-    public PostRequestDto(String title, Long price, String content, PostCategory category, User user) {
+    public PostRequestDto(String title, Long price, String content, PostCategory category) {
         this.title = title;
         this.price = price;
         this.content = content;
         this.category = category;
-        this.user = user;
     }
 
-    public Post toEntity() {
+    public Post toEntity(User user) {
         return Post.builder()
                 .title(title)
                 .price(price)

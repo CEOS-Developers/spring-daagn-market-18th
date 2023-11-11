@@ -10,6 +10,8 @@ import lombok.NoArgsConstructor;
 import org.antlr.v4.runtime.misc.NotNull;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -49,4 +51,10 @@ public class Post extends BaseEntity {
 
     @OneToMany(mappedBy = "post")
     private List<PostImg> projectImages = new ArrayList<>();
+
+    private Timestamp deletedAt;
+
+    public void deletePost() {
+        this.deletedAt = Timestamp.valueOf(LocalDateTime.now());
+    }
 }
