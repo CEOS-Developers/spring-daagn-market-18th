@@ -5,9 +5,9 @@ spring:
 
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: ENC(ENzpVA+GkfG1BzhGN9buv0aQvhTm88pzOeti5h7FIr2Mru6xs2BmtVoSdP09H0mH)
-    username: ENC(T3uBUVoGjSCxhbg6hiIExGwexNie6PAH)
-    password: ENC(TxLXkCdMymQeV5EaY/f54m+YYFt3jzmL)
+    url: ENC(yzHn3XyO+t2v60Sqngbd3nepAzMx1WHbkSXu4zDg3ngSXCSxqtkZLw8hQcc27M3f)
+    username: ENC(NIHDYPZNJyk6Uqd/8mUA0g==)
+    password: ENC(nwTJxOXNNpHR00EjOcipwg==)
 
   jpa:
     database: mysql
