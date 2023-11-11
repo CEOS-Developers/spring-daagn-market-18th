@@ -434,10 +434,13 @@ public class PostController {
 ![delete 결과](https://github.com/nzeong/new-piro-game-BE/assets/121355994/bb6ddbaf-70e8-4714-80d2-248f65101810)
 
 ---
+
 Post 객체로 CRUD API를 만들어 보면서 DTO가 왜 필요하고 Controller와 Service 계층이 구체적으로 어떻게 동작하는지 이해할 수 있었다.
 특히 외래키로 연결된 데이터들에 대해서 어떻게 request를 받고, 어떤 response를 보내줄지 고민을 많이 했던 것 같다.
 해당 부분은 내가 코드를 작성하면서 뜯어보고 프로그램이 동작하는 것을 눈으로 보는 게 빠르게 학습할 수 있는 방법인 것 같다.
+
 ---
+
 # 💙 CEOS 18th Backend Study 4주차 💙
 
 
@@ -451,12 +454,97 @@ Post 객체로 CRUD API를 만들어 보면서 DTO가 왜 필요하고 Controlle
 > 로그인은 email과 pwd로 진행
 
 - TokenProvider 클래스에 적절한 메서드 구현
-- TokenProvider를 이용해서 custom filter 내용 채우기
-  
-### ⭐ UserDetails, UserDetailsService 왜 사용해야하는 것일까?
-![context](https://github.com/nzeong/new-piro-game-BE/assets/121355994/3b3e2f12-8dc7-4af9-a620-b803344931a2)
+```java
+@Slf4j
+@Component
+@RequiredArgsConstructor
+public class TokenProvider implements InitializingBean {
+
+    @Value("${jwt.token.secret}")
+    private String secret; // secret key 환경변수 설정
+    private Key key;
+    private Long expireTimeMs = 1000 * 60 * 60L; // 만료 시간 1시간
+
+    private final PrincipalDetailsService principalDetailsService;
+
+    @Override
+    public void afterPropertiesSet() {
+        byte[] keyBytes = Decoders.BASE64.decode(secret);
+        this.key = Keys.hmacShaKeyFor(keyBytes);
+    }
+
+    public String getAccessToken(HttpServletRequest request) {
+        String bearerToken = request.getHeader("Authorization");
+        if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
+            return bearerToken.substring("Bearer ".length());
+        }
+        return null;
+    }
+
+    public String createAccessToken(Long id, String email, Authentication authentication){
+        String authorities =
+                authentication.getAuthorities().stream()
+                        .map(GrantedAuthority::getAuthority)
+                        .collect(Collectors.joining(","));
+
+        Claims claims = Jwts.claims(); // 일종의 map
+        claims.put("id", id);
+        claims.put("email", email);
+        claims.put("auth", authorities);
+        claims.put("type", "access");
+
+        return Jwts.builder()
+                .setHeaderParam(Header.TYPE, Header.JWT_TYPE)
+                .setSubject(email) // 이메일을 subject
+                .setClaims(claims)
+                .setIssuedAt(new Date(System.currentTimeMillis()))
+                .setExpiration(new Date(System.currentTimeMillis() + expireTimeMs))
+                .signWith(SignatureAlgorithm.HS256, key)
+                .compact()
+                ;
+    }
+
+    // 토큰
+    public String getTokenUserEmail(String token) {
+        return Jwts.parserBuilder()
+                .setSigningKey(key)
+                .build()
+                .parseClaimsJws(token)
+                .getBody()
+                .getSubject(); // 유저 이메일 반환
+    }
+
+    public Authentication getAuthentication(String token) {
+        PrincipalDetails principalDetails =
+                (PrincipalDetails)
+                        principalDetailsService.loadUserByUsername(getTokenUserEmail(token));
+        return new UsernamePasswordAuthenticationToken(
+                principalDetails, token, principalDetails.getAuthorities());
+    }
+
+    public boolean validateAccessToken(String token) {
+        try {
+            Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
+            return true;
+        } catch (io.jsonwebtoken.security.SecurityException | MalformedJwtException e) {
+            log.info("잘못된 JWT 서명입니다.");
+        } catch (ExpiredJwtException e) {
+            log.info(e.toString());
+            log.info("만료된 JWT 토큰입니다.");
+        } catch (UnsupportedJwtException e) {
+            log.info("지원되지 않는 JWT 토큰입니다.");
+        } catch (IllegalArgumentException e) {
+            log.info("JWT 토큰이 잘못되었습니다.");
+        }
+        return false;
+    }
+}
+```
+
+#### ⭐ UserDetails, UserDetailsService 왜 사용해야하는 것일까?
+![context](https://github.com/nzeong/new-piro-game-BE/assets/121355994/3b3e2f12-8dc7-4af9-a620-b803344931a2) <br>
 스프링 시큐리티는 로그인 완료 시 Authenticication을 생성하게 되는데, Authenticication 객체는 UserDetails type으로 인증된 사용자 정보를 저장하기 때문이다.
-따라서 나는 UserDetails를 상속받는 PrincipalDetails와 PrincipalDetails를 생성하는 PrincipalDetailsService를 만들어주었다.
+따라서 UserDetails를 상속받는 PrincipalDetails와 PrincipalDetails를 생성하는 PrincipalDetailsService를 만들어주었다.
 
 ```java
 @Data
@@ -470,7 +558,7 @@ public class PrincipalDetails implements UserDetails {
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         Collection<GrantedAuthority> collection = new ArrayList<>();
-        collection.add(new SimpleGrantedAuthority("ROLE_USER"));
+        collection.add(new SimpleGrantedAuthority("ROLE_USER")); // "ROLE_USER" 권한
         return collection;
     }
 
@@ -525,11 +613,128 @@ public class PrincipalDetailsService implements UserDetailsService {
     }
 }
 ```
+<br>
+
+- TokenProvider를 이용해서 custom filter 내용 채우기
+  
+```java
+@Component
+@RequiredArgsConstructor
+public class JwtAuthenticationFilter extends OncePerRequestFilter {
+
+    private final TokenProvider tokenProvider;
+
+    @Override
+    protected void doFilterInternal(
+            HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+            throws ServletException, IOException {
+
+        String token = tokenProvider.getAccessToken(request);
+        String requestURI = request.getRequestURI();
+
+        if (token == null) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+        if (StringUtils.isNotBlank(token) && tokenProvider.validateAccessToken(token)) {
+            Authentication authentication = tokenProvider.getAuthentication(token);
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+
+            logger.debug("Security Context에 " + authentication.getName() + "인증 정보를 저장했습니다, uri: " + requestURI);
+        } else {
+            logger.debug("유효한 JWT 토큰이 없습니다, uri: " + requestURI);
+            setErrorResponse(response, ErrorCode.INVALID_TOKEN);
+        }
+
+        filterChain.doFilter(request, response);
+    }
+}
+```
+
+JwtAuthenticationFilter는 HttpServletRequest에서 토큰 추출해서 토큰에 대한 유효성을 검사하고, 유효하다면 Authentication 객체를 생성해서 SecurityContextHolder에 추가하는 역할을 한다.
+
+```java
+@Slf4j
+@Component
+@RequiredArgsConstructor
+public class JwtExceptionHandlerFilter extends OncePerRequestFilter {
+
+    @Override
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+        try {
+            filterChain.doFilter(request, response);
+
+        } catch (ExpiredJwtException e) {
+            log.error("만료된 토큰입니다");
+            setErrorResponse(response, ErrorCode.EXPIRED_TOKEN);
+
+        } catch (JwtException | IllegalArgumentException e) {
+            log.error("유효하지 않은 토큰이 입력되었습니다.");
+            setErrorResponse(response, ErrorCode.INVALID_TOKEN);
+
+        } catch (NoSuchElementException e) {
+            log.error("사용자를 찾을 수 없습니다.");
+            setErrorResponse(response, ErrorCode.USEREMAIL_NOT_FOUND);
+
+        } catch (ArrayIndexOutOfBoundsException e) {
+            log.error("토큰을 추출할 수 없습니다.");
+            setErrorResponse(response, ErrorCode.INVALID_TOKEN);
+
+        } catch (NullPointerException e) {
+            filterChain.doFilter(request, response);
+        }
+    }
+}
+```
+
+JwtExceptionHandlerFilter는 JwtAuthenticationFilter 전에 호출되어 Security 필터에서 발생하는 오류를 예외처리한다.
 
 ## 3️⃣ 로그인 API 구현하고 테스트하기
 
 - 앞에서 구현한 `TokenProvider`를 이용해요
 - 연결한 DB에 회원을 만든 후, 로그인 API가 잘 작동하는지 테스트를 해봐요(회원가입 API를 만들어서 테스트 한다면 더욱 좋겠죠?)
+  
+![user table 데이터 삽입](https://github.com/nzeong/Spring-study/assets/121355994/05c19978-d57a-43f5-ae63-e0f58ab981c1) <br>
+
+```java
+@Service
+@RequiredArgsConstructor
+public class UserService {
+
+    private final UserHelper userHelper;
+    private final TokenProvider tokenProvider;
+
+    public TokenResponse login(UserLoginRequest request){
+        String email = request.getEmail();
+        String pwd = request.getPwd();
+
+        final User selectedUser = userHelper.findByEmail(email);
+        final Authentication authentication = userHelper.adminAuthorizationInput(selectedUser); // 유저의 권한 반환
+
+        // password 맞는지 확인하기
+        userHelper.validatePwd(selectedUser, pwd);
+
+        //access 토큰 생성
+        String accessToken = tokenProvider.createAccessToken(selectedUser.getId(), selectedUser.getEmail(), authentication);
+
+        return TokenResponse.from(accessToken);
+    }
+}
+```
+
+```java
+@RestController
+@RequiredArgsConstructor
+public class UserController {
+    private final UserService userService;
+    @PostMapping("/login")
+    public ResponseEntity<TokenResponse> login(@RequestBody UserLoginRequest request){
+
+        //로그인 시 TokenResponse return
+        return ResponseEntity.status(HttpStatus.CREATED).body(userService.login(request));
+    }
+}
+```
 
 ## 4️⃣ 토큰이 필요한 API 1개 이상 구현하고 테스트하기
 
