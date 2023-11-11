@@ -11,6 +11,7 @@ import lombok.Setter;
 @NoArgsConstructor
 public class SignInResponseDto {
 
+	Long id;
 	String email;
 	String accessToken;
 	String refreshToken;
@@ -18,7 +19,8 @@ public class SignInResponseDto {
 	@Schema(description = "회원 롤", example = "USER")
 	MemberRole role;
 
-	public SignInResponseDto(String email, String accessToken, String refreshToken, String nickName, MemberRole role) {
+	public SignInResponseDto(Long id, String email, String accessToken, String refreshToken, String nickName, MemberRole role) {
+		this.id = id;
 		this.email = email;
 		this.accessToken = accessToken;
 		this.refreshToken = refreshToken;
