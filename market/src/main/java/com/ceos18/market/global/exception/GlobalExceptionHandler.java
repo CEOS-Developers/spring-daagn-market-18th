@@ -1,6 +1,7 @@
-package com.ceos18.market.global.dto;
+package com.ceos18.market.global.exception;
 
 import com.ceos18.market.domain.product.exception.ProductNotFoundException;
+import com.ceos18.market.global.exception.dto.ErrorResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
