@@ -443,6 +443,8 @@ Post 객체로 CRUD API를 만들어 보면서 DTO가 왜 필요하고 Controlle
 
 # 💙 CEOS 18th Backend Study 4주차 💙
 
+## ⭐ 수정사항
+- softDelete로 수정
 
 ## 1️⃣ JWT 인증(Authentication) 방법에 대해서 알아보기
 
@@ -461,9 +463,11 @@ Post 객체로 CRUD API를 만들어 보면서 DTO가 왜 필요하고 Controlle
 public class TokenProvider implements InitializingBean {
 
     @Value("${jwt.token.secret}")
-    private String secret; // secret key 환경변수 설정
+    private String secret; // 환경변수로 secret key 설정
+
     private Key key;
-    private Long expireTimeMs = 1000 * 60 * 60L; // 만료 시간 1시간
+
+    private Long expireTimeMs = 1000 * 60 * 60L; // 1시간
 
     private final PrincipalDetailsService principalDetailsService;
 
@@ -475,13 +479,14 @@ public class TokenProvider implements InitializingBean {
 
     public String getAccessToken(HttpServletRequest request) {
         String bearerToken = request.getHeader("Authorization");
+
         if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
             return bearerToken.substring("Bearer ".length());
         }
         return null;
     }
 
-    public String createAccessToken(Long id, String email, Authentication authentication){
+    public String createAccessToken(Long id, String email, Authentication authentication) {
         String authorities =
                 authentication.getAuthorities().stream()
                         .map(GrantedAuthority::getAuthority)
@@ -489,37 +494,40 @@ public class TokenProvider implements InitializingBean {
 
         Claims claims = Jwts.claims(); // 일종의 map
         claims.put("id", id);
-        claims.put("email", email);
+        claims.put("email", email); // 이메일(로그인 id) 넣어주기
         claims.put("auth", authorities);
         claims.put("type", "access");
 
         return Jwts.builder()
                 .setHeaderParam(Header.TYPE, Header.JWT_TYPE)
-                .setSubject(email) // 이메일을 subject
+                .setSubject(email)
                 .setClaims(claims)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + expireTimeMs))
-                .signWith(SignatureAlgorithm.HS256, key)
+                .signWith(key)
                 .compact()
                 ;
     }
 
     // 토큰
     public String getTokenUserEmail(String token) {
-        return Jwts.parserBuilder()
+        Claims claims = Jwts.parserBuilder()
                 .setSigningKey(key)
                 .build()
                 .parseClaimsJws(token)
-                .getBody()
-                .getSubject(); // 유저 이메일 반환
+                .getBody();
+
+        return (String) claims.get("email"); // 이메일(로그인 id) 꺼내기
     }
 
     public Authentication getAuthentication(String token) {
         PrincipalDetails principalDetails =
                 (PrincipalDetails)
                         principalDetailsService.loadUserByUsername(getTokenUserEmail(token));
+
+        // 여기의 return 값이 @AuthenticationPrincipal 사용시의 파라미터로 사용됨
         return new UsernamePasswordAuthenticationToken(
-                principalDetails, token, principalDetails.getAuthorities());
+                principalDetails, token, principalDetails.getAuthorities()); 
     }
 
     public boolean validateAccessToken(String token) {
@@ -527,13 +535,16 @@ public class TokenProvider implements InitializingBean {
             Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
             return true;
         } catch (io.jsonwebtoken.security.SecurityException | MalformedJwtException e) {
+            log.info(e.toString());
             log.info("잘못된 JWT 서명입니다.");
         } catch (ExpiredJwtException e) {
             log.info(e.toString());
             log.info("만료된 JWT 토큰입니다.");
         } catch (UnsupportedJwtException e) {
+            log.info(e.toString());
             log.info("지원되지 않는 JWT 토큰입니다.");
         } catch (IllegalArgumentException e) {
+            log.info(e.toString());
             log.info("JWT 토큰이 잘못되었습니다.");
         }
         return false;
@@ -541,8 +552,8 @@ public class TokenProvider implements InitializingBean {
 }
 ```
 
-#### ⭐ UserDetails, UserDetailsService 왜 사용해야하는 것일까?
-![context](https://github.com/nzeong/new-piro-game-BE/assets/121355994/3b3e2f12-8dc7-4af9-a620-b803344931a2) <br>
+### ⭐ UserDetails, UserDetailsService 왜 사용해야하는 것일까?
+![context](https://github.com/nzeong/new-piro-game-BE/assets/121355994/3b3e2f12-8dc7-4af9-a620-b803344931a2) <br><br>
 스프링 시큐리티는 로그인 완료 시 Authenticication을 생성하게 되는데, Authenticication 객체는 UserDetails type으로 인증된 사용자 정보를 저장하기 때문이다.
 따라서 UserDetails를 상속받는 PrincipalDetails와 PrincipalDetails를 생성하는 PrincipalDetailsService를 만들어주었다.
 
@@ -558,7 +569,7 @@ public class PrincipalDetails implements UserDetails {
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         Collection<GrantedAuthority> collection = new ArrayList<>();
-        collection.add(new SimpleGrantedAuthority("ROLE_USER")); // "ROLE_USER" 권한
+        collection.add(new SimpleGrantedAuthority("ROLE_USER")); // "USER" 권한
         return collection;
     }
 
@@ -640,9 +651,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             Authentication authentication = tokenProvider.getAuthentication(token);
             SecurityContextHolder.getContext().setAuthentication(authentication);
 
-            logger.debug("Security Context에 " + authentication.getName() + "인증 정보를 저장했습니다, uri: " + requestURI);
+            logger.info("Security Context에 " + authentication.getName() + "인증 정보를 저장했습니다, uri: " + requestURI);
         } else {
-            logger.debug("유효한 JWT 토큰이 없습니다, uri: " + requestURI);
+            logger.info("유효한 JWT 토큰이 없습니다, uri: " + requestURI);
             setErrorResponse(response, ErrorCode.INVALID_TOKEN);
         }
 
@@ -735,13 +746,119 @@ public class UserController {
     }
 }
 ```
+### ⭐ 로그인 성공한 경우
+![로그인 성공 후 accessToken 발급](https://github.com/nzeong/Spring-study/assets/121355994/0afe25de-039c-4372-8c28-3027e69e1803)
+
+### ⭐ 비밀번호 잘못된 경우
+![비번 잘못됨](https://github.com/nzeong/Spring-study/assets/121355994/ad44bc8e-8735-4251-80da-753d8aa15008)
+
+### ⭐ 유저가 존재하지 않는 경우
+![존재안함](https://github.com/nzeong/Spring-study/assets/121355994/d0d34997-37af-45b6-a2c0-57d1d7d2143d)
 
 ## 4️⃣ 토큰이 필요한 API 1개 이상 구현하고 테스트하기
 
-- 구현 후 API 테스트를 해봐요
+- 구현 후 API 테스트를 해봐요 (POST API)
+  
+```java
+@EnableWebSecurity
+@Configuration
+@RequiredArgsConstructor
+public class WebSecurityConfig {
+
+    private final JwtExceptionHandlerFilter jwtExceptionHandlerFilter;
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception{
+        http
+                .httpBasic(Customizer.withDefaults())
+                .csrf((csrf) -> csrf.disable())
+                .formLogin(formLogin -> formLogin.disable())
+                .cors(Customizer.withDefaults())
+                .sessionManagement(configurer -> configurer.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(authorize -> authorize
+                        .requestMatchers(HttpMethod.POST, "/login").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/posts/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/posts/**").hasAnyRole("USER") // USER 권한 있어야지 POST 가능
+                        .requestMatchers(HttpMethod.DELETE, "/api/posts/**").hasAnyRole("USER")
+                        .anyRequest().authenticated()
+                );
+
+        http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+        http.addFilterBefore(jwtExceptionHandlerFilter, JwtAuthenticationFilter.class);
+        return http.build();
+    }
+}
+```
+```java
+public class PostController {
+
+    @PostMapping
+    public ResponseEntity<Long> createPost(
+            @RequestBody @Valid PostRequestDto request,
+            @AuthenticationPrincipal PrincipalDetails user) {
+            //@AuthenticationPrincipal 이용해서 PrincipalDetails type의 로그인 유저 정보 가지고 오기
+
+        log.info("상품 게시글 생성하기");
+        postService.createPost(request, user.getUser());
+        return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+
+...
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deletePost(
+            @PathVariable Long id,
+            @AuthenticationPrincipal PrincipalDetails user) {
+        log.info("상품 게시글 삭제하기");
+        postService.deletePost(id, user.getUser());
+        return ResponseEntity.status(HttpStatus.OK).build();
+    }
+}
+```
+### ⭐ 전체 조회
+![전체 조회](https://github.com/nzeong/Spring-study/assets/121355994/5e9dc1b0-3da2-4e81-9ebe-91772562d904)
+
+### ⭐ 게시글 생성
+![헤더 토큰](https://github.com/nzeong/Spring-study/assets/121355994/4e4e2b86-5196-4032-9e2e-15ce0973a610)
+![게시글 생성](https://github.com/nzeong/Spring-study/assets/121355994/9cf99347-f61d-4cad-8969-5286998ff14e)
+![게시글 생성 db](https://github.com/nzeong/Spring-study/assets/121355994/233f3158-37da-4308-9cf6-364a388c64f0)
+
+### ⭐ 삭제(soft delete)
+![권한 x](https://github.com/nzeong/Spring-study/assets/121355994/3f7e0c73-a5ec-4eee-b1fe-737153ddab75)
+![soft delete 성공](https://github.com/nzeong/Spring-study/assets/121355994/9dcdf3a3-65a1-45de-ad74-05af21c22743)
+![삭제되어 나타남](https://github.com/nzeong/Spring-study/assets/121355994/3bb94db1-c869-4bff-897c-26745a54e0f3)
+
 - 요청에 토큰이 포함되지 않았다면 어떻게 할까요?
+```java
+public class JwtAuthenticationFilter extends OncePerRequestFilter {
+...
 
-## 5️⃣ (도전 미션~!) 리프레쉬 토큰 발급 로직 구현하고 테스트하기
+        if (token == null) {
+            // 값이 들어오지 않은 경우
+            logger.info("토큰을 찾을 수 없습니다.");
+            filterChain.doFilter(request, response);
+            return;
+        }
 
-- 시간이 남는다면 `TokenProvider`에 리프레쉬 토큰 발급 로직을 구현해봐요
-- 발급한 리프레쉬 토큰은 어떻게 사용할 수 있을까요?
+        if (StringUtils.isNotBlank(token) && tokenProvider.validateAccessToken(token)) {
+...
+            //잘못된 token인 경우
+            logger.info("Security Context에 " + authentication.getName() + "인증 정보를 저장했습니다, uri: " + requestURI);
+        } else {
+            logger.info("유효한 JWT 토큰이 없습니다, uri: " + requestURI);
+            setErrorResponse(response, ErrorCode.INVALID_TOKEN);
+...
+```
+---
+
+#### 참고한 사이트 
+- https://velog.io/@jsang_log/Security-Filter-%EC%98%88%EC%99%B8%EC%B2%98%EB%A6%AC%ED%95%98%EA%B8%B0-JWT
+- https://ws-pace.tistory.com/251
+- https://velog.io/@seho100/Spring-boot%EB%A5%BC-%ED%99%9C%EC%9A%A9%ED%95%9C-JWT-%EA%B5%AC%ED%98%84
+
+---
+
+스프링 시큐리티랑 jwt 토큰을 연동해서 제대로 구현해본 건 이번이 처음인데, 구현해야하는 내용도 많고 복잡하다보니 정말 쉽지 않은 과제였다. 개발 도중 자잘한 에러들이 많았는데, 에러를 해결하면서 힘들었던 점은 어디서 에러가 생겼는지 바로 알기 어렵다는 것이었다. 처음에 코드를 짤 때부터 생길 수 있는 여러가지 예외사항을 고려해서 예외/response/log 등을 반환해주는 것이 중요하다는 것을 느꼈다. 이번에 제대로 구현을 해보았으니 다음에 개발할 때는 개발 속도가 좀 더 빨라졌으면 좋겠다!
+
+---
