@@ -38,6 +38,17 @@ public class MemberServiceImpl implements MemberService {
         memberRepository.save(member);
     }
 
+    public LoginMemberResponse login(LoginMemberRequest loginMemberRequest) {
+
+        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(loginMemberRequest.getEmail(), loginMemberRequest.getPassword());
+
+        Authentication authentication = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
+
+        String token = tokenProvider.createAccessToken(authentication);
+
+        return LoginMemberResponse.fromEntity(authentication.getName(), token);
+    }
+
     public List<MemberResponse> getAllMembers() {
 
         List<Member> memberList = memberRepository.findAllByActivated(true);
