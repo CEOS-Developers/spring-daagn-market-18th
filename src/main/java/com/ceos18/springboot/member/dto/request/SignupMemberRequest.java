@@ -4,7 +4,7 @@ import com.ceos18.springboot.member.domain.Member;
 import lombok.Getter;
 
 @Getter
-public class MemberRequest {
+public class SignupMemberRequest {
 
     private String password;
 
