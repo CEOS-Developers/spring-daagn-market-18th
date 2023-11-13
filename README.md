@@ -631,7 +631,7 @@ public void deleteUserById(Long id) {
 - JWT는 헤더(Header), 페이로드(Payload), 서명(Signature) 세 부분으로 구성됨
   - Json 형태인 각 부분은 Base64Url로 인코딩 되어 표현됨
   - 각각의 부분을 이어 주기 위해 . 구분자를 사용
-  - Base64Url는 암호화된 문자열이 아니고, 같은 문자열에 대해 항상 같은 인코딩 문자열을 반환함
+  - header와 payload는 암호화된 문자열이 아닌 base64Url인코딩된 문자열, 즉 같은 문자열에 대해 항상 같은 인코딩 문자열을 반환함
 - 헤더 - typ과 alg 두 가지 정보로 구성
   typ: 토큰의 타입을 지정 ex) JWT
   alg: 알고리즘 방식을 지정하며, 서명(Signature) 및 토큰 검증에 사용 ex) HS256(SHA256) 또는 RSA
@@ -639,14 +639,9 @@ public void deleteUserById(Long id) {
   - SHA256 : RSA(Secure Hash Algorithm) 알고리즘의 한 종류로서 256비트로 구성되며 64자리 문자열을 반환
     - 표준 해시 알고리즘인 SHA-2 계열 중 하나이며 블록체인에서 가장 많이 채택하여 사용
     - 2^256 만큼 경우의 수를 만들 수 있음
-    - JWT 작동 방식
-      1. Header, Payload 는 Base64로 인코딩됨(복호화 가능 정보)
-      2. Signature 는 "Header + Payload + secret 값" 을 HS256 알고리즘으로 암호화
-      3. Header, Payload, Signature 로 JWT 토큰을 만들어 클라이언트로 보내고, 클라이언트는 로컬 스토리지에 토큰을 저장
-      4. 클라이언트는 서버에 요청이 있을 경우, 토큰과 요청 내용을 같이 보냄
-      5. Header 와 Payload 를 Base64 알고리즘으로 복호화함
-      6. secret 값를 가지고 다시 HS256 알고리즘을 이용해 암호화해보고, 클라이어트에서 보낸 토큰과 같은지 유효성 검증
-         -> 다르다면 invalid token, 같다면 valid token
+    - JWT 작동 방식 1. Header, Payload 는 Base64로 인코딩됨(복호화 가능 정보) 2. Signature 는 "Header + Payload + secret 값" 을 HS256 알고리즘으로 암호화 3. Header, Payload, Signature 로 JWT 토큰을 만들어 클라이언트로 보내고, 클라이언트는 로컬 스토리지에 토큰을 저장 4. 클라이언트는 서버에 요청이 있을 경우, 토큰과 요청 내용을 같이 보냄 5. Header 와 Payload 를 Base64 알고리즘으로 복호화함 6. secret 값를 가지고 다시 HS256 알고리즘을 이용해 암호화해보고, 클라이어트에서 보낸 토큰과 같은지 유효성 검증
+      -> 다르다면 invalid token, 같다면 valid token
+      </br></br>
   - RSA : 비대칭키 암호화 알고리즘
     - 비대칭키 암호화 알고리즘은 공개키(public key)와 개인키(private key)를 이용해 암호화를 진행
     - secret 값이 필요하지 않음
@@ -656,12 +651,29 @@ public void deleteUserById(Long id) {
       3. 토큰을 만들어 클라이언트에 보냄
       4. 클라이언트는 서버에 요청을 보낼 때 토큰과 요청 내용을 보냄
       5. 토큰의 유효성 검증을 하기 위해서, 공개키로 Signature 를 복호화
-  - HMAC 방식의 핵심은 서버의 secret값을 노출시키지 않는 것
+  - HMAC 방식(SHA256 방식과 같은 해시 기반 인증)의 핵심은 서버의 secret값을 노출시키지 않는 것
   - RSA 방식은 토큰의 서명을 생성하고 검증하는 데 두 개의 다른 키를 사용하기 때문에, 서버의 개인키가 안전하게 보관되는 한 공개키를 외부에 공개해도 안전함
     </br>
 - 페이로드 - 토큰에서 사용할 정보의 조각들인 클레임이 담겨있음
+
   - Json(Key/Value) 형태로 여러 정보를 넣을 수 있음
   - 클레임의 종류는 등록된 클레임, 공개 클레임, 비공개 클레임이 있음
+  - cf) 표준 스펙으로 정의되어있는 claim의 스펙
+    </br></br>
+    iss (Issuer) : 토큰 발급자
+
+    sub (Subject) : 토큰 제목 - 토큰에서 사용자에 대한 식별 값이 됨
+
+    aud (Audience) : 토큰 대상자
+
+    exp (Expiration Time) : 토큰 만료 시간
+
+    nbf (Not Before) : 토큰 활성 날짜 (이 날짜 이전의 토큰은 활성화되지 않음을 보장)
+
+    iat (Issued At) : 토큰 발급 시간
+
+    jti (JWT Id) : JWT 토큰 식별자 (issuer가 여러 명일 때 이를 구분하기 위한 값)
+
 - 서명 - 토큰을 인코딩하거나 유효성 검증을 할 때 사용하는 고유한 암호화 코드
 
 - 쿠키 : 브라우저에 저장되는 정보
@@ -720,21 +732,22 @@ public void deleteUserById(Long id) {
     </br></br>
   - 출처 : https://velog.io/@park2348190/JWT%EC%97%90%EC%84%9C-Refresh-Token%EC%9D%80-%EC%99%9C-%ED%95%84%EC%9A%94%ED%95%9C%EA%B0%80
 
-- RefreshTOken 인증 과정
+- RefreshToken 인증 과정
   ![](https://velog.velcdn.com/images/aeyongdodam/post/22032540-6424-4dac-9581-a05cf91a8da8/image.png)
+  </br></br>
 
 - OAuth2 로그인 인증 과정
   ![](https://velog.velcdn.com/images/aeyongdodam/post/c9c4cb6a-96bb-4eaa-9000-4e253a04970e/image.png)
 
   1. 서버에서 인증 대행 서버에게 웹 사이트 인증 요청
 
-  2. 인증 대행 서버에서 권한을 부여 받음
+  2. 인증 대행 서버에서 권한을 부여 받음</br>
      2-1. 권한 부여 방식 4가지
 
-  1)  인증 코드(Authorization Code) 사용하기 -> 구글에서 사용
-  2)  암묵적인(Implicit) 방법
-  3)  리소스 소유자의 암호 자격증명(Resource Owner Password Credentials)
-  4)  클라이언트 자격증명(Client Credentials)
+     1. 인증 코드(Authorization Code) 사용하기 -> 구글에서 사용
+     2. 암묵적인(Implicit) 방법
+     3. 리소스 소유자의 암호 자격증명(Resource Owner Password Credentials)
+     4. 클라이언트 자격증명(Client Credentials)
 
   3. 클라이언트가 구글 로그인 요청
   4. 내 서버에서 인증 대행 서버로 구글 인증 서버에 인증 요청을 보냄(리다이렉션 url 및 클라이언트 id 정보 제공)
@@ -822,7 +835,9 @@ public class TokenProvider implements InitializingBean {
 
 ```
 
-JWtAccessDeniedHandler
+ParseClaimsJws 메서드를 호출하면 기본적인 포맷을 검증하고, jwt를 생성할 때 사용했던 secretKey로 서명했을 때 토큰에 포함된 signature와 동일한 signature가 생성되는지 확인 -> 동일하다면 클레임 셋을 반환함
+
+JwtAccessDeniedHandler
 
 ```java
 @Component
@@ -836,7 +851,7 @@ public class JwtAccessDeniedHandler implements AccessDeniedHandler {
 }
 ```
 
-jwt 권한 인증에 실패한 경우 에러를 리턴
+jwt 권한 인증에 실패한 경우 에러를 리턴 (사용자가 인증은 되었으나, 권한이 없는 경우)
 
 </br></br>
 JwtAuthenticationEntryPoint
@@ -853,7 +868,7 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
 }
 ```
 
-jwt 자격 없이 접근할 때, UNAUTHORIZED 에러 리턴
+jwt 자격 없이 접근할 때, UNAUTHORIZED 에러 리턴(토큰이 유효하지 않은 경우)
 </br></br>
 
 JwtAuthenticationFilter
@@ -902,6 +917,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
 각 http 요청에 대해 실행되는 필터 클래스
 jwt를 추출하고 검증하는 과정
+OncePerRequestFilter : 각 HTTP 요청마다 정확히 한 번씩 실행되도록 보장함
+ex) 서블릿이 실행되는 동안 다른 서블릿에 요청이 올 수도 있음
+-> 어느 필터에서 헤더를 확인 한 후 특정 url로 포워딩시키는 경우
+이경우 OncePerRequestFilter를 사용하지 않으면 앞서 거친 필터를 한 번 더 거치게 되고, 자원을 낭비하게 됨
 
 </br></br>
 
@@ -970,7 +989,23 @@ public class SecurityConfig {
 
 @EnableMethodSecurity를 붙여줘야 권한 검사가 가능해짐(이전에는 모두 유효한 토큰이기만 하면 되는 에러가 있었음)
 </br>
-/api/auth를 통해 로그인을 하고, api/signUp를 통해 회원가입을 함 -> 허용 해주어야함
+/api/auth를 통해 로그인을 하고, api/signUp를 통해 회원가입을 함 -> 허용 해주어야함</br>
+JwtFilter를 addFilterBefore로 등록했던 JwtSecurityConfig class 적용
+
+</br></br>
+User.java
+
+```java
+    @ManyToMany
+    @JoinTable(
+            name = "user_authority",
+            joinColumns = {@JoinColumn(name = "id", referencedColumnName = "id")},
+            inverseJoinColumns = {@JoinColumn(name = "authority_name", referencedColumnName = "authority_name")})
+    private Set<Authority> authorities;
+```
+
+User와 Authority 간의 manytomany 관계 설정
+user_authority에서 관리
 
 </br></br>
 
@@ -979,11 +1014,13 @@ public class SecurityConfig {
 UserController
 
 ```java
+
     @PostMapping("api/signUp")
     public String createUser(@RequestBody final CreateUserDto createUserDto) throws Exception {
         userService.createUser(createUserDto);
         return "success";
     }
+
 ```
 
 </br></br>
@@ -1025,6 +1062,8 @@ UserService
 
 UserController
 
+- api/user
+
 ```java
     @GetMapping("api/user")
     @PreAuthorize("hasAnyRole('ADMIN')")
@@ -1037,6 +1076,24 @@ UserController
 
 모든 유저를 찾는 api를 ADMIN만 가능하게 수정
 
+</br></br>
+
+- api/user/{id}
+
+```java
+    @GetMapping("api/user/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN','USER')")
+    public ResponseEntity<UserResponseDto> getUserById(@PathVariable("id") Long id) {
+        UserResponseDto userDto = userService.findUserById(id);
+        if (userDto == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(userDto);
+    }
+
+```
+
+ADMIN과 USER의 ROLE을 가진 사람들은 특정 유저의 id로 조회 가능
 </br></br>
 
 ### 작동 예시
@@ -1062,3 +1119,7 @@ user_authority
 어드민 권한에게만 허용된 모든 유저 검색 불가(401 리턴)
 ![](https://velog.velcdn.com/images/aeyongdodam/post/0d4894b0-dc76-4491-ad7e-a069518c2833/image.png)
 </br></br>
+
+# 느낀점
+
+jwt 인증에 대해 직접 구현해보는 것이 두 번째인데, 스프링을 통한 개발은 처음이라, 많이 헷갈렸다. 구현하면서 각 부분에 대해 빼고 넣으면서 어떤 부분이 어떤 역할을 하는지 파악하는 방식으로 과제를 구현하려고 노력했다.
