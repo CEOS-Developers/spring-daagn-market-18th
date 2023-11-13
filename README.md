@@ -494,6 +494,95 @@ class PostRepositoryTest {
     -  `Resource Server`: 자원을 보유하고 있는 서버 `ex) Google, Twitter`
     -  `Resource Owner`: 자원의 소유자, 즉 `Client`로 로그인하는 유저
     -  `Client`: 정보를 가져오고자 하는 클라이언트, 즉 웹 어플리케이션<br><br>
+#### ✦ JWT 토큰 발급과 스프링 시큐리티 설정<br>
+##### 1. UserDetails 구현하기
+```java
+public class Member extends BaseTimeEntity implements UserDetails {}
+```
+##### 2. UserDetailsService 구현하기
+```java
+@RequiredArgsConstructor
+@Service
+public class CustomUserDetailService implements UserDetailsService {
+  private final MemberRepository memberRepository;
+  @Override
+  public UserDetails loadUserByUsername(String phoneNumber) throws UsernameNotFoundException {
+    return memberRepository.findByPhoneNumber(phoneNumber)
+      .orElseThrow(() -> new UsernameNotFoundException("존재하지 않는 멤버입니다"));
+  }
+}
+```
+- `loadUserByUsername`을 구현해서 유저의 ID(여기에서는 phoneNumber)로 UserDetails(Member가 구현한)를 찾는다.
+##### 3. JwtTokenProvider 구현하기
+```java
+// 클래스 내 메서드들
+public JwtTokenProvider(@Value("${jwt.secret}") String secret, @Value("${jwt.token-validity-in-seconds}") long tokenValidityInSeconds, CustomUserDetailService customUserDetailService) {}
+@Override public void afterPropertiesSet() {}
+public String createToken(String userPk, List<String> roles) {}
+public Authentication getAuthentication(String token) {}
+public String getUserPk(String token) {}
+public String resolveToken(HttpServletRequest request) {}
+public boolean validateToken(String jwtToken) {}
+```
+- `JwtTokenProvider`: 생성자로 `CustomUserDetailService`를 주입한다.
+- `afterPropertiesSet`: 암호화하는 key를 세팅한다.
+- `createToken`: User의 ID(phoneNumber)와 role로 토큰을 생성한다.
+- `getAuthentication`: `loadUserByUsername`로 불러온 UserDetails로 `UsernamePasswordAuthenticationToken`를 생성한다.
+- `getUserPk`: 토큰에서 유저의 ID(Primary key 역할을 하는 속성)을 찾는다.
+- `resolveToken`: `HttpServletRequest`의 header에서 `Authorization`인 key의 값을 찾는다.
+- `validateToken`: 토큰을 파싱해서 유효성을 검사한다.
+##### 4. JwtAuthenticationFilter 구현하기
+```java
+@Component
+public class JwtAuthenticationFilter extends GenericFilterBean {
+  // .. 생략
+    @Override
+    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) {
+        try {
+            String token = jwtTokenProvider.resolveToken((HttpServletRequest)request);
 
+            if (token != null && jwtTokenProvider.validateToken(token)) {
+                Authentication authentication = jwtTokenProvider.getAuthentication(token);
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+            }
+            chain.doFilter(request, response);
+        } catch (Exception e) {
+            setErrorResponse(response, e.getMessage());
+        }
+    }
+}
+```
+##### 5. MemberService에서 로그인할 때 토큰 발급하기
+```java
+public LoginResponse login(LoginRequest loginRequest) {
+        // ..생략
+        String token = jwtTokenProvider.createToken(member.getPhoneNumber(), member.getRoles());
+        return LoginResponse.builder()
+            .accessToken(token)
+            .build();
+}
+```
+##### 6. 권한 설정하기
+```java
+@EnableWebSecurity
+@Configuration
+@RequiredArgsConstructor
+public class SecurityConfig {
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        // .. 생략
+    }
+}
+```
+##### 7. 인증 주입 받기
+```java
+  @PostMapping("/post")
+  public ResponseEntity<PostResponse> postSave(@AuthenticationPrincipal final Member member,
+      @RequestPart final PostCreateRequest request, @RequestPart List<MultipartFile> images) throws IOException {
+    return ResponseEntity.status(HttpStatus.CREATED).body(postService.save(member, images, request));
+  }
+```
+- `@AuthenticationPrincipal`로 인증 주입 받기
+<br><br>
 #### ✦ 느낀 점 및 배운 점<br>
 스프링 시큐리티 설정이 복잡해서 이론적인 부분들을 놓치며 구현만 따라가기 쉬운데, 이론 공부를 선행하고 바로 적용시키니 세세한 과정들도 쉽게 받아들이고 이해할 수 있었다. 시간적 여유가 따라줄 때 공식 문서를 보며 자세히 공부해보고 싶다.
