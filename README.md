@@ -1035,3 +1035,588 @@ title 을 수정해보겠습니다
 - service 단에서 인터페이스와 impl 패턴 사용 시 장단점과 프로젝트에서 적용 여부에 대한 고민
 - vo 를 이렇게 쓰는게 맞는건지에 대한 의문
 - 커맨드, 쿼리를 분리하는 패턴 또한 우리 수준 프로젝트에서 유의미한 장점이 있을까 하는 고민
+
+---
+
+# 🌱 4주차 미션
+
+# 1️⃣ JWT 인증(Authentication) 방법에 대해서 알아보기
+
+## 인증 vs 인가
+
+```
+인증 : 이 서비스에서 해당 사용자가 유효함을 확인
+인가 : 사용자 인증이 이뤄진 뒤, 사용자가 접근하는 리소스(자원)에 대해서 권한을 확인 및 제한
+```
+
+## JWT를 이용한 인증 방식 (access token, refresh token)
+
+### 개념적
+
+A. JWT 인증 전반적인 발전과정.
+
+```
+1. 우선, 초기엔 하나의 토큰 access_token 만 존재하여, 사용자 인증을 진행하였음.
+
+2. 다만, access_token 은 저장되는 값이 아니기에 유출되었을 때, 서버에서 이를 잘못된 사용자인지 판단할 수 없음.
+
+3. 그렇기에 Lifespan(토큰 생존주기) 를 짧게 설정하여 이를 최대한 방어하였음.
+
+4. 그 결과, 유저가 로그인을 자주해야하는 상황이 발생.
+```
+
+B. access_token / refresh_token
+
+```
+1. access_token 은 (1시간 ~ 1일, 금융 등 중요 기관에선 30초) 등 짧은 Lifespan. (저장되지 않음)
+
+2. refresh_token 은 (2주, 1달, 영구) 등 긴 Lifespan을 가지게 되었음.
+
+3. 이로인해 앞서 유저가 토큰 만료로 로그인해야하는 시점에 refresh_token으로 access_token을 재 발급받음.
+
+4. 여기서 물음이 드는것은 그러면 refresh_token이 유출되면 똑같이 문제 아닌가?
+   => 이건 어쩔 수 없음. refresh token 이 탈취됨을 인지하고 DB 에서 만료시키거나, refresh_toekn 이 만료되지 않는 이상 보안 문제가 발생
+```
+
+C. refresh_token 좀 더 자세히
+
+```
+1. aceess_token 은 어딘가 저장되지않고(프론트에는 저장되겠지만) 토큰 자체를 해석해서 인증을 하는것과 달리.
+
+2. refresh_token 은 토큰 자체에 유저정보도 있지만, DB(database, file, redis 등)에 저장되는 값임, 그렇기에 서버측의 의도로 만료시킬 수 있음. (기술적으로, refresh_token 을 저장하지 않고 유저 로그와 refresh_token을 대조 하는 등 다른 방법도 있음.)
+
+3. 그렇기에 특수한 상황(다른 디바이스 접속, 다른 아이피 접속, 다른 지역 접속 등)에 서버가 임의로 만료시킬 수 있음.
+
+4. 대규모 서비스에서 access_token 은 우리가 개발한 API 서버(Resource Server)로 전달되겠지만. refresh_token은 우리 API 서버가 아닌 별도의 인증서버(Authorization Server)에서 처리해주는것이 일반적
+```
+
+D. 인증서버(Authorization Server)
+
+```
+1. 소규모 프로젝트에선 하나의 서버에서 관리하겠지만.
+
+2. 대규모 서비스의 경우 별도로 인증서버를 관리함(Authorization 서버와 Resource 서버를 분리하는게 더 일반적인 아키텍쳐)
+
+3. 또한 우리가 사용하는 SNS 로그인, Cognito(AWS)로그인 등은 인증서버가 해당 회사 인증 서버(AWS, Facebook, Kakaotalk)임
+
+4. 해당 인증서버에서는 refresh_token으로 요청한다고 바로 access_token을 주는게 아닌, 여러방법으로 보안을 유지함.
+
+E. 보안 유지 방법.
+1. 앞서 말한 상황(다른 디바이스 접속, 다른 아이피 접속, 다른 지역 접속 등)시 refresh_token 만료 시키고 재로그인 요구.
+
+2. 추가적으로 사용자인증(휴대폰 문자 인증 등)을 요구.
+3. 등
+
+즉, access_token 을 탈취하기엔 생명주기가 짧아 이를 방지하고,  공격자가 refresh_token 을 탈취하더라도, Authorization 서버의 인증, 보안 절차로 인해 공격이 어렵게 된다.
+```
+
+## 세션/쿠키 방식 vs JWT
+
+### 세션 인증 방식의 플로우
+
+![[https://velog.io/@gusdnr814/로그인-인증-4가지-방법](https://velog.io/@gusdnr814/%EB%A1%9C%EA%B7%B8%EC%9D%B8-%EC%9D%B8%EC%A6%9D-4%EA%B0%80%EC%A7%80-%EB%B0%A9%EB%B2%95)](ceos_4주차_img/Untitled.png)
+
+[https://velog.io/@gusdnr814/로그인-인증-4가지-방법](https://velog.io/@gusdnr814/%EB%A1%9C%EA%B7%B8%EC%9D%B8-%EC%9D%B8%EC%A6%9D-4%EA%B0%80%EC%A7%80-%EB%B0%A9%EB%B2%95)
+
+- 세션 인증은 쿠키를 같이 사용함
+
+### JWT 인증 방식의 플로우
+
+![[https://llshl.tistory.com/32](https://llshl.tistory.com/32)](ceos_4주차_img/Untitled%201.png)
+
+[https://llshl.tistory.com/32](https://llshl.tistory.com/32)
+
+- JWT 방식의 장점
+  - 무상태성(stateless) : JWT 자체에 정보를 포훔하가 있으므로 서버에 저장할 필요가 없다.
+  - 확장성 : 분산 아키텍쳐에서 우리
+  - 서버 부하 감소
+
+- JWT 방식의 단점
+  - 토큰의 크기가 커지면 네트워크 비용이 증가할 수 있음
+  - 누구나 토큰을 디코딩 할 수 있으므로 민감한 정보는 토큰에 담지 못함
+  - 서버에서 토큰을 강제로 만료시키기 어려움 → but, access token 의 주기를 짧게 하고, refresh token 을 사용함으로써 어느 정도 해결 가능
+  - 구현이 세션 방식보다 복잡
+
+# 2️⃣ 액세스 토큰 발급 및 검증 로직 구현하기
+
+## 구현한 파트
+
+```
+- ID/PW 로 회원가입
+- 로그인
+- 로그인 시 access toekn 발급
+- access token 으로 사용자 식별
+- 사용자 권한에 따라 api 호출 허용 or 제한
+```
+
+## 구현 코드
+
+### 디렉터리 구조
+
+```
+.
+├── Application.java
+├── InitDb.java
+├── config
+│   ├── ModelMapperConfig.java
+│   ├── OpenApiConfig.java
+│   └── P6SpyFormatter.java
+├── controller
+│   ├── PostApiController.java
+│   └── SignController.java
+├── dto
+│   ├── post
+│   │   ├── request
+│   │   └── response
+│   ├── signIn
+│   │   ├── request
+│   │   └── response
+│   └── signUp
+│       ├── request
+│       └── response
+├── entity
+│   ├── Category.java
+│   ├── ChatMessage.java
+│   ├── ChatRoom.java
+│   ├── CompletedDeal.java
+│   ├── DealReview.java
+│   ├── Member.java
+│   ├── MembersChatRoom.java
+│   ├── Post.java
+│   ├── PostImage.java
+│   ├── base
+│   │   └── BaseTimeEntity.java
+│   └── enums
+│       ├── DealType.java
+│       ├── MemberRole.java
+│       └── PostStatus.java
+├── repository
+│   ├── CategoryRepository.java
+│   ├── MemberRepository.java
+│   └── PostRepository.java
+├── security
+│   ├── JwtAuthenticationFilter.java
+│   ├── SecurityConfig.java
+│   ├── TokenProvider.java
+│   └── authorize
+│       ├── AdminAuthorize.java
+│       └── UserAuthorize.java
+├── service
+│   ├── PostService.java
+│   └── SignService.java
+└── vo
+    ├── CategoryVo.java
+    └── MemberVo.java
+```
+
+### 패키지 설치
+
+```java
+// spring security , jwt
+	implementation 'org.springframework.boot:spring-boot-starter-security'
+	implementation 'io.jsonwebtoken:jjwt-api:0.11.2'
+	implementation 'io.jsonwebtoken:jjwt-impl:0.11.2'
+	implementation 'io.jsonwebtoken:jjwt-jackson:0.11.2'
+```
+
+### 회원가입(sign up), 로그인(sign in) req,res dto
+
+🔖 `SignInRequestDto`
+
+```java
+package com.ceos18.springboot.dto.signIn.request;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+@Getter
+@NoArgsConstructor
+public class SignInRequestDto {
+	@Schema(description = "회원 아이디", example = "abc123")
+	String account;
+	@Schema(description = "회원 비밀번호", example = "1234")
+	String password;
+}
+```
+
+🔖 `SignInResponseDto`
+
+```java
+package com.ceos18.springboot.dto.signIn.response;
+
+import com.ceos18.springboot.entity.enums.MemberRole;
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@Getter
+@Setter
+@NoArgsConstructor
+public class SignInResponseDto {
+
+	String email;
+	String accessToken;
+	String refreshToken;
+	String nickName;
+	@Schema(description = "회원 롤", example = "USER")
+	MemberRole role;
+
+	public SignInResponseDto(String email, String accessToken, String refreshToken, String nickName, MemberRole role) {
+		this.email = email;
+		this.accessToken = accessToken;
+		this.refreshToken = refreshToken;
+		this.nickName = nickName;
+		this.role = role;
+	}
+}
+```
+
+🔖 `SignUpRequestDto`
+
+```java
+package com.ceos18.springboot.dto.signUp.request;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+@Getter
+@NoArgsConstructor
+public class SignUpRequestDto {
+	@Schema(description = "회원 아이디", example = "abc123")
+	String account;
+	@Schema(description = "회원 비밀번호", example = "1234")
+	String password;
+	@Schema(description = "회원 이메일", example = "abc@gmail.com")
+	String email;
+	@Schema(description = "회원 닉네임", example = "별명")
+	String nickName;
+}
+```
+
+🔖 `SignUpResponseDto`
+
+```java
+@Getter
+@Setter
+public class SignUpResponseDto {
+
+	@Schema(description = "회원 아이디", example = "1")
+	Long id;
+	@Schema(description = "회원 아이디", example = "abc123")
+	String account;
+	@Schema(description = "회원 이메일", example = "abc@gmail.com")
+	String email;
+	@Schema(description = "회원 닉네임", example = "별명")
+	String nickName;
+
+	public static SignUpResponseDto from(Member member) {
+		SignUpResponseDto signUpResponseDto = new SignUpResponseDto();
+		signUpResponseDto.setId(member.getId());
+		signUpResponseDto.setAccount(member.getAccount());
+		signUpResponseDto.setEmail(member.getEmail());
+		signUpResponseDto.setNickName(member.getNickName());
+		return signUpResponseDto;
+	}
+}
+```
+
+### SignService
+
+```java
+@RequiredArgsConstructor
+@Service
+public class SignService {
+	private final MemberRepository memberRepository;
+	private final TokenProvider tokenProvider;
+	private final PasswordEncoder encoder;
+
+	@Transactional
+	public SignUpResponseDto registMember(SignUpRequestDto request) {
+		Member member = memberRepository.save(Member.from(request, encoder));
+		try {
+			memberRepository.flush();
+		} catch (DataIntegrityViolationException e) {
+			throw new IllegalArgumentException("이미 사용중인 아이디입니다.");
+		}
+		return SignUpResponseDto.from(member);
+	}
+
+	@Transactional(readOnly = true)
+	public SignInResponseDto signIn(SignInRequestDto request) {
+		Member member = memberRepository.findByAccount(request.getAccount())
+				.filter(it -> encoder.matches(request.getPassword(), it.getPassword()))	// 암호화된 비밀번호와 비교하도록 수정
+				.orElseThrow(() -> new IllegalArgumentException("아이디 또는 비밀번호가 일치하지 않습니다."));
+
+		String token = tokenProvider.createToken(String.format("%s:%s", member.getId(), member.getRole().name()));
+
+		// email, refresh token, nickName
+		return new SignInResponseDto(member.getEmail(), token, member.getRefreshToken(), member.getNickName(), member.getRole());
+	}
+}
+```
+
+- 인증 서비스
+  - `registMember()` (회원가입)
+  - `signIn()` (로그인)
+
+### SignController
+
+```java
+@Tag(name = "회원 가입 및 로그인")
+@RequiredArgsConstructor
+@RestController
+@RequestMapping("/api/v1")
+public class SignController {
+	private final SignService signService;
+
+	@Operation(summary = "회원 가입")
+	@PostMapping("/sign-up")
+	public SignUpResponseDto signUp(@RequestBody SignUpRequestDto request) {
+		return signService.registMember(request);
+	}
+
+	@Operation(summary = "로그인")
+	@PostMapping("/sign-in")
+	public SignInResponseDto signIn(@RequestBody SignInRequestDto request) {
+		return signService.signIn(request);
+	}
+}
+```
+
+### jwt 프로퍼티 설정
+
+public repo 에 올라가지 않게끔 별도의 파일로 분리해서 관리
+
+🔖 `resources/jwt.yml`
+
+```java
+secret-key: NiOeyFbN1Gqo10bPgUyTFsRMkJpGLXSvGP04eFqj5B30r5TcrtlSXfQ7TndvYjNvfkEKLqILn0j1SmKODO1Yw3JpBBgI3nVPEahqxeY8qbPSFGyzyEVxnl4AQcrnVneI
+expiration-hours: 3
+issuer: abc123
+```
+
+### TokenProvider
+
+JWT 를 생성하고 유효성을 검증
+
+```java
+@PropertySource("classpath:jwt.yml")
+@Service
+public class TokenProvider {
+	private final String secretKey;
+	private final long expirationHours;
+	private final String issuer;
+
+	public TokenProvider(
+			@Value("${secret-key}") String secretKey,
+			@Value("${expiration-hours}") long expirationHours,
+			@Value("${issuer}") String issuer
+	) {
+		this.secretKey = secretKey;
+		this.expirationHours = expirationHours;
+		this.issuer = issuer;
+	}
+
+	public String createToken(String userSpecification) {
+		return Jwts.builder()
+				.signWith(new SecretKeySpec(secretKey.getBytes(), SignatureAlgorithm.HS512.getJcaName()))   // HS512 알고리즘을 사용하여 secretKey를 이용해 서명
+				.setSubject(userSpecification)  // JWT 토큰 제목
+				.setIssuer(issuer)  // JWT 토큰 발급자
+				.setIssuedAt(Timestamp.valueOf(LocalDateTime.now()))    // JWT 토큰 발급 시간
+				.setExpiration(Date.from(Instant.now().plus(expirationHours, ChronoUnit.HOURS)))    // JWT 토큰 만료 시간
+				.compact(); // JWT 토큰 생성
+	}
+
+	public String validateTokenAndGetSubject(String token) {
+		return Jwts.parserBuilder()
+				.setSigningKey(secretKey.getBytes())
+				.build()
+				.parseClaimsJws(token)
+				.getBody()
+				.getSubject();
+	}
+}
+```
+
+- `createToken()` : SignService 에서 호출할 때 유저의 정보를 같이 넘겨줘서 유저 정보로 jwt 를 생성한다.
+- `validateTokenAndGetSubject()` : 주어진 jwt 토큰을 검증하고, 유효한 토큰이라면 subject 를 반환한다.
+
+### JwtAuthenticationFilter
+
+토큰 정보에서 사용자 인증 필터
+
+```java
+@Order(0)
+@RequiredArgsConstructor
+@Component
+public class JwtAuthenticationFilter extends OncePerRequestFilter {
+	private final TokenProvider tokenProvider;
+
+	@Override
+	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+		try {
+			String token = parseBearerToken(request);
+			User user = parseUserSpecification(token);
+			AbstractAuthenticationToken authenticated = UsernamePasswordAuthenticationToken.authenticated(user, token, user.getAuthorities());
+			authenticated.setDetails(new WebAuthenticationDetails(request));
+			SecurityContextHolder.getContext().setAuthentication(authenticated);
+		} catch (Exception e) {
+			request.setAttribute("exception", e);
+		}
+
+		filterChain.doFilter(request, response);
+	}
+
+	private String parseBearerToken(HttpServletRequest request) {
+		return Optional.ofNullable(request.getHeader(HttpHeaders.AUTHORIZATION))
+				.filter(token -> token.substring(0, 7).equalsIgnoreCase("Bearer "))
+				.map(token -> token.substring(7))
+				.orElse(null);
+	}
+
+	private User parseUserSpecification(String token) {
+		String[] split = Optional.ofNullable(token)
+				.filter(subject -> subject.length() >= 10)
+				.map(tokenProvider::validateTokenAndGetSubject)
+				.orElse("anonymous:anonymous")
+				.split(":");
+
+		return new User(split[0], "", List.of(new SimpleGrantedAuthority(split[1])));
+	}
+}
+```
+
+- ****`doFilterInternal`****
+
+  OncePerRequestFilter 를 상속받아서 구현한 시큐리티 필터
+
+  모든 요청에 대해 한 번만 실행되고, 아래의 **`parseBearerToken` 와 `parseUserSpecification`** 를 호출함으로써 토큰에서 사용자 정보를 추출함
+
+
+- ****`parseBearerToken`****
+
+  HTTP 헤더에서 Bearer 토큰을 추출
+
+- ****`parseUserSpecification`****
+
+  추출한 Bearer 토큰에서 사용자 정보 파싱한 뒤 spring security 의 User 객체를 생성
+
+
+### SecurityConfig 에서 필터 추가
+
+앞서서 만든 `JwtAuthenticationFilter` 를 필터 체인에 추가한다.
+
+```java
+@EnableMethodSecurity
+@RequiredArgsConstructor
+@Configuration
+public class SecurityConfig {
+
+	private final JwtAuthenticationFilter jwtAuthenticationFilter;
+
+	private final String[] allowedUrls = {"/swagger-ui/**", "/api/v1/sign-up", "/api/v1/sign-in"};
+
+	@Bean
+	public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+		return http
+				.csrf().disable()
+				.headers(headers -> headers.frameOptions().sameOrigin())
+				.authorizeHttpRequests(requests ->
+						requests.requestMatchers(allowedUrls).permitAll()
+								.anyRequest().authenticated()
+				)
+				.sessionManagement(sessionManagement ->
+						sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+				)
+				.addFilterBefore(jwtAuthenticationFilter, BasicAuthenticationFilter.class)	// 추가
+				.build();
+	}
+```
+
+### 인가를 위한 커스텀 인터페이스 생성
+
+인가를 구현하기 위한 두 가지 방법
+
+- Authorization Filter 구현해서 시큐리티 필터 체인에 등록
+- 컨트롤러에 @PreAuthorize() 어노테이션 사용
+
+두 번째 방법을 선택
+
+편의를 위해 @PreAuthorize() 을 래핑하는 커스텀 인터페이스 생성
+
+🔖 `AdminAuthorize`
+
+```java
+@Target({ElementType.METHOD, ElementType.TYPE})
+@Retention(RetentionPolicy.RUNTIME)
+@PreAuthorize("hasAuthority('ADMIN')")
+public @interface AdminAuthorize {
+}
+```
+
+🔖 `UserAuthorize`
+
+```java
+@Target({ElementType.METHOD, ElementType.TYPE})
+@Retention(RetentionPolicy.RUNTIME)
+@PreAuthorize("hasAuthority('USER')")
+public @interface UserAuthorize {
+}
+```
+
+PostApiController 에 USER role 을 가진 사용자만 호출하게끔 설정
+
+```java
+@RequiredArgsConstructor
+@RestController
+@RequestMapping("/api/v1")
+@UserAuthorize
+public class PostApiController {
+	// 생략..
+}
+```
+
+# 3️⃣ 테스트
+
+### 🔖 인증 안 된 사용자가 api 호출할 때
+
+![Untitled](ceos_4주차_img/Untitled%202.png)
+
+➡️ 403 에러가 발생
+
+### 🔖 회원가입
+
+- request
+
+![Untitled](ceos_4주차_img/Untitled%203.png)
+
+- response
+
+![Untitled](ceos_4주차_img/Untitled%204.png)
+
+![Untitled](ceos_4주차_img/Untitled%205.png)
+
+DB 에 password 암호화되서 잘 들어감
+
+### 🔖 로그인
+
+- request
+
+![Untitled](ceos_4주차_img/Untitled%206.png)
+
+- response
+
+![Untitled](ceos_4주차_img/Untitled%207.png)
+
+### 🔖 인증된 유저만 사용할 수 있는 api 호출
+
+HTTP 요청의 헤더에 Bearer 토큰 등록
+
+![Untitled](ceos_4주차_img/Untitled%208.png)
+
+![Untitled](ceos_4주차_img/Untitled%209.png)
+
+response 정상 응답

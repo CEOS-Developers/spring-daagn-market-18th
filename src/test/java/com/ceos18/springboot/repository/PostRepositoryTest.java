@@ -1,10 +1,10 @@
 package com.ceos18.springboot.repository;
 
-import com.ceos18.springboot.domain.entity.Category;
-import com.ceos18.springboot.domain.entity.Member;
-import com.ceos18.springboot.domain.entity.Post;
-import com.ceos18.springboot.domain.entity.enums.DealType;
-import com.ceos18.springboot.domain.entity.enums.PostStatus;
+import com.ceos18.springboot.entity.Category;
+import com.ceos18.springboot.entity.Member;
+import com.ceos18.springboot.entity.Post;
+import com.ceos18.springboot.entity.enums.DealType;
+import com.ceos18.springboot.entity.enums.PostStatus;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
@@ -12,8 +12,6 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 
 import java.math.BigDecimal;
 import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

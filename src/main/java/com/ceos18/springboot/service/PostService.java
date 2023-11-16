@@ -1,17 +1,16 @@
 package com.ceos18.springboot.service;
 
-import com.ceos18.springboot.domain.entity.Category;
-import com.ceos18.springboot.domain.entity.Member;
-import com.ceos18.springboot.domain.entity.Post;
-import com.ceos18.springboot.domain.entity.enums.PostStatus;
-import com.ceos18.springboot.dto.request.PostCreateRequestDto;
-import com.ceos18.springboot.dto.request.PostUpdateRequestDto;
-import com.ceos18.springboot.dto.response.PostReadResponseDto;
+import com.ceos18.springboot.entity.Category;
+import com.ceos18.springboot.entity.Member;
+import com.ceos18.springboot.entity.Post;
+import com.ceos18.springboot.entity.enums.PostStatus;
+import com.ceos18.springboot.dto.post.request.PostCreateRequestDto;
+import com.ceos18.springboot.dto.post.request.PostUpdateRequestDto;
+import com.ceos18.springboot.dto.post.response.PostReadResponseDto;
 import com.ceos18.springboot.repository.CategoryRepository;
 import com.ceos18.springboot.repository.MemberRepository;
 import com.ceos18.springboot.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
-import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
