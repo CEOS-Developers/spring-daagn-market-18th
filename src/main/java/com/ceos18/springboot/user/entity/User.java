@@ -2,6 +2,7 @@ package com.ceos18.springboot.user.entity;
 
 import com.ceos18.springboot.common.entity.BaseTimeEntity;
 
+import jakarta.validation.constraints.Email;
 import lombok.*;
 
 import java.math.BigDecimal;
@@ -19,11 +20,13 @@ public class User extends BaseTimeEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "nickname", nullable = false)
-    private String nickname;
 
+    @Email
     @Column(name = "email")
     private String email;
+
+    @Column(name = "nickname", nullable = false)
+    private String nickname;
 
     @Column(name = "phone", nullable = false)
     private String phone;
@@ -31,11 +34,29 @@ public class User extends BaseTimeEntity {
     @Column(name = "password", nullable = false)
     private String password;
 
-    @Column(name = "profileimg")
+    @Column(name = "imgUrl")
     private String imgUrl;
 
     @Column(name = "temperature", nullable = false, columnDefinition = "DECIMAL(4, 2) DEFAULT 36.5")
     private BigDecimal temperature;
 
+    @Enumerated(EnumType.STRING)
+    private Role role;
+
+    @Builder
+    public User(String email, String nickname, String phone, String password,
+                String imgUrl, BigDecimal temperature) {
+        this.email = email;
+        this.nickname = nickname;
+        this.phone = phone;
+        this.password = password;
+        this.imgUrl = imgUrl;
+        this.temperature = temperature;
+        this.role = Role.ROLE_USER;
+    }
+
+    public String getImgUrl() {
+        return imgUrl;
+    }
 
 }

@@ -10,6 +10,7 @@
 [WEEK 1 | 스프링 튜토리얼](#CEOS-WEEK-1:스프링-튜토리얼) <br>  
 [WEEK 2 | DB 모델링과 JPA](#CEOS-WEEK-2:DB-모델링과-JPA-🥕) <br>  
 [WEEK 3 | CRUD API 만들기](#CEOS-WEEK-3:-CRUD-API-만들기-🎁) <br>
+[WEEK 4 | Spring Security와 로그인](#CEOS-WEEK-4:-Spring-Security와-로그인) <br>
 
 
 </div>  
@@ -1373,3 +1374,533 @@ VALUE_IS_NONNULL(HttpStatus.BAD_REQUEST, "필수값을 입력하지 않았습니
 - https://hianna.tistory.com/554
 
 ---
+
+# 📂 CEOS WEEK 4: Spring Security와 로그인
+<br>  
+
+### 🔐 4주차 목표
+
+### 1️⃣ JWT 인증(Authentication) 방법에 대해서 알아보기
+### 2️⃣ 액세스 토큰 발급 및 검증 로직 구현하기
+### 3️⃣ 로그인 API 구현하고 테스트하기
+### 4️⃣ 토큰이 필요한 API 1개 이상 구현하고 테스트하기
+
+---  
+### 🔐 4주차 미션
+
+### 1️⃣ JWT 인증(Authentication) 방법에 대해서 알아보기
+### 🪙 JWT  (**JSON Web Token**)🪙
+**- JWT 란?**
+- 인증에 필요한 정보들을 암호화시킨 토큰
+
+**- 언제 JWT를 사용하는지?**
+
+**1) Authorization (권한 부여)**
+- 유저가 로그인하면, 이후 각 요청에 JWT가 포함되는데 해당 토큰으로 허용된 경로, 서비스 및 리소스에 엑세스한다.
+- 최근에는  Single Sign On (SSO) 기능이 자주 사용된다. 오버헤드가 작고 다양한 도메인에서 쉽게 사용할 수 있기 때문이다.
+
+**2) Information Exchange (정보교환)**
+- 당사자 간(parties) 정보를 안전하게 전송할 때 쓰인다.
+- public/private key 쌍을 사용하여 서명할 수 있기 때문에 보낸 사람이 당사자가 맞는지 확인할 수 있다.
+- 또한 서명은 header 와 payload를 사용하여 계산되기 때문에 내용 변경 유무도 확인할 수 있다.
+
+**3) JWT의 구조?**
+Header, Payload, Signature 세 부분으로 구성되어 있다.
+
+> xxxxx.yyyyy.zzzzz
+
+- **Header**
+    - **토큰 유형(즉, JWT)** 과 **서명 알고리즘 (HMAC SHA256 or RSA)** 두 부분으로 구성된다.
+
+>
+```
+{
+  "alg": "HS256",
+  "typ": "JWT"
+}
+
+```
+
+- 이 JSON 은  `BASE64Url`  로 인코딩되어서 JWT의 첫 번째 부분을 구성한다.
+
+➤ Base64Url? Binary 데이터를 String으로 바꾸는 인코딩방식
+
+- **Payload**
+    - claims을 포함하는 부분이다.
+    - 클레임은 Entity(주로 사용자) 및 추가 데이터에 대한 설명이다.
+    - 클레임은 registered, public, private 세가지로 나뉜다.
+
+        - **Registered claims** :  유용하고 상호간에 사용 가능한 클레임을 제공하기 위해 권장되는 사전에 정의된 클레임 집합.
+            - (EX)![](https://images.velog.io/images/sozohoy/post/6f1ac388-993b-4b0f-9933-30135cb60b47/%E1%84%89%E1%85%B3%E1%84%8F%E1%85%B3%E1%84%85%E1%85%B5%E1%86%AB%E1%84%89%E1%85%A3%E1%86%BA%202022-01-12%20%E1%84%8B%E1%85%A9%E1%84%92%E1%85%AE%205.35.19.png)
+        - **Public claims** :  사용자가 마음대로 정의할 수 있는 클레임 집합.
+            - 주의) IANA JSON Web Token Registry에 정의하거나 URL 포맷을 사용해야 충돌을 피할 수 있다.
+            - EX) ``` { "[https://naver.com"](https://naver.com%22/): true } ```
+        - **Private claims** :  사용에 동의하는 당사자 간(parties) 정보를 교환하기 위해 공유하는 커스텀 클레임 집합.
+            - EX)  ``` { "token_type": access }```
+```
+{ "sub": "1234567890", 
+  "name": "John Doe", 
+  "admin": true }
+```
+- 이 JSON 은  `BASE64Url`  로 인코딩되어서 JWT의 두 번째 부분을 구성한다.
+
+- **Signature**
+    - 이 부분에서는 인코딩된 Header와 Payload, Secret (Header에 사용된 알고리즘)이 필요하다.
+    - 토큰이 전송 도중에 변경되지 않았는지 확인하는 데 사용된다.
+    - private key 로 서명된 토큰의 경우, JWT의 전송자가 누구인지도 알 수 있다.
+    - EX) HMAC SHA256 algorithm 을 사용한다면
+
+```
+HMACSHA256( base64UrlEncode(header) + "." 
++ base64UrlEncode(payload), 
++ secret)
+```
+
+- **전체 구조**
+  ![Encoded JWT](https://cdn.auth0.com/content/jwt/encoded-jwt3.png)
+
+➤ 출력은 이와 같이, HTML 및 HTTP 환경에서 쉽게 전달할 수 있는 점으로 구분된 3개의 Base64-URL 문자열로 구성된다.
+
+
+**- JWT의 작동방식?**
+
+- 공식 문서에서 소개된 JWT를 가져와 API 또는 정보에 접근하는 방식
+  ![](https://velog.velcdn.com/images/jhyun_k/post/ec3cb1b4-e003-4467-9a78-bd640b9568e0/image.png)
+
+- **Access Token:** 클라이언트가 갖고있는, 유저의 정보가 담긴 토큰. 클라이언트에서 요청이 오면 서버에서 해당 토큰에 있는 정보를 활용하여 사용자 정보에 맞게 응답을 진행
+
+- **Refresh Token:** 새로운 Access Token을 발급해주기 위해 사용하는 토큰으로, 짧은 수명을 가지는 Access Token에게 새로운 토큰을 발급해주기 위해 사용. 보통 DB에 유저 정보와 같이 기록.
+
+
+[![json-web-token](https://blog.kakaocdn.net/dn/t2DrY/btrqGTOykhT/bpeE1EZ0YeP9xIec1uU9g0/img.png)](https://blog.kakaocdn.net/dn/t2DrY/btrqGTOykhT/bpeE1EZ0YeP9xIec1uU9g0/img.png)
+4.  사용자가 ID, PW를 입력하여 서버에 로그인 인증을 요청한다.
+5.  서버에서 클라이언트로부터 인증 요청을 받으면, Header, PayLoad, Signature를 정의한다. Hedaer, PayLoad, Signature를 각각 Base64로 한 번 더 암호화하여 JWT를 생성하고 이를 쿠키에 담아 클라이언트에게 발급한다.
+6.  클라이언트는 서버로부터 받은 JWT를 로컬 스토리지에 저장한다. API를 서버에 요청할때 Authorization header에 Access Token을 담아서 보낸다.
+7.  서버는 클라이언트가 Header에 담아서 보낸 JWT의 일치 여부를 확인하여 일치한다면 인증을 통과시켜주고 아니라면 통과시키지 않으면 된다. 인증이 통과되면 페이로드에 들어있는 유저의 정보들을 select해서 클라이언트에 돌려준다.
+8.  클라이언트가 서버에 요청을 했을때, 액세스 토큰의 시간이 만료되면 클라이언트는 리프래시 토큰을 이용해 새로운 엑세스 토큰을 발급 받는다.
+
+### 🪙 세션 🪙
+- 세션이란 지정된 기간 내에 웹사이트에서 발생한 사용자 상호작용의 집합.  (다수의 페이지 조회, 이벤트, 소셜 상호작용, 전자상거래 등..)
+  ![](https://blog.kakaocdn.net/dn/c3Bo35/btreh26fOqF/rNQ03e5vKbqUOqE8NKXyV0/img.png)
+
+1. 클라이언트가 페이지를 요청한다.
+2. 서버는 접근한 클라이언트의 Request-Header 필드인 Cookie를 확인하여 클라이언트가 해당 session-id를 보냈는지 확인한다.
+3. session-id가 존재하지 않는다면, 서버는 session-id를 무작위로 생성해 클라이언트에게 돌려준다.
+4. 서버에서 클라이언트로 돌려준 session-id를 쿠키를 사용해 서버에 저장한다.
+5. 클라이언트가 재접속 시, 쿠키를 이용하여 session-id 값을 서버에 전달합니다. 서버는 session-id를 통해 재방문 접속자임을 인식하고 그에 맞는 페이지를 전송한다.
+
+### 🪙 쿠키 🪙
+
+- 사용자가 방문한 웹페이지에서 이용된 환경설정 및 기타 정보를 사용자의 컴퓨터에 저장하는 작은 파일이다.
+- 웹 사이트는 쿠키를 통해 접속자를 인식하고, 접속자의 설정과 과거 이용내역에 대한 일부 데이터를 저장한다.
+  ![](https://blog.kakaocdn.net/dn/pQQVY/btreotht0Oe/pKBA5g40bD2Qk6MIfF1hc0/img.png)
+
+1. 클라이언트가 서버에게 페이지를 요청한다.
+2. 서버는 쿠키를 생성하여 HTTP 화면을 돌려줄 때 쿠키도 클라이언트에게 보내준다.
+3. 쿠키는 클라이언트가 가지고 있다가 서버에 다시 요청할 때 요청과 쿠키를 전송한다.
+4. 쿠키를 받은 서버는 재방문한 접속자임을 인식하고 그에 맞는 요청 페이지와 쿠키를 전송한다.
+
+**⭐️ 쿠키와 세션의 차이 ⭐️**
+![](https://velog.velcdn.com/images%2Fpu1etproof%2Fpost%2F06e6baea-0150-496d-8062-1614f718d89d%2F%E1%84%89%E1%85%B3%E1%84%8F%E1%85%B3%E1%84%85%E1%85%B5%E1%86%AB%E1%84%89%E1%85%A3%E1%86%BA%202021-09-23%20%E1%84%8B%E1%85%A9%E1%84%92%E1%85%AE%207.14.29.png)
+
+**➤ 그렇다면?**
+세션만 사용하기에는 세션은 서버의 자원을 사용하기 때문에 사용자 수가 많아질수록 서버의 메모리를 많이 차지한다.
+그래서, 서버 자원의 낭비를 방지하고 웹 사이트의 속도 개선을 위해선 세션과 쿠키를 적절한 요소에 **병행 사용**한다.
+(EX) 로그인에 세션, 아이디 비번 저장에 쿠키, 장바구니 기능에 쿠키
+
+### 🪙 OAuth 🪙
+-   사용자 이름, 비밀번호 등의 실제 사용자 자격 증명을 공유하지 않고 한 서비스에서 다른 서비스로 권한 부여를 전달하기 위한 프로토콜.
+- 인증(Authentication)과 인가(Authorization) 중  **인가**에 좀 더 초점을 맞추고 있다.
+- OAuth 2.0에는 4가지 인증 방식이 있는데 그중 **Authorization Code Grant**가 주요 방식이다.
+    - OAuth를 통해 인증, 인가를 제공해주는 서버
+        -  Resource Server: 이름, 이메일 등과 같은 자원을 제공한다.
+        -   Authorization Server: 토큰을 발급해준다.
+
+![](https://velog.velcdn.com/images%2Fmax9106%2Fpost%2F5620524a-4359-4abd-b90c-07b65359b3ca%2F%E1%84%89%E1%85%B3%E1%84%8F%E1%85%B3%E1%84%85%E1%85%B5%E1%86%AB%E1%84%89%E1%85%A3%E1%86%BA%202021-07-12%20%E1%84%8B%E1%85%A9%E1%84%8C%E1%85%A5%E1%86%AB%204.16.43.png)
+
+- OAuth 서버에서 client Application에게 바로 access token을 넘겨주지 않고, Authorization code를 넘겨준다.
+- client Application은 Authorization code를 통해 access token을 발급 받아, access token으로 허가된 리소스 요청을 하는 방식 (→ access token은 백엔드 내에만 존재하게 되므로, 탈취 위험 감소)
+
+
+---
+### 2️⃣ 액세스 토큰 발급 및 검증 로직 구현하기
+**1. SecurityConfig**
+
+**(1)  `@Bean passwordEncoder()`**: 암호화된 패스워드를 생성하기 위한 `PasswordEncoder` 빈을 생성. `BCrypt 해시 함수`를 사용해 비밀번호를 해시한다.
+이외에도 PasswordEncoder 구현 클래스에는  Argon2PasswordEncoder, Pbkdf2PasswordEncoder, SCryptPasswordEncoder가 있다.
+
+**(2)  `.csrf(AbstractHttpConfigurer::disable)`**: REST api를 이용한 서버라면, session 기반 인증과는 다르게 stateless하기 때문에 서버에 인증정보를 보관하지 않아서 disable로 설정한다.
+
+**(3) `.authorizeHttpRequests(Requests -> ...)`**: URL별 권한 설정. `anyRequest().authenticated()`은 그 외의 모든 요청에 대한 접근을 인증된 사용자에게만 허용한다.
+
+**(4) .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider), UsernamePasswordAuthenticationFilter.class)** : `JwtAuthenticationFilter`를 `UsernamePasswordAuthenticationFilter` 앞에 추가해서 JWT를 사용한 사용자 인증을 처리
+
+**(5) `.exceptionHandling((exceptionHandling) -> exceptionHandling.authenticationEntryPoint(jwtAuthenticationEn tryPoint).accessDeniedHandler(jwtAccessDeniedHandler))`:**  인증 entry에서, 권한이 없을 경우의 예외 처리 (각각 401, 403)
+
+**2. TokenProvider**
+
+**(1) `JwtTokenProvider` 클래스 생성자** : 클래스의 인스턴스를 초기화하고 필요한 의존성을 주입하는 역할
+```java 
+public JwtTokenProvider(  
+	PrincipalDetailsService principalDetailsService,  
+	@Value("${jwt.token.secret}") String secretKey,  
+	@Value("${jwt.token.access-token-validity-inseconds}") Long accessTokenValidTime  
+) {  
+	this.principalDetailsService = principalDetailsService;  
+	this.accessTokenValidTime = accessTokenValidTime * 1000L;  
+	byte[] keyBytes = Decoders.BASE64.decode(secretKey);  
+	this.signingKey = Keys.hmacShaKeyFor(keyBytes);  
+}
+```
+
+- 사용자 정보를 가져오기 위한 `PrincipalDetailsService`, JWT 서명키인 `secretKey`, 액세스 토큰 유효시간 `accessTokenValidTime`을 주입 받는다.
+- `accessTokenValidTime` 변수에 설정된 값에 1000을 곱해서 밀리초 단위로 변환한다.
+- `byte[] keyBytes = Decoders.BASE64.decode(secretKey)`: `secretKey` 변수에 저장된 JWT 키를 디코딩하여 바이트 배열로 변환한다.
+- `this.signingKey = Keys.hmacShaKeyFor(keyBytes)`: 이 부분은 JWT 서명 키를 생성하는 과정입니다. 디코딩된  `keyBytes`를 HMAC SHA 알고리즘을 통해 서명 키를 생성하고, 이를 `signingKey` 변수에 저장합니다.
+  ➤ 이러한 서명 키는 나중에 JWT를 생성하거나 검증할 때 사용한다.
+
+**(2) `createToken`: access token을 생성하는 메서드**
+```java 
+public TokenDto createToken(String email, String authorities) {  
+	Date now = new Date();  
+	Date expiration = new Date(now.getTime() + accessTokenValidTime);  
+  
+	String accessToken = Jwts.builder()  
+		.setHeaderParam("typ", "JWT")  
+		.setHeaderParam("alg", "HS512")  
+		.setSubject("access-token")  
+		.claim(EMAIL_KEY, email)  
+		.claim(AUTHORITIES_KEY, authorities)  
+		.setIssuedAt(now)  
+		.setExpiration(expiration)  
+		.signWith(SignatureAlgorithm.HS512, signingKey)  
+		.compact();  
+  
+	return TokenDto.builder()  
+		.accessToken(accessToken)  
+		.build();  
+}
+```
+- 현재 시각과 access token의 만료 시각을 설정한다.
+- `Jwts.builder()` 메서드를 사용하여 JWT 빌더를 생성한다.
+    -  `setHeaderParam("typ", "JWT")`,`setHeaderParam("alg", "HS512")`: JWT의 헤더 부분 설정 (토큰의 타입, 서명 알고리즘)
+- `setSubject("access-token")`: JWT의 subject 설정. (access-token)
+- `claim(EMAIL_KEY, email)` , `claim(AUTHORITIES_KEY, authorities)`: 토큰의 클레임. (이메일, 권한 정보)
+-  `setIssuedAt(now)`: 토큰의 발급 시간 설정.
+- `setExpiration(expiration)`: 토큰의 만료 시각 설정.
+- `signWith(SignatureAlgorithm.HS512, signingKey)`: 서명 알고리즘과 서명 키를 설정하여 토큰을 서명(Sign).
+- `compact()`: 설정한 내용으로 토큰을 생성하고 문자열로 반환한다.
+
+**(3) `validateToken`: 토큰의 유효성 검사하는 메서드**
+```java 
+public boolean validateToken(String token) {
+	Jwts.parserBuilder() 
+		.setSigningKey(signingKey) 
+		.build() 
+		.parseClaimsJws(token); 
+	return true; 
+}
+```
+- JWT 파서 빌더를 생성해 파서에 서명키를 설정하고 파서를 빌드한다. `parseClaimsJws(token)`를 사용하여 파서를 통해 토큰을 파싱하고 서명을 확인한다.
+- 서명이 유효하면 파싱된 claim을 반환한다.
+
+**(4) `parseClaims`: 액세스 토큰에서 claim 추출하는 메서드**
+
+```java 
+private Claims parseClaims(String accessToken) {
+    try {
+        // 올바른 토큰이면 true
+        return Jwts.parserBuilder().setSigningKey(signingKey).build()
+                .parseClaimsJws(accessToken)
+                .getBody();
+    } catch (ExpiredJwtException e) {
+        // 만료 토큰이어도 토큰 정보 꺼내서 return
+        return e.getClaims();
+    }
+}
+```
+
+- 토큰을 검증하고 pareClaimsJws 메서드로 클레임을 추출한다.
+- 만료되었을 때는 예외를 발생한다.
+
+**(5) `getAuthentication`: 토큰에서 이메일 정보 추출하고 사용자 정보 가져오는 메서드**
+
+```java 
+public Authentication getAuthentication(String token) {
+    String email = parseClaims(token).get(EMAIL_KEY).toString();
+    PrincipalDetails principalDetails = principalDetailsService.loadUserByUsername(email);
+
+    return new UsernamePasswordAuthenticationToken(principalDetails, "",
+            principalDetails.getAuthorities());
+}
+```
+-   토큰으로부터 사용자의 이메일 정보 추출하고, `PrincipalDetailsService`를 사용하여 해당 이메일에 대한 사용자 정보를 가져온다.
+    -   `loadUserByUsername` 메서드로  `PrincipalDetails` 객체를 생성하고 `UsernamePasswordAuthenticationToken`로 `Authentication` 객체를 생성하여 반환한다.
+
+
+**3. JwtAuthenticationFilter**
+- 이 필터는 요청이 처리될 때마다 한 번만 실행되며, JWT 토큰을 사용하여 인증하는 역할
+
+**(1) `doFilterInternal`: 필터링이 이루어지는 부분을 정의**
+
+```java 
+protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
+                                    FilterChain filterChain) throws IOException, ServletException {
+        // 토큰 추출
+        String token = resolveToken(request);
+
+        try {
+            // 유효한 토큰인지 검사하고 인증 수행
+            if (token != null && jwtTokenProvider.validateToken(token)) {
+                Authentication authentication = jwtTokenProvider.getAuthentication(token);
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+            }
+        } catch (UsernameNotFoundException e) { // 회원을 찾을 수 없는 경우
+            throw new KarrotException(ErrorCode.MEMBER_NOT_FOUND);
+        }
+
+        // 다음 필터로 이동
+        filterChain.doFilter(request, response);
+    }
+```
+- HTTP 요청 헤더에서 토큰을 추출하고 추출된 토큰이 null이 아니며  validateToken(token)이 true인 경우에만 유효한 토큰으로 판단한다.
+- getAuthentication을 호출해서 사용자를 인증하고 SecurityContextHolder에 인증 정보를 설정한다.
+- 사용자를 찾을 수 없는 경우에는 MEMBER_NOT_FOUND 응답을 처리한다.
+- 검증/인증이 완료되면 다음 필터로 요청을 전달한다.
+
+**(2) `resolveToken`: Authorization 헤더에서 토큰을 추출**
+```java
+// request header에서 토큰 추출
+public String resolveToken(HttpServletRequest request) {
+    String bearerToken = request.getHeader("Authorization");
+    if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
+        return bearerToken.substring(7);
+    }
+    return null;
+}
+
+```
+- Bearer 를 제외한 나머지 부분을 추출한다.
+
+
+**4. PrincipalDetails**
+- `UserDetails` 인터페이스를 구현하여 현재 인증된 사용자의 정보를 제공한다.
+```java
+public class PrincipalDetailsService implements UserDetailsService {
+
+    private final UserRepository userRepository;
+
+    @Override
+    public PrincipalDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException(email));
+
+        if (user != null) {
+            PrincipalDetails principalDetails = new PrincipalDetails(user);
+            return principalDetails;
+        }
+        return null;
+    }
+}
+```
+
+-  현재 사용자의 권한 목록을 반환한다.
+- 이외에도 사용자의 이메일, 비밀번호, 계정이 만료되지 않았는지, 계정이 잠겨 있지 않은지, 자격 증명이 만료되지 않았는지, 계정이 활성화되었는지 여부를 제공한다.
+
+**5. PrincipalDetailsService**
+-  `UserDetailsService` 사용자의 인증 정보를 데이터베이스에서 가져온다.
+```java
+public class PrincipalDetailsService implements UserDetailsService {
+
+    private final UserRepository userRepository;
+
+    @Override
+    public PrincipalDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException(email));
+
+        if (user != null) {
+            PrincipalDetails principalDetails = new PrincipalDetails(user);
+            return principalDetails;
+        }
+        return null;
+    }
+}
+```
+- 사용자 이메일을 받아 해당 사용자의 정보를 데이터베이스에서 조회하고 만약 사용자가 존재하지 않으면 `UsernameNotFoundException`을 던진다.
+- 사용자 정보를 조회하고, 이 정보를 기반으로 `PrincipalDetails` 객체를 생성한다.
+
+> ⭐️ 즉, `PrincipalDetailsService`는 사용자 정보를 로드하고, 이 정보를 기반으로
+> `PrincipalDetails` 객체를 생성하여 Spring Security에 제공한다. 이 객체는 Spring
+> Security가 사용자를 인증하고 권한을 부여하는 데 사용된다! ⭐️
+
+
+### 3️⃣ 로그인 API 구현하고 테스트하기
+
+### <center>🔐 회원가입</center>
+
+- **STEP 1. signup으로 회원가입 매핑**
+
+```java 
+@PostMapping("/signup")  
+public ResponseEntity<NormalResponseDto> join(@RequestBody @Valid UserRequestDto requestDto) {  
+	authService.joinMember(requestDto);  
+	return ResponseEntity.ok(NormalResponseDto.success());  
+}
+```
+
+- **STEP 2. Request Dto를 통해 회원가입 요청 객체 생성**
+    - 비밀번호가 영문 대소문자, 숫자, 특수문자를 최소한 1개씩 포함하고, 총 길이가 8~16자여야 한다는 규칙을 정의했다.
+    - 이 규칙에 맞지 않는 비밀번호가 입력되면 해당 필드에 대한 유효성 검사에서 실패하게 했다.
+
+```java 
+@Pattern(regexp = "^(?=.*[A-Za-z])(?=.*\\d)(?=.*[$@$!%*#?&])[A-Za-z\\d$@$!%*#?&]{8,16}$", message = "비밀번호는 8~16자리수여야 합니다. 영문 대소문자, 숫자, 특수문자를 1개 이상 포함해야 합니다.")  
+private String password;
+```
+
+- **STEP 3. authService의 joinMember 메서드로 회원가입**
+    - 비밀번호는 `passwordEncoder`를 통해 인코딩하여 저장한다.
+    - `@Transactional` 어노테이션으로 메서드가 성공적으로 실행되면 변경된 내용이 DB에 저장되고, 실패하면 롤백되게끔 한다.
+
+```java 
+@Transactional  
+public void joinMember(UserRequestDto requestDto) {  
+	User user = requestDto.toMember(passwordEncoder); // 비밀번호를 인코딩하여 저장  
+	userRepository.save(user);  
+}
+```
+
+### <center>🔐 로그인</center>
+
+- **STEP 1. login으로 로그인 매핑**
+    - authService.login을 통해 로그인 시도 및 토큰 발급한다.
+    - **리프레시 토큰**은 **`HttpCookie`** 로 만들어 응답에 추가한다.
+        - `maxAge`로 쿠키의 유효기간 설정
+        - `httpOnly`로 JavaScript에서 쿠키에 접근하는 것을 방지
+        - `sameSite`로 서드파티 쿠키 사용을 허용하도록 설정하되 `secure`로 HTTPS에서만 전송되도록 설정 (소셜 로그인과 같이 다른 도메인에서 제공되는 서비스 사용할 수 있으므로)
+    - **액세스 토큰**은 **`HttpHeaders.AUTHORIZATION 헤더`** 에 넣어 응답에 추가한다.
+
+```java 
+@PostMapping("/login")  
+public ResponseEntity<?> login(@RequestBody LoginRequestDto loginRequest) {  
+	TokenDto tokenDto = authService.login(loginRequest);  
+  
+	HttpCookie httpCookie = ResponseCookie.from("refresh-token", tokenDto.getRefreshToken())  
+		.maxAge(COOKIE_EXPIRATION)  
+		.httpOnly(true)  
+		.secure(true)  
+		.sameSite(Cookie.SameSite.NONE.attributeValue()) //서드파티 쿠키 사용 허용  
+		.build();  
+	return ResponseEntity.ok()  
+		.header(HttpHeaders.SET_COOKIE, httpCookie.toString())  
+		.header(HttpHeaders.AUTHORIZATION, "Bearer " + tokenDto.getAccessToken())  
+		.build();  
+}
+```
+
+- **STEP 2. AuthService의 login 메서드**
+```java 
+@Transactional  
+public TokenDto login(LoginRequestDto loginRequestDto) {  
+	UsernamePasswordAuthenticationToken authenticationToken =  
+		new UsernamePasswordAuthenticationToken(loginRequestDto.getEmail(), loginRequestDto.getPassword());  
+  
+	Authentication authentication = authenticationManager.getObject()  
+		.authenticate(authenticationToken);  
+	SecurityContextHolder.getContext().setAuthentication(authentication);  
+	return generateToken(SERVER, authentication.getName(), getAuthorities(authentication));  
+}
+```
+-   사용자가 로그인 시도를 하면, `AuthService`에서는 제공된 이메일과 비밀번호로 `UsernamePasswordAuthenticationToken`을 생성하여 Spring Security의 `authenticationManager`에 전달한다.
+- `authenticationManager`는 토큰을 검증하고, 유효한 경우에 `Authentication` 객체를 반환한다.
+- 반환된 `Authentication` 객체는 `SecurityContextHolder`에 설정되어 현재 사용자로 인식된다.
+- 로그인이 성공하면 `JwtTokenProvider`를 사용하여 토큰이 생성되고, 클라이언트에게 전달된다.
+
+- **STEP 3. AuthService의 generateToken & getAuthorities메서드**
+```java 
+// 토큰 발급  
+@Transactional  
+public TokenDto generateToken(String provider, 	String email, String authorities) {  
+  
+	TokenDto authToken = jwtTokenProvider.createToken(email, authorities);  
+	return authToken;  
+}
+```
+- 이메일과 권한으로 JwtTokenProvider를 사용하여 토큰을 생성한다.
+
+```java 
+// 권한 이름 가져오기
+public String getAuthorities(Authentication authentication) {
+    // 권한 이름들을 ","로 구분하여 하나의 문자열로 변환하기
+    return authentication.getAuthorities().stream()
+            .map(GrantedAuthority::getAuthority)
+            .collect(Collectors.joining(","));
+}
+```
+- `authentication.getAuthorities()`로 사용자의 권한 목록을 반환하고, `stream()` 과`map(GrantedAuthority::getAuthority)`을 사용하여 권한의 이름을 추출한다.
+- 이후 `Collectors.joining(",")`을 사용하여 모든 권한 이름을 하나의 문자열로 합친다.
+- 즉, 객체에서 권한 이름을 추출하여 ","로 구분된 하나의 문자열로 반환하는 메서드다.
+
+### 4️⃣ 토큰이 필요한 API 1개 이상 구현하고 테스트하기
+### <center>🔐 회원 프로필 이미지 조회</center>
+
+```java 
+@GetMapping("/myInfo")  
+public ResponseEntity<UserResponseDto> myInfo(@CurrentUser User user) {  
+	UserResponseDto responseDto = userService.getMyInfo(user);  
+	return ResponseEntity.ok(responseDto);  
+}
+```
+currentUser 사용해 현재 로그인된 사용자의 (헤더에 토큰 넣어서 테스트) 정보 불러오기
+
+```java 
+public UserResponseDto getMyInfo(User currentUser) {  
+	return userRepository.findById(currentUser.getId())  
+		.map(UserResponseDto::of)  
+		.orElseThrow(() -> new KarrotException(ErrorCode.MEMBER_NOT_FOUND));  
+}
+```
+유저 정보를 찾지 못했을시 MEMBER_NOT_FOUND: "유저 정보를 찾지 못했습니다.", "email 과 password 를 올바르게 입력했는지 확인해주세요"
+
+---
+<img width="500" alt="스크린샷 2023-11-11 12 21 33" src="https://github.com/CEOS-Developers/spring-daagn-market-18th/assets/77966605/54c5a298-de40-4ac2-868b-e6cbe34d3367">
+<br>
+
+**↓ 비밀번호 충족 못 할 경우**
+<br>
+<img width="500" alt="스크린샷 2023-11-11 12 22 33" src="https://github.com/CEOS-Developers/spring-daagn-market-18th/assets/77966605/91abb131-880f-4a38-9f54-ed406cbf2a7b">
+<br>
+
+**↓ 이미 존재할 회원일 경우**
+<br>
+<img width="500" alt="스크린샷 2023-11-11 12 26 02" src="https://github.com/CEOS-Developers/spring-daagn-market-18th/assets/77966605/0c883e6e-dda0-447e-8851-dbc454e7f158">
+<br>
+
+<img width="500" alt="스크린샷 2023-11-11 12 29 14" src="https://github.com/CEOS-Developers/spring-daagn-market-18th/assets/77966605/6ad01b25-525f-47fa-90d4-d6146ef41b40">
+<br>
+<img width="500" alt="스크린샷 2023-11-11 12 45 59" src="https://github.com/CEOS-Developers/spring-daagn-market-18th/assets/77966605/4010939c-f1fc-45c6-a16d-458d833bd152">
+<br>
+JWT는 세션 데이터의 서버 측 스토리지가 필요하지 않으므로 분산 시스템에서 확장성이 좋다는 이점도 있지만 페이로드에 3종류의 클레임을 저장하기에 네트워크에 부하가 걸릴 수 있다는 단점도 있는 것 같다.
+
+이번 스터디를 통해 배운 내용을 실전에서 적용하면서 더 나은 코드와 안전한 서비스를 제공하고 싶다.
+
+---
+
+### 🤐 트러블슈팅
+
+    Encoded password does not look like BCrypt
+
+⭐️ member.setPassword(Dto.getPassword()) 대신 member.setPassword(password)로 **데이터베이스에 암호화된 비밀번호**로 저장해야됨
+
+---
+### 🫰 참고
+- https://jwt.io/introduction
+- https://velog.io/@sozohoy/%ED%86%A0%ED%81%B0-%EC%9D%B8%EC%A6%9D-JWTJson-Web-Token-Access-Token-Refresh-Token
+- https://inpa.tistory.com/entry/WEB-%F0%9F%93%9A-JWTjson-web-token-%EB%9E%80-%F0%9F%92%AF-%EC%A0%95%EB%A6%AC
+- https://ablue-1.tistory.com/70
+- https://velog.io/@pu1etproof/%EB%84%A4%ED%8A%B8%EC%9B%8C%ED%81%AC-%EC%8A%A4%ED%84%B0%EB%94%94-2%EC%A3%BC%EC%B0%A8-%EC%BF%A0%ED%82%A4-%EC%84%B8%EC%85%98-%ED%86%A0%ED%81%B0-%EC%BA%90%EC%8B%9C
+- https://velog.io/@corgi/Spring-Security-PasswordEncoder%EB%9E%80-4kkyw8gi
+
+<br>
+🖍️ OAuth + JWT 구현 시 프엔과 백엔의 역할 <br>
+- https://velog.io/@max9106/OAuth
