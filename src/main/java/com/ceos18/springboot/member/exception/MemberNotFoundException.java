@@ -9,4 +9,8 @@ public class MemberNotFoundException extends RuntimeException {
     public MemberNotFoundException(Long id) {
         super("요청한 id 값 " + id + "에 해당하는 회원 정보가 존재하지 않습니다.");
     }
+
+    public MemberNotFoundException(String email) {
+        super("요청한 email " + email + "에 해당하는 회원 정보가 존재하지 않습니다.");
+    }
 }

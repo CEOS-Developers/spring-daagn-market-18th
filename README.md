@@ -647,3 +647,397 @@ soft delete를 사용하고 있기 때문에 활성화된 회원 정보만을 �
 
 ## 🥕새롭게 알게 된 점 & 느낀 점
 코드를 작성할 때 당연하다고 여기며 작성하던 부분들이 많았는데, 미션 내용 정리를 위해 그런 부분들을 찾아보는 기회가 되었던 것 같다. 특히 Transactional(readOnly = true)를 설정하면 막연하게 성능상 이점이 있다고만 알고 있었는데, 정확히 어떤 부분에서의 이점인지 공부해보게 되었다. 또한, 정적 팩토리 메서드는 알고만 있던 개념인데 직접 적용해볼 수 있어 좋았다. 지난주에 단위 테스트 코드를 작성해보았는데, 이번 미션 코드에 대해서도 테스트 코드를 작성해보면 좋을 것 같다.
+
+-----
+# 📁CEOS 18th Backend Study - 4주차 미션
+### 1️⃣ JWT 인증(Authentication) 방법에 대해서 알아보기
+
+#### 1. Access Token
+![image](https://github.com/letskuku/spring-daagn-market-18th/assets/90572599/00bdc6b5-06df-4cfe-b7c8-c0d181ff5540)
+
+1. 사용자의 로그인 
+2. DB에 저장되어있는 사용자인지 확인
+3. access token 발급하여 포함된 응답 전송
+4. 이후, 사용자는 요청 시 access token을 포함
+5. access token 검증 후 요청한 데이터 반환
+
+- 토큰을 검증하는 과정만 거치면 되기 때문에 따로 저장해둘 필요가 없다.
+- 한 번 발급되면 유효기간까지는 계속 사용 가능하기 때문에 토큰 값이 유출될 경우 대처 방법이 없다. (=> 유효기간을 무한정 길게 설정해놓을 수 없다.)
+
+#### 2. Access Token + Refresh Token
+![image](https://github.com/letskuku/spring-daagn-market-18th/assets/90572599/8048a93e-0ffa-41a4-99ea-c7671fba9514)
+
+1. 사용자의 로그인 
+2. DB에 저장되어있는 사용자인지 확인
+3. access token, refresh token 발급하여 포함된 응답 전송
+4. 이후, 사용자는 요청 시 access token을 포함
+5. access token 검증 후 요청한 데이터 반환
+6. access token 만료된 경우, 만료되었다는 응답 전송
+7. 사용자는 access token, refresh token 포함하여 access token 재발급 요청
+8. refresh token 검증 후 새로운 access token 발급하여 반환
+
+- access token의 유효기간을 짧게 설정할 수 있다.
+- 구현이 복잡하다.
+
+### 2️⃣ 액세스 토큰 발급 및 검증 로직 구현하기
+#### 1. TokenProvider
+```java
+@Slf4j
+@Component
+public class TokenProvider implements InitializingBean {
+
+    private final CustomUserDetailsService customUserDetailsService;
+
+    private final String secret;
+    private final Long accessExpirationTime;
+    private final Long refreshExpirationTime;
+    private Key key;
+
+    public TokenProvider(
+            CustomUserDetailsService customUserDetailsService,
+            @Value("${jwt.secret}") String secret,
+            @Value("${jwt.access-expiration-time}") Long accessExpirationTime,
+            @Value("${jwt.refresh-expiration-time}") Long refreshExpirationTime){
+        this.customUserDetailsService = customUserDetailsService;
+        this.secret = secret;
+        this.accessExpirationTime = accessExpirationTime;
+        this.refreshExpirationTime = refreshExpirationTime;
+    }
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        byte[] keyBytes = Decoders.BASE64.decode(secret);
+        this.key = Keys.hmacShaKeyFor(keyBytes);
+    }
+
+    public String createAccessToken(Authentication authentication) {
+
+        String authorities = authentication.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.joining(","));
+
+        Claims claims = Jwts.claims()
+                .setSubject(authentication.getName());
+        claims.put("authorities", authorities);
+
+        Date expirationTime = new Date((new Date()).getTime() + this.accessExpirationTime);
+
+        String accessToken = Jwts.builder()
+                .setClaims(claims)
+                .setExpiration(expirationTime)
+                .signWith(key, SignatureAlgorithm.HS256)
+                .compact();
+
+        return "Bearer " + accessToken;
+    }
+
+    public String createRefreshToken(Authentication authentication) {
+
+        String authorities = authentication.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.joining(","));
+
+        Claims claims = Jwts.claims()
+                .setSubject(authentication.getName());
+        claims.put("authorities", authorities);
+
+        Date expirationTime = new Date((new Date()).getTime() + this.refreshExpirationTime);
+
+        String refreshToken = Jwts.builder()
+                .setClaims(claims)
+                .setExpiration(expirationTime)
+                .signWith(key, SignatureAlgorithm.HS256)
+                .compact();
+
+        return "Bearer " + refreshToken;
+    }
+
+    public Authentication getAuthentication(String accessToken) {
+
+        Claims claims = Jwts
+                .parserBuilder()
+                .setSigningKey(key)
+                .build()
+                .parseClaimsJws(accessToken)
+                .getBody();
+
+        UserDetails userDetails = customUserDetailsService.loadUserByUsername(claims.getSubject());
+        return new UsernamePasswordAuthenticationToken(userDetails, accessToken, userDetails.getAuthorities());
+    }
+
+    public boolean validateToken(String token) {
+
+        try {
+            Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
+            return true;
+        } catch (io.jsonwebtoken.security.SecurityException | MalformedJwtException e) {
+            log.info("잘못된 JWT 서명입니다.");
+        } catch (ExpiredJwtException e) {
+            log.info("만료된 JWT 입니다.");
+        } catch (UnsupportedJwtException e) {
+            log.info("지원되지 않는 JWT 입니다.");
+        } catch (IllegalArgumentException e) {
+            log.info("잘못된 JWT 입니다.");
+        }
+
+        return false;
+    }
+}
+```
+#### 📌getAuthentication
+UserDetails를 이용하여 Authentication 리턴하는데, customUserDetailsService의 loadUserByUsername을 사용하면 DB에 접근하여 사용자 정보를 가져오게 된다.
+
+이렇게 하지 않고 토큰에서 추출한 정보만으로 UserDetails 객체를 생성하여 Authenntication을 반환할 수도 있지만, 그럴 경우 추후 사용할 @AuthenticationPrincipal에서 값이 제대로 주입되지 않는다.
+
+#### 2. CustomUserDetails
+```java
+@RequiredArgsConstructor
+public class CustomUserDetails implements UserDetails {
+
+    private final Member member;
+
+    public Member getMember() {
+        return member;
+    }
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return member.getRoles()
+                .stream()
+                .map(SimpleGrantedAuthority::new)
+                .toList();
+    }
+
+    @Override
+    public String getPassword() {
+        return member.getPassword();
+    }
+
+    @Override
+    public String getUsername() {
+        return member.getEmail();
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return true;
+    }
+}
+```
+#### 📌UserDatails란?
+Spring Security에서 사용자의 정보를 담는 인터페이스이다.
+
+Member의 email을 로그인 아이디로 가정하여 getUsername에서 email을 반환하도록 설정하였고, 인증 정보에서 Member 정보를 꺼내 사용하는 것을 용이하게 하기 위해 getMember 메서드를 추가하였다.
+
+#### 3. CustomUserDetailsService
+```java
+@Service
+@RequiredArgsConstructor
+public class CustomUserDetailsService implements UserDetailsService {
+
+    private final MemberRepository memberRepository;
+
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+
+        Member member = memberRepository.findByEmailAndActivated(username, true)
+                .orElseThrow(() -> new MemberNotFoundException(username));
+
+        return new CustomUserDetails(member);
+    }
+}
+```
+#### 📌UserDetalsService란?
+Spring Security에서 사용자의 정보를 가져오는 인터페이스이다.
+
+loadByUsername은 사용자 정보를 불러와 UserDetails로 반환한다.
+
+#### 4. JwtAuthenticationFilter
+```java
+@Component
+@RequiredArgsConstructor
+public class JwtAuthenticationFilter extends OncePerRequestFilter {
+
+    private static final String AUTHORIZATION_HEADER = "Authorization";
+    private static final String TOKEN_PREFIX = "Bearer ";
+
+    private final TokenProvider tokenProvider;
+
+    @Override
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+            throws ServletException, IOException {
+
+        String token = resolveToken(request);
+
+        if (token != null && tokenProvider.validateToken(token)) {
+            Authentication authentication = tokenProvider.getAuthentication(token);
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+        }
+
+        filterChain.doFilter(request, response);
+    }
+
+    private String resolveToken(HttpServletRequest request){
+
+        String bearerToken = request.getHeader(AUTHORIZATION_HEADER);
+
+        if(StringUtils.hasText(bearerToken) && bearerToken.startsWith(TOKEN_PREFIX)){
+            return bearerToken.replace(TOKEN_PREFIX, "");
+        }
+
+        return null;
+    }
+}
+```
+#### 📌GenericFilterBean vs OncePerRequestFilter
+한 클라이언트에는 하나의 서블릿으로만 서비스되는 것이 이상적이지만, 다른 서블릿 객체가 생성되는 경우가 있다. 
+
+Spring security에서 인증과 접근 제어는 RequestDispatcher 클래스에 의해 다른 서블릿으로 dispatch 되는데, 이동할 서블릿에 도착하기 전에 다시 한번 filter chain을 거치게 된다. 이때, 또 다른 서블릿이 GenericFilterBean로 구현된 filter를 또 타면서 필터가 두 번 실행되는 현상이 발생할 수 있다.
+
+OncePerRequestFilter는 모든 서블릿에 일관된 요청을 처리하기 위해 만들어진 필터이다. 따라서 사용자의 요청 당 딱 한 번만 실행되는 필터를 만들 수 있다.
+
+#### 5. WebSecutiryConfig
+```java
+@EnableWebSecurity
+@Configuration
+@RequiredArgsConstructor
+public class WebSecurityConfig {
+
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+
+        http
+                .csrf(CsrfConfigurer::disable)
+                .httpBasic(HttpBasicConfigurer::disable)
+                .sessionManagement(configurer -> configurer.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(
+                        requests -> requests.requestMatchers("/api/member/signup", "/api/member/login").permitAll()
+                                .requestMatchers("/api/member/admin").hasRole("ADMIN")
+                                .anyRequest().authenticated()
+                );
+
+        http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+
+        return http.build();
+    }
+
+}
+```
+#### 📌csrf(CsrfConfigurer::disable), httpBasic(HttpBasicConfigurer::disable), sessionManagement(configurer -> configurer.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+Cross-Site Request Forgery(CSRF) 공격은 사용자의 권한을 사용하여 악의적인 요청을 실행하는 공격이다. 즉, 공격자는 사용자가 의도하지 않은 요청을 수행하게 한다. 일반적으로 쿠키와 세션을 이용해서 인증을 하는 경우 발생하는 일이므로 서버에 인증 정보를 보관하지 않고 jwt를 통해 인증할 때는 csrf를 disable 처리해둘 수 있다.
+
+또한 httpBasic은 Http basic Auth 기반으로 로그인 인증창이 뜨게 하는 설정이다. 우리는 따로 로그인 기능을 구현해주고 있기 때문에 필요없는 설정이다.
+
+세션의 경우, JWT를 사용한 사용자 인증 방식을 채택하였기 때문에 더이상 사용하지 않도록 stateless로 설정한다.
+
+#### 📌권한 설정
+회원가입과 로그인의 경우, 권한 없이 접근 가능해야하므로 permitAll로 설정한다. 이전에 member 관련 API로 전체 조회를 구현하였는데, 관리자에게만 제공되어야하는 기능이라고 생각되어 ADMIN이라는 권한을 가지고 있는 경우에만 접근 가능하도록 설정하였다. 이외의 주소들은 로그인 이후에 접근 가능하도록 특정 권한인 것과 관계없이 인증이 필요하도록 설정하였다.
+
+#### 6. Member에서 추가된 부분
+```java
+@ElementCollection(fetch = FetchType.EAGER)
+private List<String> roles;
+
+
+@Builder
+public Member(String password, String nickname, String phone, String email, String imageUrl) {
+    this.password = password;
+    this.nickname = nickname;
+    this.phone = phone;
+    this.temperature = 36.5;
+    this.email = email;
+    this.imageUrl = imageUrl;
+    this.roles = new ArrayList<>() {{
+        add("USER");
+    }};
+    this.activated = true;
+}
+
+public void encodePassword(String password) {
+    this.password = password;
+}
+```
+#### 📌ElementCollection
+@OneToMany처럼 엔티티를 Collection으로 사용하는 것이 아니라 Integer, String, 임베디드 타입 같은 값 타입을 컬렉션으로 사용하는 것을 값 타입 컬렉션이라고 한다. 관계형 데이터베이스는 컬렉션을 담을 수 있는 구조가 없기 때문에 별도의 테이블을 만들어서 저장해야 하는데, 이때 사용하는 것이 ElementCollection이다. 
+
+값 타입 컬렉션은 개념적으로 보면 1대 N 관계이기 때문에, 값 타입을 소유한 엔티티의 기본 키를 PK 겸 FK로 사용하는 테이블을 생성하여 One-To-Many 관계로 다룬다.
+
+#### 7. MemberServiceImpl에서 수정 및 추가된 부분
+```java
+@Transactional
+public void createMember(SignupMemberRequest signupMemberRequest) {
+
+    Member member = signupMemberRequest.toEntity();
+    member.encodePassword(passwordEncoder.encode(member.getPassword()));
+
+    memberRepository.save(member);
+}
+
+public LoginMemberResponse login(LoginMemberRequest loginMemberRequest) {
+
+    UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(loginMemberRequest.getEmail(), loginMemberRequest.getPassword());
+
+    Authentication authentication = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
+
+    Member member = ((CustomUserDetails) authentication.getPrincipal()).getMember();
+    String token = tokenProvider.createAccessToken(authentication);
+
+    return LoginMemberResponse.fromEntity(member, token);
+}
+```
+- 회원가입(createMemeber) 시 비밀번호 암호화 과정 추가
+- new UsernamePasswordAuthenticationToken을 통해 email, password를 기반으로 Authentication 객체 생성(인증 여부 나타내는 authenticated 값은 false)
+- authenticationManagerBuilder.getObject().authenticate 통해 검증, CustomUserDetailsService의 loadUserByUsername 메서드 실행
+
+### 3️⃣ 로그인 API 구현하고 테스트하기
+![image](https://github.com/letskuku/spring-daagn-market-18th/assets/90572599/175a634a-3ba0-4bbc-9dc7-3a6438551098)
+
+- 로그인 후, 사용자 닉네임과 access token 포함된 body 반환
+#### 📌access token을 어디에 담을까?
+클라이언트에서 편리하게 json 타입의 token을 추출하여 사용할 수 있도록 body에 넣어 반환하는 것을 권장한다.
+
+반대로 클라이언트의 요청 시에는 header에 담게 되는데, GET, DELETE 같은 HTTP 메서드는 보통 body가 필요하지 않고 access token이 요청에 필요한 실질적인 데이터가 아닌 인증을 위해 사용하는 부가적인 정보이기 때문이다.
+
+
+### 4️⃣ 토큰이 필요한 API 1개 이상 구현하고 테스트하기
+```java
+@GetMapping
+public ResponseEntity<MemberResponse> getMember(@AuthenticationPrincipal CustomUserDetails customUserDetails) {
+
+    MemberResponse memberResponse = memberService.getMember(customUserDetails.getMember().getId());
+
+    return ResponseEntity.ok(memberResponse);
+}
+
+@DeleteMapping
+public ResponseEntity<Void> deleteMember(@AuthenticationPrincipal CustomUserDetails customUserDetails) {
+
+    memberService.deleteMember(customUserDetails.getMember().getId());
+
+    return ResponseEntity.ok().build();
+}
+```
+- AuthenticationPrincipal을 통해 인증된 사용자의 정보를 받아올 수 있다.
+![image](https://github.com/letskuku/spring-daagn-market-18th/assets/90572599/616ec6b4-90c8-4f93-a3d8-225462fe5ccf)

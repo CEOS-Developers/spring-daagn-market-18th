@@ -1,11 +1,15 @@
 package com.ceos18.springboot.member.presentation;
 
+import com.ceos18.springboot.global.jwt.CustomUserDetails;
 import com.ceos18.springboot.member.application.MemberService;
-import com.ceos18.springboot.member.dto.request.MemberRequest;
+import com.ceos18.springboot.member.dto.request.LoginMemberRequest;
+import com.ceos18.springboot.member.dto.request.SignupMemberRequest;
+import com.ceos18.springboot.member.dto.response.LoginMemberResponse;
 import com.ceos18.springboot.member.dto.response.MemberResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -17,15 +21,23 @@ public class MemberController {
 
     private final MemberService memberService;
 
-    @PostMapping
-    public ResponseEntity<Void> createMember(@RequestBody MemberRequest memberRequest) {
+    @PostMapping("/signup")
+    public ResponseEntity<Void> createMember(@RequestBody SignupMemberRequest signupMemberRequest) {
 
-        memberService.createMember(memberRequest);
+        memberService.createMember(signupMemberRequest);
 
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
-    @GetMapping
+    @PostMapping("/login")
+    public ResponseEntity<LoginMemberResponse> login(@RequestBody LoginMemberRequest loginMemberRequest) {
+
+        LoginMemberResponse loginMemberResponse = memberService.login(loginMemberRequest);
+
+        return ResponseEntity.ok(loginMemberResponse);
+    }
+
+    @GetMapping("/admin")
     public ResponseEntity<List<MemberResponse>> getAllMembers() {
 
         List<MemberResponse> memberResponseList = memberService.getAllMembers();
@@ -33,18 +45,18 @@ public class MemberController {
         return ResponseEntity.ok(memberResponseList);
     }
 
-    @GetMapping("/{memberId}")
-    public ResponseEntity<MemberResponse> getMember(@PathVariable Long memberId) {
+    @GetMapping
+    public ResponseEntity<MemberResponse> getMember(@AuthenticationPrincipal CustomUserDetails customUserDetails) {
 
-        MemberResponse memberResponse = memberService.getMember(memberId);
+        MemberResponse memberResponse = memberService.getMember(customUserDetails.getMember().getId());
 
         return ResponseEntity.ok(memberResponse);
     }
 
-    @DeleteMapping("/{memberId}")
-    public ResponseEntity<Void> deleteMember(@PathVariable Long memberId) {
+    @DeleteMapping
+    public ResponseEntity<Void> deleteMember(@AuthenticationPrincipal CustomUserDetails customUserDetails) {
 
-        memberService.deleteMember(memberId);
+        memberService.deleteMember(customUserDetails.getMember().getId());
 
         return ResponseEntity.ok().build();
     }

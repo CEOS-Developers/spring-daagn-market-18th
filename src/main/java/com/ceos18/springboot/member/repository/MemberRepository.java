@@ -12,5 +12,7 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
 
     Optional<Member> findByIdAndActivated(Long id, Boolean activated);
 
+    Optional<Member> findByEmailAndActivated(String email, Boolean activated);
+
     List<Member> findAllByActivated(Boolean activated);
 }
