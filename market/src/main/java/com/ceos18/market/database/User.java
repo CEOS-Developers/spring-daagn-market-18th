@@ -1,7 +1,9 @@
 package com.ceos18.market.database;
 
 import com.ceos18.market.database.base.BaseTimeEntity;
+import com.ceos18.market.database.enums.Role;
 import com.ceos18.market.database.enums.StatusCode;
+import com.ceos18.market.domain.auth.dto.AuthRequestDto;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -10,9 +12,7 @@ import org.hibernate.annotations.ColumnDefault;
 
 @Entity(name = "USR_LIST")
 @Getter
-@Builder
-@AllArgsConstructor
-@NoArgsConstructor(access = AccessLevel.PROTECTED) // 테스트만 하고 빌더패턴 다시 구현할게요 ㅜㅜ
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class User extends BaseTimeEntity {
     @Id
     @Column(name = "USR_NO", length = 12)
@@ -25,7 +25,7 @@ public class User extends BaseTimeEntity {
     @NotNull
     private String nickName;
 
-    @Column(name = "PH_NM", length = 12, unique = true)
+    @Column(length = 12, unique = true)
     @NotNull
     @Size(max = 12)
     private String phoneNumber;
@@ -69,4 +69,37 @@ public class User extends BaseTimeEntity {
     @Column(name = "MKTG_YN", columnDefinition = "CHAR(1)")
     @NotNull
     private StatusCode marketingYN;
+
+    @Enumerated(EnumType.STRING)
+    private Role role;
+
+    @Builder
+    public User(String userNo, String nickName, String phoneNumber, String userImageUrl, String address,
+                String userAgent, StatusCode marketingYN, Role role) {
+        this.userNo = userNo;
+        this.nickName = nickName;
+        this.phoneNumber = phoneNumber;
+        this.userImageUrl = userImageUrl;
+        this.address = address;
+        this.mannerTemperature = "36.5";
+        this.addressCertificationYN = StatusCode.N;
+        this.userAgent = userAgent;
+        this.privacyYN = StatusCode.Y;
+        this.marketingYN = marketingYN;
+        this.role = role;
+    }
+
+    public static User of(AuthRequestDto authRequestDto) {
+        return User.builder()
+                .userNo(authRequestDto.getUserNo())
+                .nickName(authRequestDto.getNickName())
+                .phoneNumber(authRequestDto.getPhoneNumber())
+                .userImageUrl(authRequestDto.getUserImageUrl())
+                .address(authRequestDto.getAddress())
+                .userAgent(authRequestDto.getUserAgent())
+                .marketingYN(authRequestDto.getMarketingYN())
+                .role(Role.ROLE_USER)
+                .build();
+    }
+
 }

@@ -1,4 +1,4 @@
-package com.ceos18.market.global.dto;
+package com.ceos18.market.global.exception.dto;
 
 import lombok.Builder;
 

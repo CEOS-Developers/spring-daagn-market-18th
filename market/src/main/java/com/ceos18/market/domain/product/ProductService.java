@@ -2,7 +2,7 @@ package com.ceos18.market.domain.product;
 
 import com.ceos18.market.database.Product;
 import com.ceos18.market.database.User;
-import com.ceos18.market.domain.UserRepository;
+import com.ceos18.market.domain.auth.UserRepository;
 import com.ceos18.market.domain.product.dto.ProductRequest;
 import com.ceos18.market.domain.product.dto.ProductResponse;
 import com.ceos18.market.domain.product.exception.ProductNotFoundException;

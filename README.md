@@ -351,3 +351,87 @@ NyPizza pizza = new NyPizza(SMALL)
 ## 후기
 
 이번 주차에는 간단한 CRUD API를 만들어보면서 새로운 폴더 구조를 만들어봤다. Entity를 수정, 열람하는 일이 많고 도메인에 Entity까지 저장하게 되면, 한번에 폴더를 열 때 복잡해서 간소화하기 위한 벙법? 으로 한번 테스트 해봤는데 생각보다 괜찮은 것 같다. 물론 왜 이렇게 했는지 이상하게 보일 수 있다는 점..
+
+# 4주차 - Spring Security와 로그인
+
+## JWT 인증과정
+
+<img width="559" alt="image" src="https://github.com/YoungGyo-00/ts-express-typeorm/assets/89639470/f486292a-0722-4958-b961-201034c02d23">
+
+JWT를 통해 인증하는 과정은 다음과 같은 순서로 정리할 수 있다.
+
+1. 토큰이 없다면, 로그인을 진행하기
+2. 토큰이 있다면, 토큰의 유효성을 검사하기
+3. 토큰의 유효성이 만료되었다면, 로그인을 진행하기
+4. 토큰이 유효하거나 로그인을 완료하면 서버에서 `AccessToken`과 `RefreshToken`을 새로 발급하기
+5. 클라이언트는 `AccessToken`을 헤더에 추가하여 요청하면, `Refresh Token`을 갱신하기
+6. 서비스에 접속 중일 때, 토큰이 만료되어서는 안 되기 때문에 주기적으로 토큰을 갱신할 수 있는 함수를 클라이언트측에서 호출하여 토큰 만료를 방지하기
+
+## AccessToken && Refresh Token 개념
+
+토큰은 기본적으로 `HTTP Request` 과정에서 패킷을 탈취당하는 경우 대처하기가 어렵다. 또한 토큰을 통해 `Authentication`을 진행하는 경우, 서버에서 강제로 세션을 종료하기 어려워지고(다른 말로는 로그아웃을 진행할 수 없고) 서버는 이미 발급된 토큰에 대해서는 대처할 수 있는 방법이 없다. <br/>
+위와 같은 토큰의 단점을 보완하기 위해 등장한 개념으로 `AccessToken`과 `Refresh Token`이 있다.
+
+- `Access Token` : 요청 헤더에 추가하는 토큰의 유효성을 짧게 설정하여 대처하기 어렵다는 단점을 극복해야 한다. 하지만 유효 기간이 짧다는 것은 사용자가 주기적으로 로그인을 다시 진행해야 한다는 것과 같다.
+- `Refresh Token` : `Access Token`만을 사용했을 경우 발생하는 문제점을 보완할 수 있다. `Refresh Token`은 안전한 장소(DB)에 저장한다는 특징과, 유효 기간을 길게 설정한다는 특징이 있다. 만약 `Access Token`의 유효 기간이 만료될 경우 `Refresh Token`을 전송하여 새로운 `Access Token`을 발급받을 수 있다. 이렇게 함으로써, 로그인을 다시 해야 하는 과정을 줄이고 세션을 유지할 수 있게 된다.
+
+<br/>
+두가지 개념을 사용하며 우리는 다음 두가지 장점을 얻을 수 있다.
+
+- `Access Token`의 만료 기간을 짧게 잡으면서도 세션을 유지할 수 있다. (경제적인 장점)
+- DB에 `Refresh Token`이 있으므로, 원하는 시점에 해당 토큰을 삭제함으로 세션을 강제로 만료하는 것이 가능해진다. (보안적인 장점)
+
+## 삽질했던 과정 공유하기..
+
+안녕하세요, 이번에는 스프링 시큐리티를 거의 처음 써보면서 삽질을 했던 경험을 공유해보고자 합니다. 제가 이전에 받았던 코멘트들을 이해하고 리팩토링을 진행하려고 했으나, 시큐리티를 공부하는 시간이 조금 부족해서 이번 코드 리뷰까지 받고 한꺼번에 수정하도록 하겠습니다.<br/><br/>
+
+일단 제가 구현하고자 했던 생각과 발생한 문제를 먼저 공유해보겠습니다. 저는 로그인을 해서 토큰을 전달 받는 과정을 구현할 때, 아이디(이메일)과 패스워드(비밀번호)를 사용하는 방법이 아닌 휴대폰 번호를 활용하여 진행하고자 했습니다. 일단 여기서부터 뭔가 이상하다고 느끼시겠지만, 처음 시큐리티를 진행하면서 커스텀을 시도해본 것으로 이해해주시면 감사하겠습니다. 결국 핸드폰 번호만을 사용해서 로그인을 진행한다는 로직을 구성하여 `Authentication` 객체에 담길 패스워드는 디비에서 가져오는 것이 아닌 의미 없는 dummy data를 추가하여 객체를 생성하고자 했습니다. 다음 그림을 참고해주시면 됩니다.
+
+### 로그인 Service
+
+로그인 서비스에서 `managerBuilder.getObject().authenticate()`를 실행하게 되면 `UserDetailsService`의 `loadUserByUsername`으로 다음 함수가 실행되게 됩니다.
+<img width="900" alt="image" src="https://github.com/YoungGyo-00/kis-autotrading/assets/89639470/9ab3baf3-a1c9-4898-9646-44bee9297aea">
+
+### 커스텀한 UserDetails(Password 참고용)
+
+<img width="774" alt="image" src="https://github.com/YoungGyo-00/kis-autotrading/assets/89639470/cbd843f7-158f-4711-a0e1-e7fb0aad1867">
+
+### 커스텀한 UserDetailsService
+
+`loadUserByUsername` 함수를 통해 핸드폰 번호로 객체를 불러오게 되면, 해당 객체를 통해 `Userdetails`를 만들어서 전달하게 됩니다.
+<img width="966" alt="image" src="https://github.com/YoungGyo-00/kis-autotrading/assets/89639470/c06c4a02-1f39-42f1-a134-f5d968cf4f78">
+
+### SecurityFilterChain
+
+`Userdetails`를 만들어서 전달하는 과정에서 갑자기 `jwtAuthenticationEntryPoint Handler`로 진행됩니다.
+<img width="847" alt="image" src="https://github.com/YoungGyo-00/kis-autotrading/assets/89639470/ac173928-c801-4732-b303-8fffe55ae428">
+
+### JwtAuthenticationEntryPoint
+
+그렇다면 유효한 자격증명을 제공하지 않고 접근하고자 한다는 에러 메세지를 만나는 것으로 삽질이 시작되게 됩니다.
+<img width="889" alt="image" src="https://github.com/YoungGyo-00/kis-autotrading/assets/89639470/d2a440b3-0452-4d3b-a1b0-8b4465e1473b">
+
+이 문제를 처음 겪었을 때, 대체 왜 자격증명을 인증받지 못 하는지에 대한 의문점이 생겼습니다. 분명 같은 핸드폰 번호로 인증을 진행했고, dummy 패스워드의 값과 권한까지 모두 설정을 동일하게 해줬는데 발생하기 때문에 이해할 수 없었습니다. <br/><br/>
+
+## 해결 과정
+
+### 에러가 발생하는 라인
+
+디버깅을 통해 에러가 발생하는 부분을 찾고 찾아 들어가보니, 일단 아래 코드 라인에서 자동으로 객체의 유효성을 증명하게 된다는 점을 알게 되었습니다. 그리고 이 유효성이 검증되지 않아서 발생하게 되는 것을 확인할 수 있었습니다.
+<img width="900" alt="image" src="https://github.com/YoungGyo-00/kis-autotrading/assets/89639470/9ab3baf3-a1c9-4898-9646-44bee9297aea">
+
+### 실제 에러가 발생하는 부분
+
+그 에러가 발생하는 실제 코드를 확인해본 결과 다음 줄에서 발생하는 것을 확인할 수 있었습니다. BCrypt로 암호화를 하지 않아서 발생하는 에러이다?? 이게 무슨 말인지 처음에는 알 수 없었지만 갑자기 문득 dummy 데이터에 넣어둔 패스워드 "test"...
+<img width="1170" alt="스크린샷 2023-11-11 오전 2 28 14" src="https://github.com/YoungGyo-00/kis-autotrading/assets/89639470/2755ec12-4af4-4b7e-98da-87fb0be548a2">
+
+### 수정한 코드
+
+아이디와 패스워드를 디비에 저장하고 그 값들을 활용해서 `Authentication` 객체를 만들었다면 당연히 Encoding이 되어 있어 이 부분을 이해하지 않고 자연스럽게 넘어갈 수 있었을텐데, 객체를 생성하는 과정에서는 무조건 암호화를 하고 던져야지만 유효한 자격 증명을 받을 수 있다는 신기한 정보를 알게 되었습니다..
+<img width="854" alt="image" src="https://github.com/YoungGyo-00/kis-autotrading/assets/89639470/a390ced7-3757-4448-afd4-1aedf956dbb7">
+
+결론적으로 코드를 수정하여 버그를 잡아냈고, 토큰을 사용하여 Product 를 생성해보는 과정까지 테스트 완료했습니다.
+
+## 후기
+
+스프링 시큐리티에는 정말 많은 필터와 구현되어 있는 기능이 많고, 이를 이해하는 것이 시간적으로 조금 부족했다. 처음에는 개발된 코드를 그대로 사용하는 것부터 시작해야지 바로 커스텀해서 적용하는 건 정말 바보같은 행동(삽질하는 과정)이라는 것을 깨달았다. 그래도 좋았던 점은 디버깅 실력 +1 했다는 점! 정말 재밌었습니다.
