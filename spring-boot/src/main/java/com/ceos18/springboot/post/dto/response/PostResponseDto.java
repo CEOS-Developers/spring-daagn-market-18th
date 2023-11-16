@@ -1,8 +1,6 @@
 package com.ceos18.springboot.post.dto.response;
 
-import com.ceos18.springboot.member.domain.User;
 import com.ceos18.springboot.post.domain.Post;
-import com.ceos18.springboot.post.domain.PostCategory;
 import com.ceos18.springboot.post.domain.PostImg;
 import com.ceos18.springboot.post.domain.PostStatus;
 import lombok.Builder;

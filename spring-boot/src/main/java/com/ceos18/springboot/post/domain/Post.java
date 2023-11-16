@@ -1,18 +1,16 @@
 package com.ceos18.springboot.post.domain;
 
 import com.ceos18.springboot.global.common.entity.BaseEntity;
-import com.ceos18.springboot.member.domain.User;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.ceos18.springboot.user.domain.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.antlr.v4.runtime.misc.NotNull;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -53,4 +51,10 @@ public class Post extends BaseEntity {
 
     @OneToMany(mappedBy = "post")
     private List<PostImg> projectImages = new ArrayList<>();
+
+    private Timestamp deletedAt;
+
+    public void deletePost() {
+        this.deletedAt = Timestamp.valueOf(LocalDateTime.now());
+    }
 }

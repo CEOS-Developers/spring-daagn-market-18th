@@ -1,19 +1,14 @@
-package com.ceos18.springboot.member.repository;
+package com.ceos18.springboot.user.repository;
 
-import com.ceos18.springboot.member.domain.User;
+import com.ceos18.springboot.user.domain.User;
 import com.ceos18.springboot.town.domain.Town;
 import com.ceos18.springboot.town.repository.TownRepository;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
-
-import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
