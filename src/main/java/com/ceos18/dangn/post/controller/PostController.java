@@ -1,5 +1,6 @@
 package com.ceos18.dangn.post.controller;
 
+import com.ceos18.dangn.domain.User;
 import com.ceos18.dangn.post.dto.PostListResponseDto;
 import com.ceos18.dangn.post.dto.PostDetailResponseDto;
 import com.ceos18.dangn.post.dto.RegisterPostRequestDto;
@@ -9,6 +10,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -18,8 +21,8 @@ public class PostController {
     private final PostService postService;
 
     @PostMapping
-    public ResponseEntity<Void> registerPost(@RequestBody RegisterPostRequestDto requestDto) {
-        postService.registerPost(requestDto);
+    public ResponseEntity<Void> registerPost(@RequestBody RegisterPostRequestDto requestDto, @AuthenticationPrincipal User user) {
+        postService.registerPost(requestDto, user);
         return ResponseEntity.ok().build();
     }
 

@@ -12,7 +12,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Getter
 public class RegisterPostRequestDto {
-    private Long user_id;
     private String thumbnail;
     private String title;
     private String category;
