@@ -8,6 +8,7 @@ import com.carrot.clonecoding.user.dto.UserResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,17 +19,22 @@ import java.util.List;
 public class UserController {
     private final UserRepository userRepository;
     private final UserService userService;
-    @PostMapping("api/user")
-    public String createUser(@RequestBody final CreateUserDto createUserDto) throws Exception{
+
+    @PostMapping("api/signUp")
+    public String createUser(@RequestBody final CreateUserDto createUserDto) throws Exception {
         userService.createUser(createUserDto);
         return "success";
     }
+
     @GetMapping("api/user")
+    @PreAuthorize("hasAnyRole('ADMIN')")
     public List<UserResponseDto> findAllUsers() {
         return userService.findAllUsers();
     }
 
+
     @GetMapping("api/user/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN','USER')")
     public ResponseEntity<UserResponseDto> getUserById(@PathVariable("id") Long id) {
         UserResponseDto userDto = userService.findUserById(id);
         if (userDto == null) {
@@ -38,7 +44,8 @@ public class UserController {
     }
 
     @DeleteMapping("api/user/{id}")
-    public ResponseEntity<String> deleteUserById(@PathVariable("id") Long id) {
+    @PreAuthorize("hasAnyRole('ADMIN')")
+    public ResponseEntity<String> deleteUserById(@PathVariable("id") Long id) {//todo 소프트딜리트로 바꾸기
         try {
             userService.deleteUserById(id);
             return ResponseEntity.ok("delete success");
