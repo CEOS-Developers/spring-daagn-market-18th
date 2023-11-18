@@ -895,3 +895,62 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 스프링 Security랑 jwt 토큰을 연동해서 제대로 구현해본 건 이번이 처음인데, configuration, dependency 등 구현해야하는 내용도 많고 복잡하다보니 정말 쉽지 않은 과제였다. 개발 도중 자잘한 에러들이 많았는데, 에러를 해결하면서 힘들었던 점은 어디서 에러가 생겼는지 바로 알기 어렵다는 것이었다. 처음에 코드를 짤 때부터 생길 수 있는 여러가지 예외사항을 고려해서 예외/response/log 등을 반환해주는 것이 중요하다는 것을 느꼈다. 이번에 제대로 구현을 해보았으니 다음에 개발할 때는 개발 속도가 좀 더 빨라졌으면 좋겠고, refresh 토큰도 구현해보고 싶다.
 
 ---
+
+# 💙 CEOS 18th Backend Study 5주차 💙
+
+## ⭐ 1️⃣ 로컬에서 도커 실행해보기
+![](https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FbxpwWR%2Fbtssv2wofvh%2Fku5xdm67ClGvJIjpHVn1EK%2Fimg.png)
+Docker의 개념에 대해 알아보자면, 도커는 다양한 의존성을 추상화하여 어떤 환경에서든 실행하기 위해 필요한 모든 의존성을 포함하는 패키지로, 서비스 파일이 어디서나 동일하게 실행될 수 있도록 하는 환경을 조성해주는 것이라고 생각하면 된다. 그래서 서비스 운영에 필요한 서버 프로그램, 소스코드나 라이브러리, 컴파일된 실행 파일을 묶은 형태를 Docker Image 라고 한다. (jpeg 같은 이미지가 아니다) 이 이미지를 바탕으로 서비스를 돌린 것이 Docker Container인 것이다.
+
+도커 이미지(Docker Image)는 컨테이너(Container)를 만드는 데 사용되는 읽기 전용 템플릿(Read-only templates)이고, 컨테이너(Docner Container)는 이러한 템플릿에서 생성된 배포된 인스턴스(Deployed Instances)라고 생각하면 좋다.
+
+```
+FROM openjdk:20
+ARG JAR_FILE=/build/libs/*.jar
+COPY ${JAR_FILE} app.jar
+ENTRYPOINT ["java","-jar", "/app.jar"]
+```
+
+```yml
+version: "3"
+
+services:
+  web:
+    container_name: web
+    build: .
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://db:3306/ceos18
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=
+    volumes:
+      - .:/app
+
+
+  db:
+    image: mysql:5.7
+    environment:
+      MYSQL_ALLOW_EMPTY_PASSWORD: 'yes'
+      MYSQL_DATABASE: ceos18
+    volumes:
+      - dbdata:/var/lib/mysql
+    ports:
+      - 3306:3306
+    restart: always
+
+volumes:
+  app:
+  dbdata:
+```
+#### 실행 완료
+![docker 실행](https://github.com/nzeong/Spring-study/assets/121355994/29589e99-85a3-4925-91a2-b0663b2f323d)
+
+## ⭐ 2️⃣ API 추가 구현 및 리팩토링
+
+####  회원가입 API 구현
+
+![회원가입1](https://github.com/nzeong/Spring-study/assets/121355994/0f380cc8-1ea8-4afd-a818-b6d1caac34cb)
+![회원가입1db](https://github.com/nzeong/Spring-study/assets/121355994/fc4fae3e-b69b-40f1-a2b0-69e83c00800f)
