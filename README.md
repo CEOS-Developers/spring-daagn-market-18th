@@ -1123,3 +1123,235 @@ user_authority
 # 느낀점
 
 jwt 인증에 대해 직접 구현해보는 것이 두 번째인데, 스프링을 통한 개발은 처음이라, 많이 헷갈렸다. 구현하면서 각 부분에 대해 빼고 넣으면서 어떤 부분이 어떤 역할을 하는지 파악하는 방식으로 과제를 구현하려고 노력했다.
+
+# 5주차 미션
+
+## 1️⃣ 로컬에서 도커 실행해보기
+
+Dockerfile
+
+```java
+FROM openjdk:17
+ARG JAR_FILE=/build/libs/*.jar
+COPY ${JAR_FILE} app.jar
+ENTRYPOINT ["java","-jar", "/app.jar"]
+```
+
+</br></br>
+
+설명 :
+
+- FROM openjdk:17
+  도커 컨테이너의 기본 이미지를 openjdk 17버전으로 지정
+- ARG JAR*FILE=/build/libs/*.jar
+  JAR*FILE ARG 인자를 /build/libs/*.jar으로 정의
+- COPY ${JAR_FILE} app.jar
+  JAR_FILE 인자로 지정된 JAR 파일을 이미지로 복사 후 app.jar로 이름 변경
+- ENTRYPOINT ["java","-jar", "/app.jar"]
+  앱의 시작 지점을 app.jar로 한다는 뜻(java -jar /app.jar를 실행함)
+  </br></br>
+
+docker-compose.yml
+
+```java
+version: '3'
+
+services:
+  db:
+    container_name: mysql_db
+    image: mysql/mysql-server:5.7
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_ROOT_HOST: ${DB_ROOT_HOST}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      TZ: 'Asia/Seoul'
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./mysql/conf.d:/etc/mysql/conf.d # MySQL 설정 파일 위치
+    command:
+      - "mysqld"
+      - "--character-set-server=utf8mb4"
+      - "--collation-server=utf8mb4_unicode_ci"
+    networks:
+      - test_network
+
+  application:
+    container_name: daagn-test
+    restart: on-failure
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+    environment:
+      SPRING_DATASOURCE_URL: ${DATASOURCE_URL}
+      SPRING_DATASOURCE_USERNAME: ${DATASOURCE_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${DATASOURCE_PASSWORD}
+    depends_on:
+      - db
+    networks:
+      - test_network
+
+networks:
+  test_network:
+```
+
+환경변수 .env로 빼서 설정해줌
+처음에 env 파일을 .env.development로 했다가 env를 못읽어오는 이슈가 있었음
+env를 도커파일이 잘 읽어오는지 확인하는 방법 : 명령어 docker compose convert
+</br></br>
+
+## 도커 실행 화면
+
+![](https://velog.velcdn.com/images/aeyongdodam/post/9d660c57-b303-49e7-8d19-19d8e836318f/image.png)
+
+</br></br>
+
+![](https://velog.velcdn.com/images/aeyongdodam/post/e27e8c98-0f39-4ca9-8e29-765a0730a529/image.png)
+</br></br>
+
+## 도커 api 실행 로그
+
+![](https://velog.velcdn.com/images/aeyongdodam/post/ab073cf2-0a65-4784-8564-9b50499943fd/image.png)
+
+## 도커 속 db initializer
+
+```java
+@Component
+@RequiredArgsConstructor
+public class DataInitializer {
+    private final AuthorityRepository authorityRepository;
+
+    @PostConstruct
+    public void initData() {
+        createAuthorityIfNotFound("ROLE_ADMIN");
+        createAuthorityIfNotFound("ROLE_USER");
+    }
+
+    private void createAuthorityIfNotFound(String authorityName) {
+        Optional<Authority> authority = authorityRepository.findByAuthorityName(authorityName);
+        if (authority.isEmpty()) {
+            authorityRepository.save(new Authority(authorityName));
+        }
+    }
+}
+
+```
+
+</br></br>
+
+## 2️⃣ API 추가 구현 및 리팩토링
+
+### user api delete를 soft delete로 바꾸었습니다.
+
+```java
+
+@Entity
+@Table(name = "user")
+@Getter
+@Builder
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PROTECTED)
+public class User extends BaseTimeEntity {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
+    private Long id;
+
+    @Column(name = "nick_name", unique = true, nullable = false)
+    private String nickName;
+    @Column(nullable = false)
+    private String password;
+
+    @Column(name = "profile_url")
+    private String profileUrl;
+
+    @Column(nullable = false)
+    private double temperature;
+
+    @Column(name = "retrading_rate", nullable = false)
+    private double retradingRate;
+
+    @Column(name = "response_rate", nullable = false)
+    private double responseRate;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.PERSIST, fetch = FetchType.LAZY) //영속성 전이
+    private List<Achievement> achievements;
+
+    @Column(name = "email")
+    private String email;
+
+    @Column(nullable = false)
+    private String phonenum;
+
+    @Column(name = "is_activated")
+    private boolean isActivated; //소프트 딜리트를 위한 column 추가
+
+    public void passwordEncode(PasswordEncoder passwordEncoder) {
+        this.password = passwordEncoder.encode(this.password);
+    }
+
+    @ManyToMany
+    @JoinTable(
+            name = "user_authority",
+            joinColumns = {@JoinColumn(name = "id", referencedColumnName = "id")},
+            inverseJoinColumns = {@JoinColumn(name = "authority_name", referencedColumnName = "authority_name")})
+    private Set<Authority> authorities;
+
+    public void updateIsActivatedFalse() { //column 업데이트를 위한 함수
+        this.isActivated = false;
+    }
+}
+
+
+```
+
+### exception 처리를 exception, exceptionhandler class를 통해 처리하였습니다.
+
+```java
+public class UserAlreadyExistException extends RuntimeException{
+    public UserAlreadyExistException(){
+        super("이미 존재하는 유저입니다.");
+    }
+}
+
+```
+
+</br></br>
+
+```java
+public class UserNotFoundException extends RuntimeException{
+    public UserNotFoundException(){
+        super("유저를 찾을 수 없습니다");
+    }
+}
+```
+
+</br></br>
+UserExceptionHandler
+
+```java
+Slf4j
+@RestControllerAdvice
+public class UserExceptionHandler {
+    @ExceptionHandler(UserNotFoundException.class)
+    public ResponseEntity<String> catchUserNotFoundException(UserNotFoundException e){
+        log.error(e.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+    }
+
+    @ExceptionHandler(UserAlreadyExistException.class)
+    public ResponseEntity<String> catchUserAlreadyExistException(UserAlreadyExistException e){
+        log.error(e.getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
+    }
+}
+
+```
