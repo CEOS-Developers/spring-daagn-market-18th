@@ -13,7 +13,8 @@
 ### 📒 목차
 [2주차 | DB 모델링과 JPA](#2주차-미션-주제) <br>
 [3주차 | CRUD API](#3주차-미션-주제) <br>
-[4주차 | Spring Security](#4주차-미션-주제) <br><br>
+[4주차 | Spring Security](#4주차-미션-주제) <br>
+[5주차 | Docker](#5주차-미션-주제) <br><br>
 
 ### 2주차 미션 주제
 ### 당근 마켓의 DB를 모델링한다 🥕
@@ -586,3 +587,71 @@ public class SecurityConfig {
 <br><br>
 #### ✦ 느낀 점 및 배운 점<br>
 스프링 시큐리티 설정이 복잡해서 이론적인 부분들을 놓치며 구현만 따라가기 쉬운데, 이론 공부를 선행하고 바로 적용시키니 세세한 과정들도 쉽게 받아들이고 이해할 수 있었다. 시간적 여유가 따라줄 때 공식 문서를 보며 자세히 공부해보고 싶다.
+<br><br><br>
+
+<div align="center">
+
+### 5주차 미션 주제
+<h4>
+1️⃣ 로컬에서 도커를 실행해본다 🛳️‍<br><br>
+2️⃣ API 추가 구현하고 리팩토링한다 ♻️<br><br>
+</h4>
+</div>
+
+#### ✦ 도커 실행하기
+
+<img width="1121" alt="스크린샷 2023-11-18 오후 8 07 36" src="https://github.com/jongmee/spring-daagn-market-18th/assets/101439796/6e2cef14-bd4d-4202-885e-9d4f057bc387"><br><br>
+현재 H2를 사용하고 있어 H2를 함께 올렸습니다 😊
+- `Dockerfile`
+```
+FROM openjdk:17
+ARG JAR_FILE=/build/libs/*.jar
+COPY ${JAR_FILE} app.jar
+ENTRYPOINT ["java","-jar", "/app.jar"]
+```
+```
+/*
+Dockerfile만으로 H2를 도커로 올리려면
+아래 명령어를 입력 후 컨테이너 내부에 들어가서 data base를 생성해주어야 합니다.
+*/
+docker run -d -p 1521:1521 -p 8081:81 -v /Users/jongmi/Idealproject/ceos-daagn-market/h2:/opt/h2-data -e H2_OPTIONS="-ifNotExists" --name=h2 oscarfonts/h2
+```
+- `docker-compose.yml`
+```
+version: "3"
+services:
+  db:
+    container_name: h2
+    image: oscarfonts/h2:latest
+    ports:
+      - 1521:1521
+      - 8081:81
+    environment:
+      H2_OPTIONS: -ifNotExists
+    volumes:
+      - ./h2/:/opt/h2-data
+    restart: always
+
+  web:
+    container_name: web
+    build: .
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:h2:tcp://h2:1521/demo
+      SPRING_DATASOURCE_USERNAME: sa
+      SPRING_DATASOURCE_PASSWORD: 1234
+    restart: always
+    volumes:
+      - .:/appdocker-compose -f docker-compose.yml up --build
+```
+```
+// 아래 명령으로 실행
+docker-compose -f docker-compose.yml up --build
+```
+<br>
+
+#### ✦ Patch API 추가 구현하기
+
