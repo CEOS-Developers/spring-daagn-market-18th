@@ -1041,3 +1041,49 @@ public ResponseEntity<Void> deleteMember(@AuthenticationPrincipal CustomUserDeta
 ```
 - AuthenticationPrincipal을 통해 인증된 사용자의 정보를 받아올 수 있다.
 ![image](https://github.com/letskuku/spring-daagn-market-18th/assets/90572599/616ec6b4-90c8-4f93-a3d8-225462fe5ccf)
+
+-----
+# 📁CEOS 18th Backend Study - 5주차 미션
+### 1️⃣ 로컬에서 도커 실행해보기
+#### 📌 도커 이미지 빌드
+![image](https://github.com/letskuku/spring-daagn-market-18th/assets/90572599/c815271f-7485-45eb-a087-d64d2750071e)
+![image](https://github.com/letskuku/spring-daagn-market-18th/assets/90572599/b70673e8-b400-4491-a1a5-2d4e027ead93)
+
+#### 📌 빌드한 이미지 실행
+![image](https://github.com/letskuku/spring-daagn-market-18th/assets/90572599/4b0b540b-c770-40e1-9a14-791f5c8dfe0f)
+
+#### ✔ 이미지 실행 관련 오류 해결
+![image](https://github.com/letskuku/spring-daagn-market-18th/assets/90572599/bf69cb83-e9f9-4774-951f-7e050ae7eb1d)
+
+➡ db connection 관련 오류 발생
+
+![image](https://github.com/letskuku/spring-daagn-market-18th/assets/90572599/3556a4ac-3f8b-46c7-90d0-bb04fa74704f)
+
+- 도커 실행 시, localhost는 도커 컨테이너 자기 자신을 가리키게 된다.
+- localhost 대신 host.docker.internal 사용하면 해결 가능
+
+![image](https://github.com/letskuku/spring-daagn-market-18th/assets/90572599/5c47d4ed-bf03-490f-b841-c50fb74b73c8)
+
+#### 📌 docker-compose.yml 실행
+![image](https://github.com/letskuku/spring-daagn-market-18th/assets/90572599/009311cd-a43a-449e-aea9-36a13caed222)
+![image](https://github.com/letskuku/spring-daagn-market-18th/assets/90572599/e6ec23e0-6646-4a44-8f10-72319ffe675f)
+
+#### ✔ docker-compose 실행 관련 오류 해결
+![image](https://github.com/letskuku/spring-daagn-market-18th/assets/90572599/ba4ae615-6047-4059-b612-d812dcb49c8d)
+
+➡ db 관련 오류 발생
+
+![image](https://github.com/letskuku/spring-daagn-market-18th/assets/90572599/9473d4b2-7ec5-4417-8952-e268f435c605)
+
+- 이미 로컬에서 3306 포트를 사용하고 있기 때문에 3306:3306으로 포트를 설정하면 제대로 동작하지 않는다.
+- 포트번호 변경하면 해결 가능
+
+![image](https://github.com/letskuku/spring-daagn-market-18th/assets/90572599/eab1b032-a7f4-4725-a709-5250e172b452)
+
+### 2️⃣ API 추가 구현 및 리팩토링
+
+#### 1. 원하는 도메인/기능을 골라 API를 추가해주세요
+
+생성/수정/삭제 등 자유롭게 원하는 API를 구현해주시면 됩니다🤓🤓
+
+#### 2. 지금까지 과제를 하면서 아쉬웠던 부분이나 더 고치고 싶은 부분을 리팩토링 해주세요
