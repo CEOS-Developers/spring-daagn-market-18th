@@ -18,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.crossstore.ChangeSetPersister.NotFoundException;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -85,8 +86,11 @@ public class PostService {
     return PostResponse.fromEntity(post);
   }
 
-  public void delete(Long postId) throws Exception {
+  public void delete(Long postId, Member member) throws Exception {
     Post post = postRepository.findById(postId).orElseThrow(()->new NotFoundException());
+    if(!post.hasPermission(member)) {
+      throw new AccessDeniedException("게시글을 삭제할 권한이 없습니다.");
+    }
     postRepository.delete(post);
   }
 

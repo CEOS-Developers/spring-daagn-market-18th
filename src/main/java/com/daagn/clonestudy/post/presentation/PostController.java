@@ -45,8 +45,8 @@ public class PostController {
   }
 
   @DeleteMapping("/post/{postId}")
-  public ResponseEntity<Void> postDelete(@PathVariable Long postId) throws Exception {
-    postService.delete(postId);
+  public ResponseEntity<Void> postDelete(@AuthenticationPrincipal final Member member, @PathVariable Long postId) throws Exception {
+    postService.delete(postId, member);
     return ResponseEntity.status(HttpStatus.OK).build();
   }
 
