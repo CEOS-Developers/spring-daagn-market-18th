@@ -654,4 +654,79 @@ docker-compose -f docker-compose.yml up --build
 <br>
 
 #### ✦ Patch API 추가 구현하기
+- `Member.java`
+```java
+  @Override
+  public boolean equals(Object member) {
+    if(((Member)member).getId().equals(id)) {
+      return true;
+    }
+    return false;
+  }
+```
+- `Post.java`
+```java
+  public boolean hasPermission(Member member) {
+    if(writer.equals(member)) {
+      return true;
+    }
+    return false;
+  }
 
+  public void update(String title, Integer price, Boolean isAuction, String description, String address) {
+    this.title = title;
+    this.price = price;
+    this.isAuction = isAuction;
+    this.description = description;
+    this.address = address;
+  }
+```
+- `PostService.java`
+```java
+  public void update(Long postId, Member member, PostUpdateRequest request) throws Exception {
+    Post post = postRepository.findById(postId).orElseThrow(()->new NotFoundException());
+    if(!post.hasPermission(member)) {
+        throw new AccessDeniedException("게시글을 삭제할 권한이 없습니다.");
+    }
+    post.update(request.getTitle(), request.getPrice(),
+        request.getIsAuction(), request.getDescription(), request.getAddress());
+  }
+```
+- `PostConroller.java`
+```java
+  @PatchMapping("/post/{postId}")
+  public ResponseEntity<Void> updatePost(@AuthenticationPrincipal final Member member,
+        @PathVariable Long postId, @RequestBody PostUpdateRequest request) throws Exception {
+    postService.update(postId, member, request);
+    return ResponseEntity.status(HttpStatus.OK).build();
+  }
+```
+<br>
+
+❓**굳이 Member 클래스에서 `equals`를 오버라이딩 한 이유** <br>
+    : **의문점**: `Entity`는 **id**로 `equals` 비교를 하지 않나?<br><br>
+✔︎ `@AuthenticationPrincipal`로 주입 받은 `Controller`의 `Member`는 준영속 상태이다.<br>
+    ➡ 스프링의 영속성 컨텍스트는 `Service`와 `Respository` layer에서만 작동한다. <br><br>
+✔︎ 따라서 주입 받은 `Member`와 `Post`의 작성자 `Member`는 `equals`로 비교할 때 자동으로 **id**로 비교되지 않는다.<br>
+    ➡ **참고.** 영속 상태의 두 `Entity` 객체는 id로 비교된다. 영속성 컨텍스트는 `Entity`를 식별자 값(@ID로 테이블의 기본 키와 매핑한 값)으로 구분한다. `Map`에 저장하기 때문. <br><br>
+✔︎ OSIV(Open Session In View)를 활용할 수도 있다. 하지만 OSIV는 `Interceptor`에서 시작한다. 스프링 시큐리티는 `Filter`로 동작한다. `Filter`는 `Interceptor`보다 먼저 실행된다.<br>
+    ➡ OSIV를 실행하는 `Interceptor`가 스프링 시큐리티의 `Filter`보다 먼저 실행되도록 우선순위를 설정하면 된다.
+
+```java
+@Component
+@Configuration
+public class OpenEntityManagerConfig {
+    @Bean
+    public FilterRegistrationBean<OpenEntityManagerInViewFilter> openEntityManagerInViewFilter() {
+        FilterRegistrationBean<OpenEntityManagerInViewFilter> filterFilterRegistrationBean = new FilterRegistrationBean<>();
+        filterFilterRegistrationBean.setFilter(new OpenEntityManagerInViewFilter());
+        filterFilterRegistrationBean.setOrder(Integer.MIN_VALUE); // 예시를 위해 최우선 순위로 Filter 등록
+        return filterFilterRegistrationBean;
+    }
+}
+```
+출처: [Entity Lifecycle을 고려해 코드를 작성하자](https://tecoble.techcourse.co.kr/post/2020-09-20-entity-lifecycle-2/)<br>
+➡ 그저 두 `Member`가 같은지 `Id`만 확인하면 되기에 `equals`를 오버라이딩하기로 했다.
+<br><br>
+#### ✦ 느낀 점 및 배운 점<br>
+Docker, Nignx 등 웹 서빙 관련 공부를 스터디로 할 수 있어 좋았다. 양질의 레퍼런스를 읽을 수 있는 시간이었다. 기본적인 이해도를 높일 수 있었다. API 추가 구현을 통해 CRUD를 모두 완성했는데, 그간의 스터디를 통해 공부를 세세하게 진행하고 구현하니 디테일한 부분까지 신경 써서 구현할 수 있어 재미있었다.
