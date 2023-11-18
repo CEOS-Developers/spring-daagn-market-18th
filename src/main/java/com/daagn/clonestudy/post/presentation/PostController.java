@@ -28,9 +28,10 @@ public class PostController {
   private final PostService postService;
 
   @PostMapping("/post")
-  public ResponseEntity<PostResponse> postSave(@AuthenticationPrincipal final Member member,
+  public ResponseEntity<Void> postSave(@AuthenticationPrincipal final Member member,
       @RequestPart final PostCreateRequest request, @RequestPart List<MultipartFile> images) throws IOException {
-    return ResponseEntity.status(HttpStatus.CREATED).body(postService.save(member, images, request));
+    postService.save(member, images, request);
+    return ResponseEntity.status(HttpStatus.CREATED).build();
   }
 
   @GetMapping("/post")

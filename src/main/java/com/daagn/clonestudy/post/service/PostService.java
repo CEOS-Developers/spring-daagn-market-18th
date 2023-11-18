@@ -35,7 +35,7 @@ public class PostService {
   private final MemberRepository memberRepository;
   private final PostImageRepository postImageRepository;
 
-  public PostResponse save(Member member, List<MultipartFile> images, PostCreateRequest request) throws IOException {
+  public void save(Member member, List<MultipartFile> images, PostCreateRequest request) throws IOException {
     Post post = postRepository.save(request.toEntity(member));
 
     boolean isFirst = true;
@@ -60,8 +60,6 @@ public class PostService {
         PostImage saved = postImageRepository.save(postImage);
       }
     }
-
-    return PostResponse.fromEntity(post);
   }
 
   public List<PostListResponse> listAll(Long lastId, int size){
