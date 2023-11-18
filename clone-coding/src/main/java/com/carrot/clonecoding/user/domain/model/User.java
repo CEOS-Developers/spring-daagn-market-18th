@@ -2,7 +2,7 @@ package com.carrot.clonecoding.user.domain.model;
 
 
 import com.carrot.clonecoding.achievement.domain.model.Achievement;
-import com.carrot.clonecoding.auth.domail.model.Authority;
+import com.carrot.clonecoding.auth.domain.model.Authority;
 import com.carrot.clonecoding.common.base.BaseTimeEntity;
 import jakarta.persistence.*;
 import java.util.Set;
