@@ -62,4 +62,12 @@ public class Post extends BaseTimeEntity {
     this.status = PostStatus.SELLING;
   }
 
+  public boolean hasPermission(Member member) {
+    if(writer.equals(member)) {
+      System.out.println("member: "+member);
+      System.out.println("writer"+writer);
+      return true;
+    }
+    return false;
+  }
 }

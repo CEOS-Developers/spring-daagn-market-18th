@@ -131,4 +131,12 @@ public class Member extends BaseTimeEntity implements UserDetails {
   public Double getTemperature() {
     return temperature;
   }
+
+  @Override
+  public boolean equals(Object member) {
+    if(((Member)member).getId().equals(id)) {
+      return true;
+    }
+    return false;
+  }
 }
