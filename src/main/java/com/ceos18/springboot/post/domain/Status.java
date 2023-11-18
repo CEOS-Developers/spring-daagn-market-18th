@@ -7,7 +7,7 @@ public enum Status {
 
     SELLING("판매중"),
     RESERVED("예약중"),
-    SOLDOUT("거래완료");
+    SOLD_OUT("거래완료");
 
     private final String value;
 
