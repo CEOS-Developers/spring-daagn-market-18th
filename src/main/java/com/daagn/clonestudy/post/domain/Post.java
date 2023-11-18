@@ -64,10 +64,16 @@ public class Post extends BaseTimeEntity {
 
   public boolean hasPermission(Member member) {
     if(writer.equals(member)) {
-      System.out.println("member: "+member);
-      System.out.println("writer"+writer);
       return true;
     }
     return false;
+  }
+
+  public void update(String title, Integer price, Boolean isAuction, String description, String address) {
+    this.title = title;
+    this.price = price;
+    this.isAuction = isAuction;
+    this.description = description;
+    this.address = address;
   }
 }
