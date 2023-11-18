@@ -1086,7 +1086,42 @@ public ResponseEntity<Void> deleteMember(@AuthenticationPrincipal CustomUserDeta
 
 생성/수정/삭제 등 자유롭게 원하는 API를 구현해주시면 됩니다🤓🤓
 
+#### 📌 Post API 추가
+```java
+@RestController
+@RequiredArgsConstructor
+@RequestMapping("/api/post")
+public class PostController {
 
+    private final PostService postService;
+
+    @PostMapping
+    public ResponseEntity<Void> createPost(@RequestBody CreatePostRequest createPostRequest) {
+
+        postService.createPost(createPostRequest);
+
+        return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+
+    @GetMapping("/{postId}")
+    public ResponseEntity<PostResponse> getPost(@PathVariable Long postId) {
+        return ResponseEntity.ok(postService.getPost(postId));
+    }
+
+    @GetMapping
+    public ResponseEntity<List<PostResponse>> getAllPosts() {
+        return ResponseEntity.ok(postService.getAllPosts());
+    }
+
+    @DeleteMapping("/{postId}")
+    public ResponseEntity<Void> deletePost(@PathVariable Long postId) {
+
+        postService.deletePost(postId);
+
+        return ResponseEntity.ok().build();
+    }
+}
+```
 
 #### 2. 지금까지 과제를 하면서 아쉬웠던 부분이나 더 고치고 싶은 부분을 리팩토링 해주세요
 
