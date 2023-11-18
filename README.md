@@ -945,6 +945,26 @@ volumes:
   app:
   dbdata:
 ```
+#### Docker 실행 순서
+
+1. gradle - build - bootJar 실행
+2. Dockerfile과 docker-compose.yml 작성
+3. Docker desktop 켜주기
+ ---  
+4. 프로젝트 터미널에서 도커 이미지 파일 생성
+```
+$ docker build -t nzeong/spring-boot .
+```
+5. 도커 이미지 목록 보기
+```
+$ docker images
+```
+---
+6. docker-compose 실행
+```
+docker-compose -f docker-compose.yml up --build
+```
+   
 #### 실행 완료
 ![docker 실행](https://github.com/nzeong/Spring-study/assets/121355994/29589e99-85a3-4925-91a2-b0663b2f323d)
 
