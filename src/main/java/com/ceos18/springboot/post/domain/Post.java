@@ -5,6 +5,7 @@ import com.ceos18.springboot.member.domain.Member;
 import com.ceos18.springboot.town.domain.Town;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -45,4 +46,25 @@ public class Post extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(name = "category", nullable = false)
     private Category category;
+
+    @Column(nullable = false)
+    private Boolean activated;
+
+    @Builder
+    public Post(String title, String content, Long cost, Boolean sharing, Status status,
+                Member member, Town town, Category category) {
+        this.title = title;
+        this.content = content;
+        this.cost = cost;
+        this.sharing = sharing;
+        this.status = status;
+        this.member = member;
+        this.town = town;
+        this.category = category;
+        this.activated = true;
+    }
+
+    public void updateActivatedToFalse() {
+        this.activated = false;
+    }
 }
