@@ -521,9 +521,292 @@ domain/users/UserService
                 .build();
     }
 ```
-
 - 프론트에서 Access token이 만료될 쯤 Refresh token을 Request Body로 보낸다는 가정하에, Refresh token이 유효하다면 Access token과 Refresh token 재발급하여 응답.
 <img width="1392" alt="6" src="https://github.com/yj-leez/spring-daagn-market-18th/assets/77960090/ad33f059-e7f2-4f6c-984c-6de88fa3d10e">
+
+
+# CEOS 백엔드 스터디 - 5주차
+
+## 0️⃣ Docker
+
+### 가상화
+
+- 하이퍼바이저를 이용한 가상머신: host 운영체제 위에 가상화 소프트웨어를 이용하여 여러 개의 게스트 os를 구동하는 방식
+    - 하이퍼바이저: 가상머신을 생성하고 실행하는 역할과 가상화된 하드웨어와 각각의 가상머신을 모니터링하는 중간 관리자
+    
+    → 각각의 게스트 OS는 호스트 운영체제로부터 독립된 자원을 할당받아 가상화된 서비스를 제공하기 때문에 수 기가바이트의 용량을 차지하는 이미지를 만들어 사용
+    
+    ⇒ **하드웨어 가상화**
+    
+- 컨테이너를 이용한 도커 방식: host 운영체제의 커널을 공유하고 그 위에 애플리케이션 실행에 필요한 바이너리, 라이브러리 및 구성 파일 등을 이미지로 빌드하여 패키지로 배포하는 방식
+    
+    → 애플리케이션이 가지고 있는 운영체제, 하드웨어에 대한 의존성 문제를 해결
+    
+    ⇒ **프로세스 가상화**
+    
+
+### Image? Container? Volume?
+
+![1](https://github.com/yj-leez/spring-daagn-market-18th/assets/77960090/19a23e9f-6a75-4098-8ec4-ec3b717f06f8)
+
+- docker hub: 도커 홈페이지 내 도커 허브에서 다양한 이미지를 배포. app store와 같은 개념
+- image: 서비스 운영에 필요한 파일과 설정값 등을 포함하고 있는 것을 의미. program과 같은 개념
+- container: 개별 프로그램을 실행하는 데 필요한 환경을 설정해주는 기술. process와 같은 개념 → image를 실행한 것이 container이며 image는 여러 개의 container를 가질 수 있음
+- volume: 컨테이너의 데이터를 영속적(Persistent) 데이터로 활용할 수 있는 방법으로 도커 볼륨을 활용
+
+### container run
+
+- `docker run [OPTIONS] IMAGE [COMMAND]` : 컨테이너 create + run ex) `docker run —name ws1 httpd`
+- `docker ps` : docker 실행상태 확인
+- `docker stop CONTAINER` : 컨테이너 stop
+- `docker restart CONTAINER` : 컨테이너 재시작
+- `docker [OPTIONS] rm CONTAINER` : 컨테이너 삭제, 실행중인 컨테이너 삭제 불가
+- `docker logs [OPTIONS]` : 로그 확인
+- `docker rmi IMAGE` : 이미지 삭제
+
+### Network
+
+![2](https://github.com/yj-leez/spring-daagn-market-18th/assets/77960090/cca3dd67-5c8c-487c-8b79-ea6dcff69fc8)
+
+• `docker run -p 80:80 httpd`: host에는 여러 개의 container가 존재하므로 port forwarding을 통해 host의 port와 container의 port를 연결해주어야함
+
+### 명령어 실행
+
+- `docker exec [OPTIONS] CONTAINER COMMAND [ARG..]` : 컨테이너 내부에서 해당 명령어 실행
+- `docker exec -it CONTAINER /bin/sh` : 컨테이너 내부에서 지속적으로 명령어 실행 가능, `exit` 로 종료
+
+## 1️⃣ 로컬에서 도커 실행해보기
+
+### 도커 이미지 build
+
+<Dockerfile>
+
+```docker
+FROM openjdk:17
+ARG JAR_FILE=/build/libs/*.jar
+COPY ${JAR_FILE} app.jar
+ENTRYPOINT ["java","-jar", "/app.jar"]
+```
+
+```bash
+docker build -t daangn .
+```
+
+<img width="1384" alt="3" src="https://github.com/yj-leez/spring-daagn-market-18th/assets/77960090/faa42104-c6c8-41e0-b123-3d71b65340b0">
+<img width="1167" alt="101" src="https://github.com/yj-leez/spring-daagn-market-18th/assets/77960090/ed8fb388-5220-47d5-9211-0623e0df6a85">
+
+
+→ 도커 이미지 build 성공
+
+### 도커 컨테이너 run
+
+```bash
+docker run -p 8080:8080 daangn
+```
+<img width="1388" alt="4" src="https://github.com/yj-leez/spring-daagn-market-18th/assets/77960090/aebc2ce2-eb76-4694-90ba-cb79ecc58a52">
+
+→ DB와 연결 실패
+
+→ `-e` 옵션을 사용하여 Docker 컨테이너에서 실행될 때 필요한 로컬 DB 정보를 환경 변수로 전달하는 방법으로 수정
+
+```bash
+docker run -p 8080:8080 -e SPRING_DATASOURCE_URL=jdbc:mysql://host.docker.internal:3306/daangn -e SPRING_DATASOURCE_USERNAME=root -e SPRING_DATASOURCE_PASSWORD=비밀번호 daangn
+```
+<img width="1388" alt="5" src="https://github.com/yj-leez/spring-daagn-market-18th/assets/77960090/ba67fac3-d529-413c-b073-fa93d7fde613">
+
+→ 도커 컨테이너 run 성공
+
+### Docker-compose 사용
+
+<img width="1130" alt="6" src="https://github.com/yj-leez/spring-daagn-market-18th/assets/77960090/c5288654-bcf0-40b1-8c53-65931791032b">
+
+→ db 컨테이너는 구동되나 web 컨테이너가 다음과 같이 db와 연결이 실패하여 계속 시도하는 오류 발생
+
+<img width="1393" alt="7" src="https://github.com/yj-leez/spring-daagn-market-18th/assets/77960090/c7cc66f3-c348-47f9-91fa-59405eec9ba6">
+
+→ ****Volumes, Images, Containers 삭제하고 jar 파일 다시 생성한 다음에****
+
+<docker-compose.yml>
+
+```docker
+version: "3"
+
+services:
+  db:
+    container_name: db
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: mysql
+      MYSQL_DATABASE: test
+    volumes:
+      - dbdata:/var/lib/mysql
+    ports:
+      - 3306:3306
+    restart: always
+
+  web:
+    container_name: web
+    build: .
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+    environment:
+      mysql_host: db
+    restart: always
+    volumes:
+      - .:/app
+
+volumes:
+  app:
+  dbdata:
+```
+
+<application.properties>
+
+```java
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MySQL8Dialect
+spring.datasource.url=jdbc:mysql://db:3306/test
+spring.datasource.username=root
+spring.datasource.password=mysql
+```
+
+로 수정한다음 `docker-compose -f docker-compose.yml up --build` 하니 run 성공
+
+<img width="1142" alt="8" src="https://github.com/yj-leez/spring-daagn-market-18th/assets/77960090/a61fe9a5-3e89-4c63-8c90-6ce7fba32109">
+<img width="1088" alt="9" src="https://github.com/yj-leez/spring-daagn-market-18th/assets/77960090/df56ab40-d092-4d1d-9eb9-5eba79a88de4">
+
+
+## 2️⃣ API 추가 구현 및 리팩토링
+
+### ****@ExceptionHandler를 통한 예외처리****
+
+<ErrorCode>
+
+
+
+```java
+@Getter
+public enum GlobalErrorCode{
+    // 잘못된 서버 요청
+    BAD_REQUEST_ERROR(400, "G001", "Bad Request Exception"),
+
+    // @RequestBody 데이터 미 존재
+    REQUEST_BODY_MISSING_ERROR(400, "G002", "Required request body is missing"),
+
+    // 유효하지 않은 타입
+    INVALID_TYPE_VALUE(400, "G003", " Invalid Type Value"),
+
+    // Request Parameter 로 데이터가 전달되지 않을 경우
+    MISSING_REQUEST_PARAMETER_ERROR(400, "G004", "Missing Servlet RequestParameter Exception"),
+
+    // 입력/출력 값이 유효하지 않음
+    IO_ERROR(400, "G005", "I/O Exception"),
+
+		...
+
+    // 에러 코드의 '코드 상태'을 반환한다.
+    private final int status;
+
+    // 에러 코드의 '코드간 구분 값'을 반환한다.
+    private final String divisionCode;
+
+    // 에러 코드의 '코드 메시지'을 반환한다.
+    private final String message;
+
+    // 생성자 구성
+    GlobalErrorCode(final int status, final String divisionCode, final String message) {
+        this.status = status;
+        this.divisionCode = divisionCode;
+        this.message = message;
+    }
+}
+```
+
+<ErrorResponse>
+
+
+
+```java
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+public class ErrorResponse {
+
+    private int status;                 // 에러 상태 코드
+    private String divisionCode;        // 에러 구분 코드
+    private String resultMsg;           // 에러 메시지
+    private String reason;              // 에러 이유
+
+    @Builder
+    protected ErrorResponse(final GlobalErrorCode code, final String reason) {
+        this.resultMsg = code.getMessage();
+        this.status = code.getStatus();
+        this.divisionCode = code.getDivisionCode();
+        this.reason = reason;
+    }
+
+    public static ErrorResponse of(final GlobalErrorCode code, final String reason) {
+        return new ErrorResponse(code, reason);
+    }
+
+}
+```
+
+<GlobalExceptionHandler>
+
+
+
+```java
+@Slf4j
+@RestControllerAdvice
+public class GlobalExceptionHandler{
+    /**
+     * [Exception] API 호출 시 'Header' 내에 데이터 값이 유효하지 않은 경우
+     *
+     * @param ex MissingRequestHeaderException
+     * @return ResponseEntity<ErrorResponse>
+     */
+    @ExceptionHandler(MissingRequestHeaderException.class)
+    protected ResponseEntity<ErrorResponse> handleMissingRequestHeaderException(MissingRequestHeaderException ex) {
+        log.error("MissingRequestHeaderException", ex);
+        final ErrorResponse response = ErrorResponse.of(GlobalErrorCode.REQUEST_BODY_MISSING_ERROR, ex.getMessage());
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    }
+
+    /**
+     * [Exception] 클라이언트에서 Body로 '객체' 데이터가 넘어오지 않았을 경우
+     *
+     * @param ex HttpMessageNotReadableException
+     * @return ResponseEntity<ErrorResponse>
+     */
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    protected ResponseEntity<ErrorResponse> handleHttpMessageNotReadableException(
+            HttpMessageNotReadableException ex) {
+        log.error("HttpMessageNotReadableException", ex);
+        final ErrorResponse response = ErrorResponse.of(GlobalErrorCode.REQUEST_BODY_MISSING_ERROR, ex.getMessage());
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    }
+
+		...
+
+    /**
+     * [Exception] 모든 Exception 경우 발생
+     *
+     * @param ex Exception
+     * @return ResponseEntity<ErrorResponse>
+     */
+    @ExceptionHandler(Exception.class)
+    protected final ResponseEntity<ErrorResponse> handleAllExceptions(Exception ex, HttpServletRequest httpServletRequest) {
+        log.error("Exception", ex);
+        final ErrorResponse response = ErrorResponse.of(GlobalErrorCode.INTERNAL_SERVER_ERROR, ex.getMessage());
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    }
+}
+```
+
+→ 아직 미흡한 부분이 있어 다음주까지 수정하겠습니다
+
+
 
 
 
