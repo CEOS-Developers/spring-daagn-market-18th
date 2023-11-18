@@ -111,4 +111,24 @@ public class Member extends BaseTimeEntity implements UserDetails {
   public List<String> getRoles() {
     return roles;
   }
+
+  public Long getId() {
+    return id;
+  }
+
+  public String getNickname() {
+    return nickname;
+  }
+
+  public String getIcon() {
+    return icon;
+  }
+
+  public String getTown() {
+    return town;
+  }
+
+  public Double getTemperature() {
+    return temperature;
+  }
 }
