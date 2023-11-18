@@ -2,6 +2,7 @@ package com.daagn.clonestudy.post.presentation;
 
 import com.daagn.clonestudy.member.domain.Member;
 import com.daagn.clonestudy.post.dto.request.PostCreateRequest;
+import com.daagn.clonestudy.post.dto.request.PostUpdateRequest;
 import com.daagn.clonestudy.post.dto.response.PostListResponse;
 import com.daagn.clonestudy.post.dto.response.PostResponse;
 import com.daagn.clonestudy.post.service.PostService;
@@ -13,8 +14,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
@@ -50,4 +53,10 @@ public class PostController {
     return ResponseEntity.status(HttpStatus.OK).build();
   }
 
+  @PatchMapping("/post/{postId}")
+  public ResponseEntity<Void> updatePost(@AuthenticationPrincipal final Member member,
+      @PathVariable Long postId, @RequestBody PostUpdateRequest request) throws Exception {
+    postService.update(postId, member, request);
+    return ResponseEntity.status(HttpStatus.OK).build();
+  }
 }

@@ -35,6 +35,7 @@ public class SecurityConfig {
             .authorizeHttpRequests((authorizeRequests) -> authorizeRequests
                     .requestMatchers("/post").authenticated()
                     .requestMatchers(HttpMethod.DELETE, "/post/*").authenticated()
+                    .requestMatchers(HttpMethod.PATCH, "/post/*").authenticated()
                     .anyRequest().permitAll()
             );
 
