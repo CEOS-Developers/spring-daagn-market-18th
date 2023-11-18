@@ -39,7 +39,7 @@ public class Member extends BaseEntity {
     private String imageUrl;
 
     @ElementCollection(fetch = FetchType.EAGER)
-    private List<String> roles;
+    private List<Role> roles;
 
     @Column(nullable = false)
     private Boolean activated;
@@ -53,7 +53,7 @@ public class Member extends BaseEntity {
         this.email = email;
         this.imageUrl = imageUrl;
         this.roles = new ArrayList<>() {{
-            add("USER");
+            add(Role.ROLE_USER);
         }};
         this.activated = true;
     }
