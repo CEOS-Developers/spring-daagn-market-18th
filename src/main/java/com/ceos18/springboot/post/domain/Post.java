@@ -42,7 +42,7 @@ public class Post extends BaseEntity {
     @JoinColumn(name = "town_id")
     private Town town;
 
-    @OneToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "category_id")
+    @Enumerated(EnumType.STRING)
+    @Column(name = "category", nullable = false)
     private Category category;
 }
