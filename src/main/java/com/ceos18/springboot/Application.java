@@ -5,6 +5,8 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.PropertySource;
+import org.springframework.core.env.Environment;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
 import java.util.Arrays;
@@ -13,8 +15,17 @@ import java.util.Arrays;
 @EnableJpaAuditing
 public class Application {
 
+
+
 	public static void main(String[] args) {
-		SpringApplication.run(Application.class, args);
+//		SpringApplication.run(Application.class, args);
+
+		ApplicationContext context = SpringApplication.run(Application.class, args);
+		Environment env = context.getEnvironment();
+
+		String jdbcUrl = env.getProperty("spring.datasource.url");
+
+		System.out.println("JDBC URL : " + jdbcUrl);
 	}
 
 //	@Bean
