@@ -2,6 +2,7 @@ package com.carrot.clonecoding.user.domain.service;
 
 import com.carrot.clonecoding.auth.domain.model.Authority;
 import com.carrot.clonecoding.exception.exception.UserAlreadyExistException;
+import com.carrot.clonecoding.exception.exception.UserNotFoundException;
 import com.carrot.clonecoding.user.domain.model.User;
 import com.carrot.clonecoding.user.domain.repository.UserRepository;
 import com.carrot.clonecoding.user.dto.CreateUserDto;
@@ -25,11 +26,11 @@ public class UserService {
     private static final Logger logger = LoggerFactory.getLogger(UserService.class);
 
     @Transactional
-    public User createUser(final CreateUserDto createUserDto){
-        if (userRepository.findByPhonenum(createUserDto.getPhonenum()).isPresent()) {
+    public User createUser(final CreateUserDto createUserDto) {
+        if (userRepository.findByPhonenumAndIsActivated(createUserDto.getPhonenum(), true).isPresent()) {
             throw new UserAlreadyExistException();
         }
-        if (userRepository.findByNickName(createUserDto.getNickName()).isPresent()) {
+        if (userRepository.findByNickNameAndIsActivated(createUserDto.getNickName(), true).isPresent()) {
             throw new UserAlreadyExistException();
         }
         Authority userAuthority = new Authority("ROLE_USER");
@@ -62,6 +63,7 @@ public class UserService {
     }
 
     public void deleteUserById(Long id) {
-        userRepository.deleteById(id);
+        User user = userRepository.findByIdAndIsActivated(id, true).orElseThrow(UserNotFoundException::new);
+        user.updateIsActivatedFalse();
     }
 }

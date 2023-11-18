@@ -62,4 +62,8 @@ public class User extends BaseTimeEntity {
             joinColumns = {@JoinColumn(name = "id", referencedColumnName = "id")},
             inverseJoinColumns = {@JoinColumn(name = "authority_name", referencedColumnName = "authority_name")})
     private Set<Authority> authorities;
+
+    public void updateIsActivatedFalse() {
+        this.isActivated = false;
+    }
 }

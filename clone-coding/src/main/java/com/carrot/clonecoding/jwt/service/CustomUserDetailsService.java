@@ -21,7 +21,7 @@ public class CustomUserDetailsService implements UserDetailsService {
     @Override
     @Transactional
     public UserDetails loadUserByUsername(String nickName) {
-        return userRepository.findByNickName(nickName)
+        return userRepository.findByNickNameAndIsActivated(nickName,true)
                 .map(user -> createUser(nickName, user))
                 .orElseThrow(() -> new UsernameNotFoundException("Not found" + nickName));
     }
