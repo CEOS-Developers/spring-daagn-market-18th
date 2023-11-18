@@ -1,6 +1,5 @@
 package com.daagn.clonestudy.post.dto.response;
 
-import com.daagn.clonestudy.member.domain.Member;
 import com.daagn.clonestudy.post.domain.Post;
 import com.daagn.clonestudy.post.domain.PostStatus;
 import lombok.Builder;
