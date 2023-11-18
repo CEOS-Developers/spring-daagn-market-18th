@@ -44,8 +44,6 @@ public class User extends BaseEntity {
     @NotNull
     private String phone;
 
-
-
     @NotNull
     private Double temperature;
 
