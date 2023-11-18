@@ -7,6 +7,7 @@ import com.daagn.clonestudy.post.domain.PostImage;
 import com.daagn.clonestudy.post.domain.PostRepository;
 import com.daagn.clonestudy.post.domain.PostImageRepository;
 import com.daagn.clonestudy.post.dto.request.PostCreateRequest;
+import com.daagn.clonestudy.post.dto.request.PostUpdateRequest;
 import com.daagn.clonestudy.post.dto.response.PostListResponse;
 import com.daagn.clonestudy.post.dto.response.PostResponse;
 import java.io.File;
@@ -94,4 +95,12 @@ public class PostService {
     postRepository.delete(post);
   }
 
+  public void update(Long postId, Member member, PostUpdateRequest request) throws Exception {
+    Post post = postRepository.findById(postId).orElseThrow(()->new NotFoundException());
+    if(!post.hasPermission(member)) {
+      throw new AccessDeniedException("게시글을 삭제할 권한이 없습니다.");
+    }
+    post.update(request.getTitle(), request.getPrice(),
+        request.getIsAuction(), request.getDescription(), request.getAddress());
+  }
 }
