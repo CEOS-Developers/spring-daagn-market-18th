@@ -1086,4 +1086,121 @@ public ResponseEntity<Void> deleteMember(@AuthenticationPrincipal CustomUserDeta
 
 생성/수정/삭제 등 자유롭게 원하는 API를 구현해주시면 됩니다🤓🤓
 
+
+
 #### 2. 지금까지 과제를 하면서 아쉬웠던 부분이나 더 고치고 싶은 부분을 리팩토링 해주세요
+
+#### 📌 권한 관리 위한 enum Role 추가 및 관련 코드 수정
+
+```java
+@Getter
+public enum Role {
+
+    ROLE_ADMIN,
+    ROLE_USER
+}
+```
+
+#### 📌 CustomUserDetails의 isEnabled 메서드 반환값 알맞게 수정
+``` java
+@Override
+public boolean isEnabled() {
+    return member.getActivated();
+}
+```
+
+#### 📌 예외 처리 방식 변경
+
+❓ 이전 방식 (Member)
+
+- Member 객체를 찾지 못했을 때를 위한 MemberNotFoundException 생성
+```java
+public class MemberNotFoundException extends RuntimeException {
+    public MemberNotFoundException() {
+        super("회원 정보가 존재하지 않습니다.");
+    }
+    public MemberNotFoundException(Long id) {
+        super("요청한 id 값 " + id + "에 해당하는 회원 정보가 존재하지 않습니다.");
+    }
+
+    public MemberNotFoundException(String email) {
+        super("요청한 email " + email + "에 해당하는 회원 정보가 존재하지 않습니다.");
+    }
+}
+```
+
+- Member 관련 예외를 처리하는 MemberExceptionController 생성하여 MemberNotFoundException 처리
+```java
+@Slf4j
+@RestControllerAdvice
+public class MemberExceptionController {
+
+    @ExceptionHandler(MemberNotFoundException.class)
+    public ResponseEntity<String> catchMemberNotFoundException(MemberNotFoundException e) {
+
+        log.error(e.getMessage());
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+    }
+}
+```
+
+➡ Member 관련 커스텀 예외를 새로 생성할 때마다 처리 위한 catch~ 메서드 생성해야 한다.
+
+❓ 새로운 방식
+
+- Member 관련 예외 정보 가지는 MemberErrorCode enum 생성
+```java
+@Getter
+public enum MemberErrorCode {
+
+    MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "해당하는 회원을 찾을 수 없습니다.");
+
+    private final HttpStatus errorCode;
+    private final String errorMessage;
+
+    MemberErrorCode(HttpStatus errorCode, String errorMessage) {
+        this.errorCode = errorCode;
+        this.errorMessage = errorMessage;
+    }
+}
+```
+
+- Member 관련 예외 만들어주는 MemberExcpetion 생성
+```java
+@Getter
+public class MemberException extends RuntimeException {
+
+    private final HttpStatus errorCode;
+
+    public MemberException(MemberErrorCode errorCode) {
+        super(errorCode.getErrorMessage());
+        this.errorCode = errorCode.getErrorCode();
+    }
+
+    public MemberException(MemberErrorCode errorCode, Long id) {
+        super(errorCode.getErrorMessage() + " 요청받은 id : " + id);
+        this.errorCode = errorCode.getErrorCode();
+    }
+
+    public MemberException(MemberErrorCode errorCode, String email) {
+        super(errorCode.getErrorMessage() + " 요청받은 email : " + email);
+        this.errorCode = errorCode.getErrorCode();
+    }
+}
+```
+
+- 모든 예외 관리하는 ExceptionController 생성하여 MemberExcpetion 처리
+- log에 stackTrace 정보 찍히도록 두번째 인자로 MemberException 객체 포함
+```java
+@Slf4j
+@RestControllerAdvice
+public class ExceptionController {
+
+    @ExceptionHandler(MemberException.class)
+    public ResponseEntity<String> catchMemberException(MemberException e) {
+        log.error(e.getMessage(), e);
+        return ResponseEntity.status(e.getErrorCode()).body(e.getMessage());
+    }
+}
+```
