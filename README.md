@@ -959,8 +959,12 @@ $ docker build -t nzeong/spring-boot .
 ```
 $ docker images
 ```
+6. docker image build
+```
+$ docker run -p 8080:8080 -e SPRING_DATASOURCE_URL=jdbc:mysql://host.docker.internal:3306/ceos18 -e SPRING_DATASOURCE_USERNAME=root -e SPRING_DATASOURCE_PASSWORD="" nzeong/spring-boot
+```
 ---
-6. docker-compose 실행
+7. docker-compose 실행
 ```
 docker-compose -f docker-compose.yml up --build
 ```
