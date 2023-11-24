@@ -43,29 +43,29 @@ jobs:
           docker push ${{ secrets.DOCKER_HUB_USERNAME }}/nginx
           
           
-      - name: executing remote ssh commands using password
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.HOST }}
-          username: ubuntu
-          key: ${{ secrets.KEY }}
-          script: |
-              
-          ## 여러분이 원하는 경로로 이동합니다.
-              cd /home/ubuntu/
-              
-          ## .env 파일을 생성합니다.
-              sudo touch .env
-              echo "${{ secrets.ENV_VARS }}" | sudo tee .env > /dev/null
-              
-          ## docker-compose.yml 파일을 생성합니다.
-              sudo touch docker-compose.yml
-              echo "${{ vars.DOCKER_COMPOSE }}" | sudo tee docker-compose.yml > /dev/null
-              
-          ## docker-compose를 실행합니다.
-              sudo chmod 666 /var/run/docker.sock
-              sudo docker rm -f $(docker ps -qa)
-              sudo docker pull ${{ secrets.DOCKER_HUB_USERNAME }}/spring-daagn-market-18th
-              sudo docker pull ${{ secrets.DOCKER_HUB_USERNAME }}/nginx
-              docker-compose -f docker-compose.yml --env-file ./.env up -d
-              docker image prune -f
+#      - name: executing remote ssh commands using password
+#        uses: appleboy/ssh-action@master
+#        with:
+#          host: ${{ secrets.HOST }}
+#          username: ubuntu
+#          key: ${{ secrets.KEY }}
+#          script: |
+#
+#          ## 여러분이 원하는 경로로 이동합니다.
+#              cd /home/ubuntu/
+#
+#          ## .env 파일을 생성합니다.
+#              sudo touch .env
+#              echo "${{ secrets.ENV_VARS }}" | sudo tee .env > /dev/null
+#
+#          ## docker-compose.yml 파일을 생성합니다.
+#              sudo touch docker-compose.yml
+#              echo "${{ vars.DOCKER_COMPOSE }}" | sudo tee docker-compose.yml > /dev/null
+#
+#          ## docker-compose를 실행합니다.
+#              sudo chmod 666 /var/run/docker.sock
+#              sudo docker rm -f $(docker ps -qa)
+#              sudo docker pull ${{ secrets.DOCKER_HUB_USERNAME }}/spring-daagn-market-18th
+#              sudo docker pull ${{ secrets.DOCKER_HUB_USERNAME }}/nginx
+#              docker-compose -f docker-compose.yml --env-file ./.env up -d
+#              docker image prune -f
