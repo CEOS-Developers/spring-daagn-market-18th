@@ -985,11 +985,19 @@ docker-compose -f docker-compose.yml up --build
 
 ## 1️⃣ 도커 이미지 배포하기
 
-- 방식은 자유롭게 진행해주시면 됩니다!
-  - ECR, API Gateway, App runner, Elastic Beanstalk, …
+
+![git cicd](https://github.com/nzeong/Spring-study/assets/121355994/7b32d496-bf16-409d-bbff-061d6f29f8f5)
+![잘 돌아감](https://github.com/nzeong/Spring-study/assets/121355994/673b9257-a37c-44e0-8573-5b77fe98f2cf)
+
+- 도메인 링크: http://danggun-ceos.kro.kr:8080/
+  - 로그인 과정에서 문제 발생! -> 해결중
 
 ## 2️⃣ 배포환경에 대한 테스트 스크린샷 올리기
 
 - Postman / 브라우저를 통해 요청/응답을 테스트합니다.
   - HTTP → HTTPS 리디렉션이 제대로 이루어지는지 확인
   - 구현한 API 하나 이상 제대로 응답하는지 확인
+  <br>
+  
+
+![회원가입 성공](https://github.com/nzeong/Spring-study/assets/121355994/f37a354b-f574-4bd7-ba7e-595fbcc085e9)
