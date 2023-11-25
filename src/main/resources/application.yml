@@ -1,14 +1,23 @@
 spring:
   datasource:
-    url: jdbc:h2:tcp://localhost/~/daagn
-    username: sa
-    password: 1234
-    driver-class-name: org.h2.Driver
-
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    hikari:
+      maximum-pool-size: 10
   jpa:
     hibernate:
-      ddl-auto: create
+      ddl-auto: none
     properties:
       hibernate:
         format_sql: true
         default_batch_fetch_size: 1000
+#
+#logging:
+#  level:
+#    org.hibernate.SQL: debug
+
+jwt:
+  secret: daagnclonestudyeirueirueirueiruieureiruieurieruieureirueirueiureiureiureiure
+  token-validity-in-seconds: 1800000 # 30분
