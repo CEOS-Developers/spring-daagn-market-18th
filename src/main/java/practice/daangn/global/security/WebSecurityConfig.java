@@ -15,6 +15,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.servlet.config.annotation.DefaultServletHandlerConfigurer;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import practice.daangn.global.jwt.JwtAuthenticationFilter;
 import practice.daangn.global.jwt.TokenProvider;
 
@@ -27,6 +29,7 @@ public class WebSecurityConfig {
 
     private final TokenProvider tokenProvider;
     private final RedisTemplate redisTemplate;
+
 
     @Bean //비밀번호 암호화 처리하는 메서드 제공
     public PasswordEncoder passwordEncoder() {
@@ -43,7 +46,7 @@ public class WebSecurityConfig {
                 .authorizeRequests() // 요청에 대한 접근 권한을 설정하는 메서드
                 .requestMatchers(HttpMethod.POST, "/api/v1/users/signUp").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/v1/users/signIn").permitAll()
-                .anyRequest().authenticated();
+                .anyRequest().permitAll();
 
         http
                 .formLogin(formLogin -> formLogin.disable()) // 사용자 지정 로그인 로직 구현
@@ -51,6 +54,7 @@ public class WebSecurityConfig {
 
 
         http.addFilterBefore(new JwtAuthenticationFilter(tokenProvider, redisTemplate), UsernamePasswordAuthenticationFilter.class);
+
         // JwtExceptionHandlerFilter 추가
 
 
