@@ -1422,3 +1422,29 @@ public class UserExceptionHandler {
 }
 
 ```
+
+</br></br>
+
+# 도커 이미지 배포하기
+
+- ec2 생성
+  ![](https://velog.velcdn.com/images/aeyongdodam/post/1cb009a6-8aff-46a0-8446-7d71332b14c7/image.png)
+
+- RDS 생성
+
+![](https://velog.velcdn.com/images/aeyongdodam/post/a88cec5a-7143-44f4-9959-35318df43728/image.png)
+
+이 과정에서 보안 그룹에 인바운드 규칙에 3306 포트 mysql 열어주었습니다.
+
+- ssh 접속
+
+```
+ssh -i {YOUR_KEY_PAIR_FILE.pem} {USER_NAME}@{AWS_PUBLIC_DNS_}
+```
+
+를 통해 연결
+![](https://velog.velcdn.com/images/aeyongdodam/post/065f4482-541f-4dfb-a7d0-ea4cc71a437f/image.png)
+
+### docker compose up을 통한 서버 올리기
+
+- 현재 인스턴스를 중지후 재시작 과정에서 오류가 나고 있습니다.. 해결 되는대로 업데이트 하겠습니다.
