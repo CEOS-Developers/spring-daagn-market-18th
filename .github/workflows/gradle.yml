@@ -24,12 +24,12 @@ jobs:
 
       ## gradlew 관련 오류 수정
       - name: Grant execute permission for gradlew
-        run: chmod +x ./gradlew
+        run: chmod +x ./spring-boot/gradlew
         shell: bash
 
       ## gradle build
       - name: Build with Gradle
-        run: ./gradlew bootJar
+        run: ./spring-boot/gradlew bootJar
 
       ## login
       - name: Login to Docker Hub
