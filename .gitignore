@@ -74,3 +74,8 @@ secrets.yml
 
 application.yml
 jwt.yml
+application-dev.yml
+application-local.yml
+.env.dev
+
+

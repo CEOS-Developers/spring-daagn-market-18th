@@ -1620,3 +1620,279 @@ HTTP 요청의 헤더에 Bearer 토큰 등록
 ![Untitled](ceos_4주차_img/Untitled%209.png)
 
 response 정상 응답
+
+# 🌱 5주차 미션
+
+# 1️⃣ 로컬에서 도커 실행해보기
+
+## 1. jar 빌드
+
+`./gradlew clean build`
+
+## 2. Dockerfile
+
+```docker
+FROM openjdk:17
+ARG JAR_FILE=/build/libs/*.jar
+COPY ${JAR_FILE} app.jar
+ENTRYPOINT ["java","-jar", "/app.jar"]
+```
+
+## 3. docker-compose 와 환경변수 설정
+
+### dev 환경
+
+`docker-compose-dev.yml`
+
+dev profile : web 과 db 컨테이너를 모두 띄움
+
+```yaml
+version: "3.7"
+services:
+  db:
+    image: mysql
+    container_name: spring-daangn-db
+    env_file:
+      - .env.dev
+    ports:
+      - "3307:3306"
+    volumes:
+      - ./dockerDB:/app
+    restart: always
+  web:
+    container_name: spring-daangn-server
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8082:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+    depends_on:
+      - db
+    restart: always
+```
+
+`application-dev.yml`
+
+```yaml
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://db:3306/daangn?serverTimezone=Asia/Seoul
+    username: root
+    password: 1234
+```
+
+### local 환경
+
+`docker-compose-local.yml`
+
+local profile : web 만 띄우고, db 는 로컬db 에 붙음
+
+```yaml
+version: "3.7"
+services:
+  web:
+    container_name: spring-daangn-server
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8082:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=local
+```
+
+- SPRING_PROFILES_ACTIVE 로 local profile 주입
+
+`application-local.yml`
+
+```yaml
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://host.docker.internal:3306/ceos_18?serverTimezone=Asia/Seoul
+    username: root
+    password: <password>
+```
+
+- host 명이 `localhost` 가 아니라 `host.docker.internal` 임에 주의 (컨테이너 관점으로 생각)
+
+1. 빌드 후 컨테이너 띄우기
+
+   `./gradlew clean build`
+
+   local : `docker-compose -f docker-compose-local.yml up --build`
+
+   dev : `docker-compose -f docker-compose-dev.yml up --build`
+
+
+# 트러블 슈팅
+
+## 1. 자바 버전으로 인한 빌드 에러
+
+인텔리제이 IDE 에서 빌드를 하는 것이 아니라 터미널 상에서 `./gradlew clean build` 커맨드로 빌드를 시도하였을 때 에러가 발생하였음
+
+### 원인 : 자바 버전 문제
+
+스프링부트3는 자바17 기반인데 현재 로컬에 설정된 자바는 자바11이였음
+
+IDE 에서는 JDK17 을 설정해놨기 때문에 그동안 문제가 없었는데 터미널로 jar 를 빌드,실행할때는 문제가 발생
+
+![Untitled](ceos_5주차_img/Untitled.png)
+
+![Untitled](ceos_5주차_img/Untitled%201.png)
+
+### 해결방법
+
+- 로컬에 설치돼있는 다른 자바 버전 확인
+
+  `/usr/libexec/java_home -V`
+
+
+![Untitled](ceos_5주차_img/Untitled%202.png)
+
+- JAVA_HOME 환경변수 변경
+
+    ```bash
+    export JAVA_HOME=$(/usr/libexec/java_home -v 17)
+    ```
+
+
+그런데 이렇게 하면 자바변경이 필요할 때마다 매번 환경변수를 바꿔줘야 하므로 번거로움
+
+⇒ 자바 버전 변경 툴을 사용
+
+- node 진영의 nvm 이나, python 의 pyenv 처럼 로컬의 자바버전 변경을 위한 툴
+  - SDKMAN
+  - jEnv
+  - Jabba
+
+
+SDKMAN 을 사용
+
+1. SDKMAN 설치 및 초기화
+
+
+    ```bash
+    curl -s "https://get.sdkman.io" | bash
+    ```
+    
+    ```bash
+    source "$HOME/.sdkman/bin/sdkman-init.sh"
+    ```
+
+
+1. **원하는 자바 버전 설치:**
+   사용 가능한 자바 버전 목록을 확인
+
+    ```bash
+    sdk list java
+    ```
+
+   그런 다음 원하는 버전을 선택하여 설치
+
+    ```bash
+    sdk install java 17.0.8-oracle
+    ```
+
+
+1. 자바 버전 적용
+  - 전역 설정
+
+      ```bash
+      sdk default java 17.0.8-oracle
+      ```
+
+  - 쉘 설정 (쉘 나가면 버전 해제)
+
+      ```bash
+      sdk use java 17.0.8-oracle
+      ```
+
+  - 프로젝트별 설정 (프로젝트 루트에 .sdkmanrc 파일)
+
+      ```bash
+      echo "java=17.0.8-oracle" > .sdkmanrc
+      ```
+
+
+자바버전이 정상적으로 자바17 로 변경됨
+
+![Untitled](ceos_5주차_img/Untitled%203.png)
+
+빌드도 정상적으로 수행
+
+![Untitled](ceos_5주차_img/Untitled%204.png)
+
+## 2. web 컨테이너가 db 컨테이너에 못 붙는 이슈
+
+```yaml
+version: "3.7"
+services:
+  db:
+    image: mysql
+    container_name: spring-daangn-db
+    env_file:
+      - .env.dev
+    ports:
+      - "3307:3306"
+    volumes:
+      - ./dockerDB:/app
+    restart: always
+  web:
+    container_name: spring-daangn-server
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8082:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+    depends_on:
+      - db
+    restart: always
+```
+
+depends_on 을 붙혔다고 해서 db 가 완전히 띄워진 다음에 web 컨테이너가 실행되는게 아니라
+
+그냥 실행순서만 지정해주는 역할이라서 web 컨테이너에 `restart: always` 를 붙혀야 함
+
+## 3. application profile 을 못 읽는 이슈
+
+springboot 2.4 이후로 profile 지정 방법이 달라졌다고 함
+
+`application-local.yml`
+
+```yaml
+spring:
+  profiles: # 에러발생
+    active: local # 에러발생
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://host.docker.internal:3306/ceos_18?serverTimezone=Asia/Seoul
+    username: root
+    password: <password>
+
+  jpa:
+    hibernate:
+      ddl-auto: create
+    properties:
+      hibernate:
+        default_batch_fetch_size: 100
+    open-in-view: false
+```
+
+기존에는 yaml 파일 안에서 spring:profile:active 에서 원하는 profile 명을 써줬어야 하는데
+
+springboot 2.4 이후로는 이렇게 하면 에러가 발생함
+
+profile:active 부분을 지우고 application-{profile}.yml 로 파일이름만 지정하면 원하는 profile 을 잘 읽어옴
+
+> 참고
+>
+
+spring 에서 application profile 을 읽는 순서
+
+⇒ 기본 application.yml 을 먼저 읽고 지정한 application-{profile}.yml 을 그 위에 덮어 씌우는 방식으로 실행 (override 방식)

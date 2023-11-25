@@ -1,5 +1,6 @@
 package com.ceos18.springboot.controller;
 
+import com.ceos18.springboot.common.ApiResponse;
 import com.ceos18.springboot.dto.signIn.request.SignInRequestDto;
 import com.ceos18.springboot.dto.signIn.response.SignInResponseDto;
 import com.ceos18.springboot.dto.signUp.request.SignUpRequestDto;
@@ -22,13 +23,13 @@ public class SignController {
 
 	@Operation(summary = "회원 가입")
 	@PostMapping("/sign-up")
-	public SignUpResponseDto signUp(@RequestBody SignUpRequestDto request) {
-		return signService.registMember(request);
+	public ApiResponse<SignUpResponseDto> signUp(@RequestBody SignUpRequestDto request) {
+		return ApiResponse.createSuccess(signService.registMember(request));
 	}
 
 	@Operation(summary = "로그인")
 	@PostMapping("/sign-in")
-	public SignInResponseDto signIn(@RequestBody SignInRequestDto request) {
-		return signService.signIn(request);
+	public ApiResponse<SignInResponseDto> signIn(@RequestBody SignInRequestDto request) {
+		return ApiResponse.createSuccess(signService.signIn(request));
 	}
 }
