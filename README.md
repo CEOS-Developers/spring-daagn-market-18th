@@ -111,9 +111,9 @@ ResponseBody
 구현하며 알았던 정보가 두가지 존재한다.<br>
 
 1. Entity 상에서 `User`를 저장하는 user column이 존재하는데, 이를 DTO로 값을 받을 때는 User 객체를 RequestBody에 전달할 수 없다는 것.
-   - 해결 방법은 단순했다. 원하는 user의 ID 값을 전달 받은 후, Service Layer에서 `findById`로 객체를 찾아서 DTO에서 Entity로 변결할 때 저장하는 방법이다. 오랜만에 해서 헷갈려서 적어봤습니다.
+    - 해결 방법은 단순했다. 원하는 user의 ID 값을 전달 받은 후, Service Layer에서 `findById`로 객체를 찾아서 DTO에서 Entity로 변결할 때 저장하는 방법이다. 오랜만에 해서 헷갈려서 적어봤습니다.
 2. ENUM값도 RequestBody에 String으로 전달할 수 있다는 점.
-   - 정확한 워딩으로 작성해야 한다는 것이 문제이지만, String 형태로 Body에 전달하면 이를 DTO 상에서는 ENUM으로 받을 수 있다는 것을 알게 되었다.
+    - 정확한 워딩으로 작성해야 한다는 것이 문제이지만, String 형태로 Body에 전달하면 이를 DTO 상에서는 ENUM으로 받을 수 있다는 것을 알게 되었다.
 
 ### 모든 데이터 조회 - GET api/product
 
@@ -170,15 +170,15 @@ ResponseBody
 ## 추가 학습한 부분
 
 1. DTO를 만들 때 정적 팩토리 메서드 명칭 컨벤션?
-   - `of`는 매개변수를 2개 이상의 값을 받을 때 사용하고, `from`은 매개변수가 1개일 때 사용한다고 하는데 왜 이렇게 사용하는지 알 수는 없다. 물론 `toEntity`, `toDto`같은 명칭도 있지만 개인적으로 위와 같은 방법을 더 주로 사용한다.
+    - `of`는 매개변수를 2개 이상의 값을 받을 때 사용하고, `from`은 매개변수가 1개일 때 사용한다고 하는데 왜 이렇게 사용하는지 알 수는 없다. 물론 `toEntity`, `toDto`같은 명칭도 있지만 개인적으로 위와 같은 방법을 더 주로 사용한다.
 2. 새로운 폴더 구조
-   - 기본적으로 폴더 구조는 layer끼리 모아두는 방법, domain 별로 묶어두는 방법 크게 2가지가 보편적으로 사용되는 것 같다. 이번에는 새로운 방법을 도입해봤다. 서비스의 크기가 커지고, 멀티 모듈로 코드를 나눈다고 했을 때를 가정하고 mysql에 들어가는 Entity를 묶어두는 폴더, 다른 기능들은(Controller, Service, Repository) domain 별로 묶었고, 마지막으로 global 폴더를 만들었다.
-   - Entity와 Repository를 한 군데에 묶어 domain 폴더에는 Controller, Service, Dto 정도만 남겨두는 구조는 어떨까 고민하고 있다. 조금 바보같은 생각일까..?<br>
-     <img width="211" alt="스크린샷 2023-10-07 오후 6 11 18" src="https://github.com/CEOS-Developers/spring-daagn-market-18th/assets/89639470/fa791377-333a-4ea6-8bcc-4718c3f9f917">
+    - 기본적으로 폴더 구조는 layer끼리 모아두는 방법, domain 별로 묶어두는 방법 크게 2가지가 보편적으로 사용되는 것 같다. 이번에는 새로운 방법을 도입해봤다. 서비스의 크기가 커지고, 멀티 모듈로 코드를 나눈다고 했을 때를 가정하고 mysql에 들어가는 Entity를 묶어두는 폴더, 다른 기능들은(Controller, Service, Repository) domain 별로 묶었고, 마지막으로 global 폴더를 만들었다.
+    - Entity와 Repository를 한 군데에 묶어 domain 폴더에는 Controller, Service, Dto 정도만 남겨두는 구조는 어떨까 고민하고 있다. 조금 바보같은 생각일까..?<br>
+      <img width="211" alt="스크린샷 2023-10-07 오후 6 11 18" src="https://github.com/CEOS-Developers/spring-daagn-market-18th/assets/89639470/fa791377-333a-4ea6-8bcc-4718c3f9f917">
 3. 한가지 궁금한 점
-   - 항상 고민했던 부분이지만, `ProductController`는 `ProductService`를 참고하고, Service는 Repository를 참조하도록 설계가 되어있다. 여기서 `ProductService`가 `UserRepository`를 찾고하는 방법은 뭔가 이상하지 않은가..? 유저 정보가 필요하다고 해서 `ProductRepository` 이외의 다른 `Repoistory`를 참고하는 방법이 뭔가 이래도 되나? 라는 고민이 들긴 하지만 기능 구현을 위해 일단 작성했다.
-   - 여기서 궁금한 점은 한마디로 자신의 도메인이 아닌 다른 도메인의 `Repository`를 가져와서 사용해도 되는가?
-   - 이것도 바보같은 고민이다..
+    - 항상 고민했던 부분이지만, `ProductController`는 `ProductService`를 참고하고, Service는 Repository를 참조하도록 설계가 되어있다. 여기서 `ProductService`가 `UserRepository`를 찾고하는 방법은 뭔가 이상하지 않은가..? 유저 정보가 필요하다고 해서 `ProductRepository` 이외의 다른 `Repoistory`를 참고하는 방법이 뭔가 이래도 되나? 라는 고민이 들긴 하지만 기능 구현을 위해 일단 작성했다.
+    - 여기서 궁금한 점은 한마디로 자신의 도메인이 아닌 다른 도메인의 `Repository`를 가져와서 사용해도 되는가?
+    - 이것도 바보같은 고민이다..
 
 ## 생성자 대신 정적 팩터리 매서드를 고려하라
 
@@ -190,13 +190,13 @@ ResponseBody
 정적 팩터리의 장점은 다음과 같다.
 
 1. 이름을 가질 수 있다.
-   - public 생성자보다 객체의 특성을 제대로 설명
-   - 한 클래스에 시그니처가 같은 생성자를 여러 개 생성 가능
+    - public 생성자보다 객체의 특성을 제대로 설명
+    - 한 클래스에 시그니처가 같은 생성자를 여러 개 생성 가능
 2. 호출될 때마다 인스턴스를 새로 생성하지 않아도 된다.
-   - 불변 클래스(immutable class)는 `Instance`를 재활용 -> 불필요한 객체 생성 X
-   - 인스턴스 통제 가능 -> 싱글턴으로 만들 수 있고, 인스턴스화 불가로 만들 수 있음
+    - 불변 클래스(immutable class)는 `Instance`를 재활용 -> 불필요한 객체 생성 X
+    - 인스턴스 통제 가능 -> 싱글턴으로 만들 수 있고, 인스턴스화 불가로 만들 수 있음
 3. 반환 타입의 하위 타입 객체를 반환할 능력이 있다.
-   - 객체 생성 시, 분기 처리를 통해 하위 타입의 객체를 반환할 수 있음<br>
+    - 객체 생성 시, 분기 처리를 통해 하위 타입의 객체를 반환할 수 있음<br>
    ```
    public class Grade {
    ...
@@ -218,7 +218,7 @@ ResponseBody
 
 1. 상속하려면 public, protected 생성자가 필요함으로, 정적 팩터리 메서드만 제공할 시 하위 클래스를 만들 수 없다.
 2. 정적 팩터리 메서드는 프로그래머가 찾기가 어렵다.
-   - 생성자처럼 API설명에 명확히 들어나지 않기 때문에 인스턴스화하는 방법을 알아야 한다.
+    - 생성자처럼 API설명에 명확히 들어나지 않기 때문에 인스턴스화하는 방법을 알아야 한다.
 
 ### 매서드 시그니처
 
@@ -227,11 +227,11 @@ ResponseBody
 ```java
 // 서로 다른 시그니처
 void doSomething(String[] x); // doSomething(String[]) - 메서드 시그니처 예 1
-void doSomething(String x); // doSomething(String)
+        void doSomething(String x); // doSomething(String)
 
 // 같은 시그니처
-int doSomething(int x); // doSomething(int)
-void doSomething(int y) throws Exception; // doSomething(int)
+        int doSomething(int x); // doSomething(int)
+        void doSomething(int y) throws Exception; // doSomething(int)
 ```
 
 ## Builder 패턴
@@ -239,8 +239,8 @@ void doSomething(int y) throws Exception; // doSomething(int)
 - 점층적 생성자 패턴의 안정성 + 자바빈즈 패턴의 가독성
 - **필요한 매개변수만으로 생성자를 호출**해 빌더 객체 생성
 - 생성할 클래스 안에 **정적 멤버 클래스**로 만들어두는 게 일반적이다
-  - **플루어트 API(fluent API)** - 물 흐르듯 연결된다는 의미
-  - **메서드 연쇄(method chaining)**
+    - **플루어트 API(fluent API)** - 물 흐르듯 연결된다는 의미
+    - **메서드 연쇄(method chaining)**
 
 ```java
 public class NutritionFacts {
@@ -289,8 +289,8 @@ NutritionFacts food = new NutritionFacts.Builder(240,8)
 ```
 
 - **빌더 패턴은 계층적으로 설계된 클래스와 함께 쓰기에 좋다**
-  - 가변인 매개변수를 여러 개 사용할 수 있다는 장점
-  - 하단의 `addTopping` 메서드 참고
+    - 가변인 매개변수를 여러 개 사용할 수 있다는 장점
+    - 하단의 `addTopping` 메서드 참고
 
 ```java
 // 루트 추상 클래스
@@ -520,4 +520,30 @@ docker-compose를 작동시킬 때는 도커 이미지 내의 mysql에 접근하
 
 ### 소감
 
-도커를 통해 처음으로 웹 애플리케이션을 띄워봤는데, 자동으로 이미지를 다운로드 받고 컨테이너를 만들어서 배포해주는 과정이 편리하다는 것을 이해할 수 있었다. 물론 중간에 서버를 개발할 때 만났던 오류와 다른 디비 연결 문제를 겪어서 해결하는 과정이 익숙하지 않아서 힘들었지만 환경에 구애받지 않고 모든 곳에서 사용할 수 있다는 것이 좋은 것 같다
+도커를 통해 처음으로 웹 애플리케이션을 띄워봤는데, 자동으로 이미지를 다운로드 받고 컨테이너를 만들어서 배포해주는 과정이 편리하다는 것을 이해할 수 있었다. 물론 중간에 서버를 개발할 때 만났던 오류와 다른 디비 연결 문제를 겪어서 해결하는 과정이 익숙하지 않아서 힘들었지만 환경에 구애받지 않고 모든 곳에서 사용할 수 있다는 것이 좋은 것 같다.
+
+# 6주차 Github Action을 이용한 CI/CD
+
+## 결과 이미지
+
+### EC2 에서 docker ps 명령어를 통해 서버 띄워진 것을 확인
+
+<img width="573" alt="스크린샷 2023-11-25 오후 10 26 33" src="https://github.com/YoungGyo-00/react-HowWorthy/assets/89639470/f4565ea0-aee0-427d-924d-429692f9727f">
+
+### Github Action 정상 작동 확인
+
+![스크린샷 2023-11-25 오후 10 27 46](https://github.com/YoungGyo-00/react-HowWorthy/assets/89639470/1e378d35-f991-4b1a-acd0-1d4e753356d7)
+
+### API 테스트 확인
+
+![스크린샷 2023-11-25 오후 10 27 54](https://github.com/YoungGyo-00/react-HowWorthy/assets/89639470/0112502c-b49d-4b16-a7af-9a5c0c3e069a)
+
+## 발생했던 오류
+
+1. Repository 에 market 이라는 폴더로 모든 소스코드가 감싸져 있어서 repository에 들어오게 되면 .guthub/workflows 폴더가 존재하지 않아 git action이 적용되지 않았다. 모든 소스코드를 다시 폴더 밖으로 위치를 옮겨 해결하는 과정에서 gradle-wrapper.jar 파일이 존재하지 않아 build가 되지 않았으며, spring-initializer를 통해 새로운 프로젝트를 생성한 후 복사 붙여넣기로 해결하였다.
+
+2. env.yml 파일이 깃허브에 올라가지 않아 secret 값을 넣어주지 못 해 서버가 정상적으로 작동하지 않는 에러가 발생했었다. docker-compose.yml 파일을 깃 액션에서 생성하는 코드를 삭제한 후, 직접 ec2 에서 파일에 환경변수 값들을 저장해서 진행했다.
+
+### 소감
+
+깃 액션을 사용해보면서 처음에는 환경변수 설정에 많은 오류를 겪었지만, 구현하고 보니 CI/CD가 매번 서버를 수정해야 하는 번거로움을 줄일 수 있다는 것을 보고 개발하기 너무 간편하고 좋은 것 같다.
