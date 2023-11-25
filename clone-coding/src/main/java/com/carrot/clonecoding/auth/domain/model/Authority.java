@@ -1,4 +1,4 @@
-package com.carrot.clonecoding.auth.domail.model;
+package com.carrot.clonecoding.auth.domain.model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

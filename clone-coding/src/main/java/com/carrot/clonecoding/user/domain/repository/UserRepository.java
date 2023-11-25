@@ -9,8 +9,10 @@ import java.util.Optional;
 
 @Repository
 public interface UserRepository extends JpaRepository<User, Long>{
-    Optional<User> findByPhonenum(String phonenum);
+    Optional<User> findByPhonenumAndIsActivated(String phonenum,boolean isActivated);
     @EntityGraph(attributePaths = "authorities")
-    Optional<User> findByNickName(String nickName);
+    Optional<User> findByNickNameAndIsActivated(String nickName, boolean isActivated);
+
+    Optional<User> findByIdAndIsActivated(Long id, boolean isActivated);
 }
 

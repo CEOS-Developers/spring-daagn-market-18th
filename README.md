@@ -1123,3 +1123,302 @@ user_authority
 # 느낀점
 
 jwt 인증에 대해 직접 구현해보는 것이 두 번째인데, 스프링을 통한 개발은 처음이라, 많이 헷갈렸다. 구현하면서 각 부분에 대해 빼고 넣으면서 어떤 부분이 어떤 역할을 하는지 파악하는 방식으로 과제를 구현하려고 노력했다.
+
+# 5주차 미션
+
+## 1️⃣ 로컬에서 도커 실행해보기
+
+### 도커란?
+
+https://www.youtube.com/watch?v=tPjpcsgxgWc
+저는 이 영상이 도움이 많이 되었습니다~
+</br></br>
+
+- Docker는 애플리케이션 개발, 배송 및 실행을 위한 개방형 플랫폼임
+- Docker를 사용하면 애플리케이션을 인프라에서 분리하여 소프트웨어를 신속하게 제공할 수 있음
+- 가상화 기술이 등장한 이유
+  - 버전 충돌 문제
+  - 운영 체제의 차이
+    -> 컴퓨터가 운영체제, 내부 프로그램과 상관 없이 독립된 환경을 만들고 싶다!
+- 도커 등장 이전의 가상 머신의 등장
+  cf) 각 운영체제는 똑같이 OSI 7 layer를 가지지만, 운영체제마다 GUI 또는 file System이 다를 수 있고 각각 구현되는 방식이 다름
+  - 가상화의 구현으로 어플리케이션, 운영체제의 커널과 그 구성요소 그리고 하드웨어까지 전부 소프트웨어로 만들어버림
+  - 그러나 용량이 크고, 하나의 컴퓨터이기 때문에 시간이 매우 오래 걸림
+
+-> 컨테이너 기술 등장
+
+- 컨테이너란 어플리케이션과 바이너리파일(설치파일),라이브러리 를 묶어서 만든 하나의 독립적인 실행공간
+- 가상머신은 운영체제를 설치하고 하드웨어까지 구현을 해야했던 반면, 컨테이너는 필요한 어플리케이션과 설치파일, 라이브러리만 묶어서 하나의 공간으로 만들었음
+- 새로운 컴퓨터를 만드는 개념이 아니라, 기존의 자원으로 동작하는 방식
+
+### 도커 네트워크
+
+- Docker 컨테이너(container)는 격리된 환경에서 돌아가기 때문에 기본적으로 다른 컨테이너와의 통신이 불가능함
+- 해결 방법 : 여러 개의 컨테이너를 하나의 도커 네트워크에 연결시키면 서로 통신이 가능해짐
+- 동일한 도커 네트워크에 위치하면 localhost의 port없이 컨테이너끼리 서로 통신이 가능함
+- 도커 네트워크 종류
+  - bridge 네트워크 : 하나의 호스트 컴퓨터 내에서 여러 컨테이너들이 서로 소통할 수 있도록 해줌, 실제 프로덕션 환경에 적합하다고 볼 수는 없고, 간단히 개발환경에서 테스트 해보기에 좋음
+  - host 네트워크 : 컨테이너를 호스트 컴퓨터와 동일한 네트워크에서 컨테이너를 돌리기 위해서 사용
+  - overlay 네트워크 : 여러 호스트에 분산되어 돌아가는 컨테이너들 간에 네트워킹을 위해서 사용
+- 네트워크 생성
+
+  - docker network create {네트워크명}
+
+    ```
+    C:\Users\user>docker network create test-network
+    50a45c1120abe898fca56b98314ac0f9f6815d5537ff3996e43ecb4846864a7b
+
+    C:\Users\user>docker network ls
+    NETWORK ID NAME DRIVER SCOPE
+    47e6d2868ebb bridge bridge local
+    2c4c8daffbb2 host host local
+    4629b4367339 none null local
+    50a45c1120ab test-network bridge local
+    ```
+
+  - docker network create {네트워크명}을 통해 새로운 네트워크를 생성하고, docker network ls를 통해 네트워크가 잘 생성되었는지 확인
+  - network 연결하여 컨테이너 실행
+
+    ```
+    docker run -d -p 8080:8080 --network test-network --name checkdb springboot_checkdb
+    ```
+
+    -d : 백그라운드에서 컨테이너가 실행되도록 함</br>
+    -p 8080:8080 : 호스트와 컨테이너의 포트를 연결(포워딩) <host port number:container port number></br>
+    --network : 생성한 custom network를 입력함</br>
+    --name : 컨테이너의 이름을 지정
+
+  - 이미 동작중인 컨테이너와 연결</br>
+    docker network connect {네트워크명} {컨테이너명}
+
+    ```
+    docker network connect test-network mariadb
+    ```
+
+Dockerfile
+
+```java
+FROM openjdk:17
+ARG JAR_FILE=/build/libs/*.jar
+COPY ${JAR_FILE} app.jar
+ENTRYPOINT ["java","-jar", "/app.jar"]
+```
+
+</br></br>
+
+설명 :
+
+- FROM openjdk:17
+  도커 컨테이너의 기본 이미지를 openjdk 17버전으로 지정
+- ARG JAR*FILE=/build/libs/*.jar
+  JAR*FILE ARG 인자를 /build/libs/*.jar으로 정의
+- COPY ${JAR_FILE} app.jar
+  JAR_FILE 인자로 지정된 JAR 파일을 이미지로 복사 후 app.jar로 이름 변경
+- ENTRYPOINT ["java","-jar", "/app.jar"]
+  앱의 시작 지점을 app.jar로 한다는 뜻(java -jar /app.jar를 실행함)
+  </br></br>
+
+docker-compose.yml
+
+```java
+version: '3'
+
+services:
+  db:
+    container_name: mysql_db
+    image: mysql/mysql-server:5.7
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_ROOT_HOST: ${DB_ROOT_HOST}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      TZ: 'Asia/Seoul'
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./mysql/conf.d:/etc/mysql/conf.d # MySQL 설정 파일 위치
+    command:
+      - "mysqld"
+      - "--character-set-server=utf8mb4"
+      - "--collation-server=utf8mb4_unicode_ci"
+    networks:
+      - test_network
+
+  application:
+    container_name: daagn-test
+    restart: on-failure
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+    environment:
+      SPRING_DATASOURCE_URL: ${DATASOURCE_URL}
+      SPRING_DATASOURCE_USERNAME: ${DATASOURCE_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${DATASOURCE_PASSWORD}
+    depends_on:
+      - db
+    networks:
+      - test_network
+
+networks:
+  test_network:
+```
+
+환경변수 .env로 빼서 설정해줌
+처음에 env 파일을 .env.development로 했다가 env를 못읽어오는 이슈가 있었음
+env를 도커파일이 잘 읽어오는지 확인하는 방법 : 명령어 docker compose convert
+</br></br>
+
+## 도커 실행 화면
+
+![](https://velog.velcdn.com/images/aeyongdodam/post/9d660c57-b303-49e7-8d19-19d8e836318f/image.png)
+
+</br></br>
+
+![](https://velog.velcdn.com/images/aeyongdodam/post/e27e8c98-0f39-4ca9-8e29-765a0730a529/image.png)
+</br></br>
+
+## 도커 api 실행 로그
+
+![](https://velog.velcdn.com/images/aeyongdodam/post/ab073cf2-0a65-4784-8564-9b50499943fd/image.png)
+
+## 도커 속 db initializer
+
+```java
+@Component
+@RequiredArgsConstructor
+public class DataInitializer {
+    private final AuthorityRepository authorityRepository;
+
+    @PostConstruct
+    public void initData() {
+        createAuthorityIfNotFound("ROLE_ADMIN");
+        createAuthorityIfNotFound("ROLE_USER");
+    }
+
+    private void createAuthorityIfNotFound(String authorityName) {
+        Optional<Authority> authority = authorityRepository.findByAuthorityName(authorityName);
+        if (authority.isEmpty()) {
+            authorityRepository.save(new Authority(authorityName));
+        }
+    }
+}
+
+```
+
+</br></br>
+
+## 2️⃣ API 추가 구현 및 리팩토링
+
+### user api delete를 soft delete로 바꾸었습니다.
+
+```java
+
+@Entity
+@Table(name = "user")
+@Getter
+@Builder
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PROTECTED)
+public class User extends BaseTimeEntity {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
+    private Long id;
+
+    @Column(name = "nick_name", unique = true, nullable = false)
+    private String nickName;
+    @Column(nullable = false)
+    private String password;
+
+    @Column(name = "profile_url")
+    private String profileUrl;
+
+    @Column(nullable = false)
+    private double temperature;
+
+    @Column(name = "retrading_rate", nullable = false)
+    private double retradingRate;
+
+    @Column(name = "response_rate", nullable = false)
+    private double responseRate;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.PERSIST, fetch = FetchType.LAZY) //영속성 전이
+    private List<Achievement> achievements;
+
+    @Column(name = "email")
+    private String email;
+
+    @Column(nullable = false)
+    private String phonenum;
+
+    @Column(name = "is_activated")
+    private boolean isActivated; //소프트 딜리트를 위한 column 추가
+
+    public void passwordEncode(PasswordEncoder passwordEncoder) {
+        this.password = passwordEncoder.encode(this.password);
+    }
+
+    @ManyToMany
+    @JoinTable(
+            name = "user_authority",
+            joinColumns = {@JoinColumn(name = "id", referencedColumnName = "id")},
+            inverseJoinColumns = {@JoinColumn(name = "authority_name", referencedColumnName = "authority_name")})
+    private Set<Authority> authorities;
+
+    public void updateIsActivatedFalse() { //column 업데이트를 위한 함수
+        this.isActivated = false;
+    }
+}
+
+
+```
+
+### exception 처리를 exception, exceptionhandler class를 통해 처리하였습니다.
+
+```java
+public class UserAlreadyExistException extends RuntimeException{
+    public UserAlreadyExistException(){
+        super("이미 존재하는 유저입니다.");
+    }
+}
+
+```
+
+</br></br>
+
+```java
+public class UserNotFoundException extends RuntimeException{
+    public UserNotFoundException(){
+        super("유저를 찾을 수 없습니다");
+    }
+}
+```
+
+</br></br>
+UserExceptionHandler
+
+```java
+Slf4j
+@RestControllerAdvice
+public class UserExceptionHandler {
+    @ExceptionHandler(UserNotFoundException.class)
+    public ResponseEntity<String> catchUserNotFoundException(UserNotFoundException e){
+        log.error(e.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+    }
+
+    @ExceptionHandler(UserAlreadyExistException.class)
+    public ResponseEntity<String> catchUserAlreadyExistException(UserAlreadyExistException e){
+        log.error(e.getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
+    }
+}
+
+```

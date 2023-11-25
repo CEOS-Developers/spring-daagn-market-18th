@@ -45,12 +45,8 @@ public class UserController {
 
     @DeleteMapping("api/user/{id}")
     @PreAuthorize("hasAnyRole('ADMIN')")
-    public ResponseEntity<String> deleteUserById(@PathVariable("id") Long id) {//todo 소프트딜리트로 바꾸기
-        try {
-            userService.deleteUserById(id);
-            return ResponseEntity.ok("delete success");
-        } catch (EmptyResultDataAccessException e) {
-            return ResponseEntity.notFound().build();
-        }
+    public ResponseEntity<Void> deleteUserById(@PathVariable("id") Long id) {
+        userService.deleteUserById(id);
+        return ResponseEntity.ok().build();
     }
 }

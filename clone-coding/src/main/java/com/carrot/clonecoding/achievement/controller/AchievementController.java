@@ -20,7 +20,7 @@ public class AchievementController {
 
     @PostMapping("/achievement")
     public ResponseEntity<?> achieveSave(@RequestBody Achievement achievement) {
-        User user = userRepository.findById(achievement.getUser().getId())
+        User user = userRepository.findByIdAndIsActivated(achievement.getUser().getId(),true)
                 .orElseThrow(UserNotFoundException::new);
 
         achievement.setUser(user);
