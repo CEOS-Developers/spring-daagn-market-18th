@@ -978,3 +978,18 @@ docker-compose -f docker-compose.yml up --build
 
 ![회원가입1](https://github.com/nzeong/Spring-study/assets/121355994/0f380cc8-1ea8-4afd-a818-b6d1caac34cb)
 ![회원가입1db](https://github.com/nzeong/Spring-study/assets/121355994/fc4fae3e-b69b-40f1-a2b0-69e83c00800f)
+
+---
+
+# 💙 CEOS 18th Backend Study 6주차 💙
+
+## 1️⃣ 도커 이미지 배포하기
+
+- 방식은 자유롭게 진행해주시면 됩니다!
+  - ECR, API Gateway, App runner, Elastic Beanstalk, …
+
+## 2️⃣ 배포환경에 대한 테스트 스크린샷 올리기
+
+- Postman / 브라우저를 통해 요청/응답을 테스트합니다.
+  - HTTP → HTTPS 리디렉션이 제대로 이루어지는지 확인
+  - 구현한 API 하나 이상 제대로 응답하는지 확인
