@@ -1,0 +1,54 @@
+name: Deploy Development Server
+
+## develop 브랜치에 push가 되면 실행됩니다
+on:
+  push:
+    branches: [ "itsme-shawn" ]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: checkout
+        uses: actions/checkout@v3
+
+      ## 여러분이 사용하는 버전을 사용하세요
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      ## gradle build
+      - name: Build with Gradle
+        run: ./gradlew bootJar
+
+
+      ## 웹 이미지 빌드 및 도커허브에 push
+      - name: web docker build and push
+        run: |
+          docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+          docker-compose -f docker-compose-prod.yml build
+          docker push soul4927/ceos-spring
+
+      - name: executing remote ssh commands using password
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ubuntu
+          key: ${{ secrets.KEY }}
+          script: |
+            
+            ## 여러분이 원하는 경로로 이동합니다.
+                    cd /home/ubuntu/
+            
+            ## docker-compose를 실행합니다.
+                    sudo chmod 666 /var/run/docker.sock
+                    sudo docker rm -f $(docker ps -qa)
+                    sudo docker pull soul4927/ceos-spring
+                    sudo docker-compose -f docker-compose-prod.yml up
+                    docker image prune -f
