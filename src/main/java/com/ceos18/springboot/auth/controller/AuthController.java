@@ -4,6 +4,8 @@ import com.ceos18.springboot.auth.service.AuthService;
 import com.ceos18.springboot.common.dto.NormalResponseDto;
 import com.ceos18.springboot.common.dto.TokenDto;
 import com.ceos18.springboot.login.dto.LoginRequestDto;
+import com.ceos18.springboot.mail.request.EmailRequestDto;
+import com.ceos18.springboot.mail.service.SignupEmailService;
 import com.ceos18.springboot.user.dto.UserRequestDto;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -12,13 +14,15 @@ import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping("/app/auth")
 @RequiredArgsConstructor
 public class AuthController {
 
     private final long COOKIE_EXPIRATION = 7776000; // 90일
 
     private final AuthService authService;
+    private final SignupEmailService signupEmailService;
+
 
     // 회원가입 API
     @PostMapping("/signup")
@@ -48,5 +52,24 @@ public class AuthController {
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + tokenDto.getAccessToken())
                 .build();
     }
+
+    // 이메일 인증
+    @PostMapping("/signup/mailConfirm")
+    @ResponseBody
+    public ResponseEntity<NormalResponseDto> mailConfirm(@RequestBody EmailRequestDto requestDto) throws Exception {
+        if (isAlreadyExistEmail(requestDto.getEmail()))
+            return ResponseEntity.ok(NormalResponseDto.fail());
+
+        String code = signupEmailService.sendSimpleMessage(requestDto.getEmail());
+        NormalResponseDto responseDto = NormalResponseDto.success();
+        responseDto.setMessage(code);
+        return ResponseEntity.ok(responseDto);
+    }
+
+    // 메일 중복검사
+    public boolean isAlreadyExistEmail(String email) {
+        return authService.findUserByEmail(email);
+    }
+
 
 }

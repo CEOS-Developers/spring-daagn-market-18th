@@ -11,6 +11,7 @@
 [WEEK 2 | DB 모델링과 JPA](#CEOS-WEEK-2:DB-모델링과-JPA-🥕) <br>  
 [WEEK 3 | CRUD API 만들기](#CEOS-WEEK-3:-CRUD-API-만들기-🎁) <br>
 [WEEK 4 | Spring Security와 로그인](#CEOS-WEEK-4:-Spring-Security와-로그인) <br>
+[WEEK 5 | Docker](#CEOS-WEEK-5:-Docker) <br>
 
 
 </div>  
@@ -1410,7 +1411,7 @@ Header, Payload, Signature 세 부분으로 구성되어 있다.
 > xxxxx.yyyyy.zzzzz
 
 - **Header**
-    - **토큰 유형(즉, JWT)** 과 **서명 알고리즘 (HMAC SHA256 or RSA)** 두 부분으로 구성된다.
+  - **토큰 유형(즉, JWT)** 과 **서명 알고리즘 (HMAC SHA256 or RSA)** 두 부분으로 구성된다.
 
 >
 ```
@@ -1426,17 +1427,17 @@ Header, Payload, Signature 세 부분으로 구성되어 있다.
 ➤ Base64Url? Binary 데이터를 String으로 바꾸는 인코딩방식
 
 - **Payload**
-    - claims을 포함하는 부분이다.
-    - 클레임은 Entity(주로 사용자) 및 추가 데이터에 대한 설명이다.
-    - 클레임은 registered, public, private 세가지로 나뉜다.
+  - claims을 포함하는 부분이다.
+  - 클레임은 Entity(주로 사용자) 및 추가 데이터에 대한 설명이다.
+  - 클레임은 registered, public, private 세가지로 나뉜다.
 
-        - **Registered claims** :  유용하고 상호간에 사용 가능한 클레임을 제공하기 위해 권장되는 사전에 정의된 클레임 집합.
-            - (EX)![](https://images.velog.io/images/sozohoy/post/6f1ac388-993b-4b0f-9933-30135cb60b47/%E1%84%89%E1%85%B3%E1%84%8F%E1%85%B3%E1%84%85%E1%85%B5%E1%86%AB%E1%84%89%E1%85%A3%E1%86%BA%202022-01-12%20%E1%84%8B%E1%85%A9%E1%84%92%E1%85%AE%205.35.19.png)
-        - **Public claims** :  사용자가 마음대로 정의할 수 있는 클레임 집합.
-            - 주의) IANA JSON Web Token Registry에 정의하거나 URL 포맷을 사용해야 충돌을 피할 수 있다.
-            - EX) ``` { "[https://naver.com"](https://naver.com%22/): true } ```
-        - **Private claims** :  사용에 동의하는 당사자 간(parties) 정보를 교환하기 위해 공유하는 커스텀 클레임 집합.
-            - EX)  ``` { "token_type": access }```
+    - **Registered claims** :  유용하고 상호간에 사용 가능한 클레임을 제공하기 위해 권장되는 사전에 정의된 클레임 집합.
+      - (EX)![](https://images.velog.io/images/sozohoy/post/6f1ac388-993b-4b0f-9933-30135cb60b47/%E1%84%89%E1%85%B3%E1%84%8F%E1%85%B3%E1%84%85%E1%85%B5%E1%86%AB%E1%84%89%E1%85%A3%E1%86%BA%202022-01-12%20%E1%84%8B%E1%85%A9%E1%84%92%E1%85%AE%205.35.19.png)
+    - **Public claims** :  사용자가 마음대로 정의할 수 있는 클레임 집합.
+      - 주의) IANA JSON Web Token Registry에 정의하거나 URL 포맷을 사용해야 충돌을 피할 수 있다.
+      - EX) ``` { "[https://naver.com"](https://naver.com%22/): true } ```
+    - **Private claims** :  사용에 동의하는 당사자 간(parties) 정보를 교환하기 위해 공유하는 커스텀 클레임 집합.
+      - EX)  ``` { "token_type": access }```
 ```
 { "sub": "1234567890", 
   "name": "John Doe", 
@@ -1445,10 +1446,10 @@ Header, Payload, Signature 세 부분으로 구성되어 있다.
 - 이 JSON 은  `BASE64Url`  로 인코딩되어서 JWT의 두 번째 부분을 구성한다.
 
 - **Signature**
-    - 이 부분에서는 인코딩된 Header와 Payload, Secret (Header에 사용된 알고리즘)이 필요하다.
-    - 토큰이 전송 도중에 변경되지 않았는지 확인하는 데 사용된다.
-    - private key 로 서명된 토큰의 경우, JWT의 전송자가 누구인지도 알 수 있다.
-    - EX) HMAC SHA256 algorithm 을 사용한다면
+  - 이 부분에서는 인코딩된 Header와 Payload, Secret (Header에 사용된 알고리즘)이 필요하다.
+  - 토큰이 전송 도중에 변경되지 않았는지 확인하는 데 사용된다.
+  - private key 로 서명된 토큰의 경우, JWT의 전송자가 누구인지도 알 수 있다.
+  - EX) HMAC SHA256 algorithm 을 사용한다면
 
 ```
 HMACSHA256( base64UrlEncode(header) + "." 
@@ -1512,9 +1513,9 @@ HMACSHA256( base64UrlEncode(header) + "."
 -   사용자 이름, 비밀번호 등의 실제 사용자 자격 증명을 공유하지 않고 한 서비스에서 다른 서비스로 권한 부여를 전달하기 위한 프로토콜.
 - 인증(Authentication)과 인가(Authorization) 중  **인가**에 좀 더 초점을 맞추고 있다.
 - OAuth 2.0에는 4가지 인증 방식이 있는데 그중 **Authorization Code Grant**가 주요 방식이다.
-    - OAuth를 통해 인증, 인가를 제공해주는 서버
-        -  Resource Server: 이름, 이메일 등과 같은 자원을 제공한다.
-        -   Authorization Server: 토큰을 발급해준다.
+  - OAuth를 통해 인증, 인가를 제공해주는 서버
+    -  Resource Server: 이름, 이메일 등과 같은 자원을 제공한다.
+    -   Authorization Server: 토큰을 발급해준다.
 
 ![](https://velog.velcdn.com/images%2Fmax9106%2Fpost%2F5620524a-4359-4abd-b90c-07b65359b3ca%2F%E1%84%89%E1%85%B3%E1%84%8F%E1%85%B3%E1%84%85%E1%85%B5%E1%86%AB%E1%84%89%E1%85%A3%E1%86%BA%202021-07-12%20%E1%84%8B%E1%85%A9%E1%84%8C%E1%85%A5%E1%86%AB%204.16.43.png)
 
@@ -1583,7 +1584,7 @@ public TokenDto createToken(String email, String authorities) {
 ```
 - 현재 시각과 access token의 만료 시각을 설정한다.
 - `Jwts.builder()` 메서드를 사용하여 JWT 빌더를 생성한다.
-    -  `setHeaderParam("typ", "JWT")`,`setHeaderParam("alg", "HS512")`: JWT의 헤더 부분 설정 (토큰의 타입, 서명 알고리즘)
+  -  `setHeaderParam("typ", "JWT")`,`setHeaderParam("alg", "HS512")`: JWT의 헤더 부분 설정 (토큰의 타입, 서명 알고리즘)
 - `setSubject("access-token")`: JWT의 subject 설정. (access-token)
 - `claim(EMAIL_KEY, email)` , `claim(AUTHORITIES_KEY, authorities)`: 토큰의 클레임. (이메일, 권한 정보)
 -  `setIssuedAt(now)`: 토큰의 발급 시간 설정.
@@ -1635,7 +1636,7 @@ public Authentication getAuthentication(String token) {
 }
 ```
 -   토큰으로부터 사용자의 이메일 정보 추출하고, `PrincipalDetailsService`를 사용하여 해당 이메일에 대한 사용자 정보를 가져온다.
-    -   `loadUserByUsername` 메서드로  `PrincipalDetails` 객체를 생성하고 `UsernamePasswordAuthenticationToken`로 `Authentication` 객체를 생성하여 반환한다.
+  -   `loadUserByUsername` 메서드로  `PrincipalDetails` 객체를 생성하고 `UsernamePasswordAuthenticationToken`로 `Authentication` 객체를 생성하여 반환한다.
 
 
 **3. JwtAuthenticationFilter**
@@ -1750,8 +1751,8 @@ public ResponseEntity<NormalResponseDto> join(@RequestBody @Valid UserRequestDto
 ```
 
 - **STEP 2. Request Dto를 통해 회원가입 요청 객체 생성**
-    - 비밀번호가 영문 대소문자, 숫자, 특수문자를 최소한 1개씩 포함하고, 총 길이가 8~16자여야 한다는 규칙을 정의했다.
-    - 이 규칙에 맞지 않는 비밀번호가 입력되면 해당 필드에 대한 유효성 검사에서 실패하게 했다.
+  - 비밀번호가 영문 대소문자, 숫자, 특수문자를 최소한 1개씩 포함하고, 총 길이가 8~16자여야 한다는 규칙을 정의했다.
+  - 이 규칙에 맞지 않는 비밀번호가 입력되면 해당 필드에 대한 유효성 검사에서 실패하게 했다.
 
 ```java 
 @Pattern(regexp = "^(?=.*[A-Za-z])(?=.*\\d)(?=.*[$@$!%*#?&])[A-Za-z\\d$@$!%*#?&]{8,16}$", message = "비밀번호는 8~16자리수여야 합니다. 영문 대소문자, 숫자, 특수문자를 1개 이상 포함해야 합니다.")  
@@ -1759,8 +1760,8 @@ private String password;
 ```
 
 - **STEP 3. authService의 joinMember 메서드로 회원가입**
-    - 비밀번호는 `passwordEncoder`를 통해 인코딩하여 저장한다.
-    - `@Transactional` 어노테이션으로 메서드가 성공적으로 실행되면 변경된 내용이 DB에 저장되고, 실패하면 롤백되게끔 한다.
+  - 비밀번호는 `passwordEncoder`를 통해 인코딩하여 저장한다.
+  - `@Transactional` 어노테이션으로 메서드가 성공적으로 실행되면 변경된 내용이 DB에 저장되고, 실패하면 롤백되게끔 한다.
 
 ```java 
 @Transactional  
@@ -1773,12 +1774,12 @@ public void joinMember(UserRequestDto requestDto) {
 ### <center>🔐 로그인</center>
 
 - **STEP 1. login으로 로그인 매핑**
-    - authService.login을 통해 로그인 시도 및 토큰 발급한다.
-    - **리프레시 토큰**은 **`HttpCookie`** 로 만들어 응답에 추가한다.
-        - `maxAge`로 쿠키의 유효기간 설정
-        - `httpOnly`로 JavaScript에서 쿠키에 접근하는 것을 방지
-        - `sameSite`로 서드파티 쿠키 사용을 허용하도록 설정하되 `secure`로 HTTPS에서만 전송되도록 설정 (소셜 로그인과 같이 다른 도메인에서 제공되는 서비스 사용할 수 있으므로)
-    - **액세스 토큰**은 **`HttpHeaders.AUTHORIZATION 헤더`** 에 넣어 응답에 추가한다.
+  - authService.login을 통해 로그인 시도 및 토큰 발급한다.
+  - **리프레시 토큰**은 **`HttpCookie`** 로 만들어 응답에 추가한다.
+    - `maxAge`로 쿠키의 유효기간 설정
+    - `httpOnly`로 JavaScript에서 쿠키에 접근하는 것을 방지
+    - `sameSite`로 서드파티 쿠키 사용을 허용하도록 설정하되 `secure`로 HTTPS에서만 전송되도록 설정 (소셜 로그인과 같이 다른 도메인에서 제공되는 서비스 사용할 수 있으므로)
+  - **액세스 토큰**은 **`HttpHeaders.AUTHORIZATION 헤더`** 에 넣어 응답에 추가한다.
 
 ```java 
 @PostMapping("/login")  
@@ -1904,3 +1905,762 @@ JWT는 세션 데이터의 서버 측 스토리지가 필요하지 않으므로 
 <br>
 🖍️ OAuth + JWT 구현 시 프엔과 백엔의 역할 <br>
 - https://velog.io/@max9106/OAuth
+---
+
+# 📂 CEOS WEEK 5: Docker
+<br>  
+
+### 🐳  5주차 목표
+
+### 1️⃣ 로컬에서 도커 실행해보기
+### 2️⃣ API 추가 구현 및 리팩토링
+---  
+### 🐳 5주차 미션
+
+### 1️⃣ 로컬에서 도커 실행해보기
+###  1. 기존 VM vs Docker
+### 기존 VM
+
+[![](https://github.com/kiworkshop/2021-docker-study/raw/master/1%ED%9A%8C%EC%B0%A8/yoonseo/img/container-vm-whatcontainer_2.png)](https://github.com/kiworkshop/2021-docker-study/blob/master/1%ED%9A%8C%EC%B0%A8/yoonseo/img/container-vm-whatcontainer_2.png)
+
+-   운영체제 위에서 가상화 소프트웨어를 사용해 하드웨어를 애뮬레이션해 게스트 운영체제를 생성
+-   가상 머신은 물리적 호스트와 그 위에 설치되는 가상화 하이퍼바이저에서 작동
+  -   **하이퍼바이저**란? 서로 다른 복수 개의 OS를 단일 물리 머신 위에서 스케줄링 할 수 있는 소프트웨어
+  - <**Type1**> 운영체제 없이 바로 Hypervisor가 설치됨. 해당 머신은 Hypervisor로만 사용할 수 있음. ex) XEN
+  - <**Type2**> 운영체제를 설치하고, 그 위에 Hypervisor가 실행되는 형태. Hypervisor 외에 다른 프로세스들도 띄울 수 있음. ex) KVM, QEMU, Virtualbox
+    <br>
+    - KVM vs QEMU?: QEMU는 가상화 옵션이 폭넓지만 컴파일 시간이 오래 걸림. KVM는 같은 종류의 CPU 아키텍처만 가상화할 수 있지만 Binary Translation을 수행하지 않기 때문에 성능이 향상됨.
+    - ➤ 서로의 단점을 보완하며 같은 호스트 머신상에서 필요에 따라 함께 사용할 수 있음
+    - ➤ ex. CPU는 호스트 머신과 게스트 머신을 동일한 아키텍처로 가져가며 KVM을 통해 가속화 + DD는 QEMU의 도움을 받아 드라이버로 에뮬레이션 하여 전 가상화
+
+> ⭐️전 가상화(**“Full Virtualizaion”**): 가상 머신이 구동할 OS 혹은 DD를 수정하지 않고 그대로 사용할 수 있는 경우
+
+ <br>
+📝 위 하이퍼바이저 내용은 모두 
+
+[네이버클라우드 기술블로그](https://medium.com/naver-cloud-platform/%EB%84%A4%EC%9D%B4%EB%B2%84%ED%81%B4%EB%9D%BC%EC%9A%B0%EB%93%9C-%EA%B8%B0%EC%88%A0-%EA%B2%BD%ED%97%98-%EA%B0%80%EC%83%81%ED%99%94-%EA%B0%9C%EB%85%90-%EC%9D%B4%ED%95%B4%ED%95%98%EA%B8%B0-1-qemu-vs-kvm-962113641799) 를 참조했습니다.
+
+
+<br>
+
+![Hyperviseur svg](https://github.com/CEOS-Developers/spring-daagn-market-18th/assets/77966605/9ee85a44-620f-4165-8ac5-20a9a2f1241d)
+
+
+### Docker
+-   게스트 OS를 설치하지 않고 이미지에 애플리케이션만 격리해서 설치
+-   호스트 OS와 실행 환경인 도커 엔진을 공유
+-   메모리 접근, 파일시스템, 네트워크 속도가 가상머신에 비해 월등히 빠름
+    ![Container what is container](https://www.docker.com/wp-content/uploads/2021/11/container-what-is-container.png)
+
+###  2. Docker에 대해 더 알아보기
+### 정의
+-   리눅스 **컨테이너** 기반의 오픈소스 가상화 플랫폼
+-   다양한 환경을 컨테이너로 추상화하고, 동일한 인터페이스를 제공해 프로그램의 배포 및 관리를 단순하게 제공 - 컨테이너의 다양화
+    -   컨테이너는 격리된 공간에서  `프로세스`  가 동작하는 기술
+    -   프로세스 자체를 격리시키기 때문에 CPU나 메모리는 프로세스가 필요한 만큼만 추가로 사용
+
+###  구조
+기본적으로 server-client 아키텍처를 사용
+
+**도커 Client**
+-   도커 CLI로, Docker Daemon에게 Docker API를 통해 전달
+
+**도커 Server(Daemon)**
+-   컨테이너 생성, 실행, 이미지 관리 등 도커 엔진을 통한 모든 작업을 수행
+-   도커 서비스를 관리하는 다른 도커 데몬과 통신
+-   로컬에선 유닉스 소켓, 원격에선 TCP 소켓을 통해 클라이언트의 요청을 받아서 처리
+
+### 이미지와 컨테이너
+컨테이너를 만들기 위해서는 총 세가지가 필요함 :  **도커파일, 이미지, 컨테이너**
+
+**Dockerfile**
+-   이미지 생성 과정을 작성한 것
+-   Dockerfile에 작성된 내용을 토대로 이미지를 생성하게 됨
+-   의존성 패키지, 설정파일, script, 환경변수 등 모든 것을 관리
+
+**Image**
+-   컨테이너 실행에 필요한 파일과 설정값 등(코드, 런타임, 환경, 시스템 툴, 시스템 라이브러리등)을 포함하고 있는 것
+-   상태값이 변하지 않음
+-   추가되거나 변하는 값은  **컨테이너에 저장**
+
+**Container**
+-  Image를 고립된 환경에서 개별적인 시스템 안에서 실행할 수 있는 공간
+- container 안에서 image를 이용해 어플리케이션이 구동
+
+### Docker Network
+컨테이너를 생성하게 되면 컨테이너는 **NET namespace**라는 기술을 통해 구현된 가상화 기법을 사용하여 각자 독립된 네트워크 공간을 할당받음
+
+> ⭐️ NET namespace  
+> Network interface, iptables 등 네트워크 리소스와 관련된 정보를 분할하여 각각 다른 namespace에 할당함
+
+### 종류
+**bridge**
+-   기본(default) 네트워크 드라이버
+-   브리지 네트워크는 동일한 Docker 데몬 호스트에서 실행되는 컨테이너에 사용
+
+**host**
+-   컨테이너를 host 네트워크와 격리시키지 않으며, 컨테이너는 호스트의 네트워킹 네임스페이스를 공유
+-   이를 통해 호스트의 포트를 이용하여 바로 서비스할 수 있음
+
+### overlay
+-   여러 Docker 데몬을 함께 연결하고 스웜 서비스(도커의 Container Ochestartion 시스템)가 서로 통신할 수 있도록 하는 것
+
+### none
+-   컨테이너의 네트워크를 사용하지 않도록 설정하여 외부와 통신 단절
+
+### macvlan
+-   컨테이너에 MAC 주소를 할당하여 네트워크에서 물리적 장치로 직접 연결
+-   Docker 데몬은 MAC 주소로 트래픽을 라우팅
+
+
+### 용어 정리
+**docker0**
+- 호스트의 `veth` 가상 인터페이스와 호스트의 `eth0` 인터페이스를 이어주는 중간 다리 브릿지
+```
+$ ifconfig
+docker0: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
+        inet 172.17.0.1  netmask 255.255.0.0  broadcast 172.17.255.255
+        inet6 fe80::42:1ff:fe49:e168  prefixlen 64  scopeid 0x20<link>
+        ether 02:42:01:49:e1:68  txqueuelen 0  (Ethernet)
+        RX packets 1946  bytes 770155 (752.1 KiB)
+        RX errors 0  dropped 0  overruns 0  frame 0
+        TX packets 564  bytes 44678 (43.6 KiB)
+        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+```
+#### **veth**
+- 가상의 네트워크 인터페이스로, 자신과 연결된 컨테이너의 네트워크 인터페이스와 패킷을 주고받는 식으로 동작
+- 사용자가 직접 생성할 필요없이 도커가 자동으로 생성해주며, 항상 쌍으로(pair)로 생성됨
+- 호스트에 컨테이너가 한개도 실행중이지 않은 경우 실제로 docker0에 veth가 바인딩되지 않는 것을 확인할 수 있음
+```
+$ brctl show docker0
+bridge name     bridge id               STP enabled     interfaces
+docker0         8000.02420149e168       no
+```
+- 호스트에 컨테이너가 실행중인 경우 docker0 확인
+```
+$ brctl show docker0
+bridge name     bridge id               STP enabled     interfaces
+docker0         8000.02420149e168       no              veth9159bb2
+```
+
+#### **eth0**
+- 호스트가 사용하는 네트워크 인터페이스를 의미
+
+### 구조
+![](https://blog.kakaocdn.net/dn/m9R1m/btrIFH4bS30/zJkupwtBS1WeGWXrfSbu40/img.png)
+
+1️⃣ 컨테이너를 생성하면 컨테이너는 호스트와 통신하기 위한  eth0라는 네트워크 인터페이스를 할당받음 <br>
+2️⃣ 동시에 호스트에도  veth (virtual ethernet)라는 네트워크 인터페이스가 할당되고 컨테이너에 할당된  eth0 인터페이스와 통신 <br>
+3️⃣ 호스트에 할당된 veth 인터페이스는 docker0와 바인딩되고 docker0는 호스트의 eth0 인터페이스와 연결되어 외부로부터 들어온 요청을 처리 <br>
+
+###  3. Docker 로컬에서 실행해보기
+**Dockerfile**
+- 컨테이너에 설치해야하는 패키지, 소스코드, 명령어, 환경변수설정 등을 기록한 하나의 파일
+- Docker의 **build** 명령은 Dockerfile에 기술된 구성 정보(**Dockerfile**)를 바탕으로 **Docker 이미지를 작성**
+
+![](https://blog.kakaocdn.net/dn/cNbRJe/btq3XbjEavE/imEWh6QDA8QBlUDAZPi8e1/img.png)
+
+
+**docker-compose**
+- 다중 컨테이너 Docker 애플리케이션을 정의하고 실행하기 위한 툴
+> Compose is a tool for defining and running multi-container Docker applications.
+<br>
+-   docker-compose로 개발환경 구성 시 장점 (출처: [지마켓 기술블로그](https://dev.gmarket.com/72)) <br>
+-   언제/어디서나, OS가 다른 상황에서도 동일한 환경구성이 가능 <br>
+-   모두 동일한 개발환경을 경험하기 때문에 개발환경에 이슈가 발생해도 소통이 쉬움 <br>
+-   복잡한 환경도 스크립트화 할 수 있기 때문에 자동화가 가능하고 조작이 쉬움 <br>
+-   `docker-compose cli`를 이용하여 쉽게 애플리케이션을 관리할 수 있고 자동화가 가능 <br><br>
+
+STEP 1. jar 파일 생성: Gradle 탭에서 Tasks-build-bootJar 실행<br>
+STEP 2. Dockerfile 작성 후 Docker 이미지 빌드
+`docker build -t {docker image 이름} {Dockerfile의 위치}`
+<br>
+STEP 3. docker-compose 작성 후 로컬 도커 실행
+`docker-compose -f docker-compose.yml up --build`
+
+<br>
+docker ps 명령어로 확인했을 때 두 개의 이미지가 실행되고 있고 [http://localhost:8080](http://localhost:8080/) 에 접속해 
+서버가 잘 띄워져있다면 성공
+
+↓<br>
+<img width="1338" alt="스크린샷 2023-11-18 21 29 23" src="https://github.com/CEOS-Developers/spring-daagn-market-18th/assets/77966605/f2090190-1c1e-4f7e-9a98-5ba1f6d09b39">
+<br>
+<img width="995" alt="스크린샷 2023-11-18 21 31 56" src="https://github.com/CEOS-Developers/spring-daagn-market-18th/assets/77966605/782776c8-5e4c-4225-90d6-a6521baa8641">
+
+
+
+---
+### 2️⃣ API 추가 구현 및 리팩토링
+`User` , `Chatting` 부분을 추가 구현하기로 함
+
+### 📬 이메일 본인인증 요청
+### Info
+
+-   **분류**  :  `회원`
+-   **기능**  :  `이메일 회원 본인인증 요청`
+-   **URL**  :  `api/auth/signup/mailConfirm`
+-   **Method**  :  `POST`
+
+#### Request Example
+```java
+{ "email" : "ceos@ceos.com" }
+```
+#### Response Example
+```java
+{ "status": "SUCCESS", "message": "DmdIw86H" }
+```
+#### Comment
+1. Reponse의 data로 사용자 이메일로 보낸 본인인증 코드를 보냄
+2. 사용자가 입력한 본인 인증코드와 동일한지 확인한 이후 회원가입을 진행하도록 함
+4. 이미 가입된 이메일이라면 status는 FAIL로 보내짐
+
+#### Logic
+
+**STEP1. MailConfig**
+이메일 전송에 사용되는 JavaMailSender를 설정하는 클래스로 이메일 전송 환경을 구성함
+- 이메일 발송을 위한 **`JavaMailSender`** 빈을 생성하여 프로퍼티 값 주입 및 인코딩 설정
+- **`getMailProperties()`** 로 `JavaMailSender` 빈에 속성을 적용
+- 전송 프로토콜을 SMTP로 설정 및  활성화, SMTP StartTLS를 사용하도록 설정, SSL을 사용하도록 설정하고 서버 주소 세팅
+
+**STEP2. controller 매핑**
+```java
+// 이메일 인증  
+@PostMapping("/signup/mailConfirm")  
+@ResponseBody  
+public ResponseEntity<NormalResponseDto> mailConfirm(@RequestBody EmailRequestDto requestDto) throws Exception {  
+	if (isAlreadyExistEmail(requestDto.getEmail()))  
+		return ResponseEntity.ok(NormalResponseDto.fail());  
+  
+	String code = signupEmailService.sendSimpleMessage(requestDto.getEmail());  
+	NormalResponseDto responseDto = NormalResponseDto.success();  
+	responseDto.setMessage(code);  
+return ResponseEntity.ok(responseDto);  
+}
+```
+
+**STEP3. Service**
+회원가입 인증 코드를 생성하고 해당 코드를 이메일로 발송하는 기능을 제공함
+- 랜덤 8자리 인증 코드 생성 (영문 소문자, 대문자, 숫자 중에서 랜덤하게 조합)
+```java
+ public static String createKey() {
+        StringBuffer key = new StringBuffer();
+        Random random = new Random();
+
+        for (int i = 0; i < 8; i++) {
+            int idx = random.nextInt(3);
+
+            switch (idx) {
+                case 0:
+                    key.append((char) ((int) random.nextInt(26) + 97));
+                    break;
+                case 1:
+                    key.append((char) ((int) random.nextInt(26) + 65));
+                    break;
+                case 2:
+                    key.append(random.nextInt(10));
+                    break;
+            }
+        }
+        return key.toString();
+    }
+```
+- 수신자 이메일 주소를 받아와 해당 주소로 보낼 메일의 `MimeMessage`를 생성하고 HTML 형식으로 메일 내용 구성
+```java
+public MimeMessage createMessage(String to) throws MessagingException, UnsupportedEncodingException {
+    log.info("보내는 대상: " + to);
+    log.info("인증 번호: " + ePw);
+
+    MimeMessage message = emailsender.createMimeMessage();
+
+    message.addRecipients(MimeMessage.RecipientType.TO, to);
+    message.setSubject("Karrot 이메일 인증 코드입니다.");
+
+    String msg = String.format("""
+            <div style="width: 80vw; margin: 0 auto; text-align: center; background-color: #f5f5f5; padding: 20px; border-radius: 10px;">
+                <h1 style="font-size: 32px; font-weight: 600; margin-bottom: 20px;">Karrot 회원가입을 위한 인증코드입니다.</h1>
+                <p style="font-size: 18px; font-weight: 400; margin-bottom: 20px;">안녕하세요, Karrot입니다. <br /> 회원가입 페이지로 돌아가 아래 인증코드를 입력해주세요.</p>
+                <div style="padding: 15px; font-size: 1.5rem; font-weight: 600; background-color: lightgray; border-radius: 10px; display: inline-block;">
+                    %s
+                </div>
+            </div>
+            """, ePw);
+
+    message.setText(msg, "utf-8", "html");
+    message.setFrom(new InternetAddress(id, "Karrot_Admin"));
+
+    return message;
+}
+```
+- 메시지를 이메일 발송 서비스에 전달하여 이메일을 발송
+  - 메일 전송 중에 발생하는 예외: `MailException`으로 처리, 해당 예외가 발생하면 `IllegalAccessException`을 던짐
+
+```java
+public String sendSimpleMessage(String to) throws Exception {
+        MimeMessage message = createMessage(to);
+
+        try {
+            emailsender.send(message);
+        } catch (MailException es) {
+            es.printStackTrace();
+            throw new IllegalAccessException();
+        }
+        return ePw;
+    } 
+```
+
+<img width="550" alt="스크린샷 2023-11-18 19 31 17" src="https://github.com/CEOS-Developers/spring-daagn-market-18th/assets/77966605/33c3c0e7-96f7-4e10-ace8-8bf9dd27902a">
+<br>↓<br>
+<img width="550" alt="스크린샷 2023-11-18 19 32 16" src="https://github.com/CEOS-Developers/spring-daagn-market-18th/assets/77966605/01345a24-e784-4801-abbe-eb74a6fb586b">
+
+
+
+
+### 💬 채팅
+웹 소켓을 이용하여 채팅을 구현함
+
+### WEB Socket
+- 반 영구적 양방향 통신이며, 하나의 TCP 커넥션으로 full duplex 통신을 제공하는 프로토콜
+-  HTTP 통신은 지속적으로 데이터를 요청하는 polling의 방식을 사용해야 하지만, 웹소켓은 그럴 필요가 없음 **→** 낮은 부하로 클라이언트와 서버 간 통신이 가능
+- HTTP로 handshake를 초기 통신을 시작한 후, 웹소켓 프로토콜로 변환하여 데이터를 전송함
+- 클라이언트는 서버에 HTTP 프로토콜로 handshake를 요청 **→** 서버에서 응답 코드 101 반환
+  <img width="687" alt="스크린샷 2023-11-18 14 18 10" src="https://github.com/CEOS-Developers/spring-daagn-market-18th/assets/77966605/540a8efc-3d08-446c-ad73-70108d69fad2">
+
+### Logic
+### ⚙️ Config
+
+**SocketConfig**
+
+WebSocketMessageBrokerConfigurer를 인터페이스로 구현하고 StompHandler를 인터셉트로 적용한 클래스
+
+> **WebSocketMessageBrokerConfigurer**: 메세징 프로토콜(STOMP)로 메시지를 처리하는 방법들을 정의한 interface
+
+> _**STOMP(Simple Text Oriented Messaging Protocal)**_ -> 데이터 교환을 위한 형식과 규칙을 정의하는 메세징 프로토콜
+
+> _**메시지 브로커(Message Broker)**_-> 송신자(Publisher)의 메시지 프로토콜 형식으로 부터의 메세지를 수신자(Subscriber)의 메세지 프로토콜 형식으로 변환해서 전달하는 중간 프로그램 모듈
+
+- 메시지를 중간에서 라우팅할 때 사용하는 메시지 브로커를 설정함
+  - 해당 주소 (prefix)를 구독하고 있는 클라이언트들에게 메시지를 브로드캐스트함 (=메시지를 보냄)
+  - 클라이언트에서 메시지를 송신할 때 사용할 도착지(prefix)를 설정함.
+  - 클라이언트에서 발신한 메시지가 도착하는 경로를 지정하며, 클라이언트가 `/pub`로 시작하는 주소로 메시지를 보낼 경우, 서버에서는 이를 처리할 적절한 메서드에 라우팅
+```java
+public void configureMessageBroker(MessageBrokerRegistry registry) {  
+	registry.enableSimpleBroker("/sub");
+	registry.setApplicationDestinationPrefixes("/pub");  
+}
+```
+
+- 클라이언트에서 연결할 STOMP endpoint를 지정함
+- 모든 cors 요청을 허용
+- 수정해야할 사항: 클라이언트의 브라우저가 WebSocket을 지원하지 않는 경우 polling 방식 수행하도록 해주어야 함 (SockJS?)
+```java
+public void registerStompEndpoints(StompEndpointRegistry registry) {  
+	registry.addEndpoint("/ws/chat")
+		.setAllowedOriginPatterns("*"); 
+}
+```
+
+**StompHandler**
+`ChannelInterceptor`를 구현하여 STOMP 프로토콜을 사용하는 WebSocket 통신에서 메시지가 채널로 전송되기 전에 실행되는 클래스
+
+- 클라이언트가 `StompCommand.CONNECT`를 사용하여 WebSocket 연결을 시도할 때,  `JwtTokenProvider`를 사용하여 Authorization 헤더에 있는 토큰을 검증
+  → WebSocket 연결 시에 사용자의 토큰이 유효한지 확인하고, 유효하지 않은 경우에는 연결을 거부
+
+```Java
+@Override public Message<?> preSend(Message<?> message, MessageChannel channel) { 
+	StompHeaderAccessor accessor = StompHeaderAccessor.wrap(message); 
+	if (StompCommand.CONNECT.equals(accessor.getCommand())) { 
+      jwtTokenProvider.validateToken(Objects.requireNonNull(accessor.getFirstNativeHeader("Authorization")).substring(7)); 
+    } 
+    return message; }
+```
+### 🤝 ChatRoom (채팅방) 생성
+
+**ChatRoomController**
+현재 인증된 사용자 정보를 주입받고 HTTP 요청 바디에 있는 데이터를 `ChatRoomRequest` 객체로 매핑
+```Java
+@PostMapping("/room")  
+public ResponseEntity<ChatRoomInfoResponse> createRoom(@CurrentUser User user,  
+@RequestBody ChatRoomRequest request) {  
+	ChatRoomInfoResponse chatRoomInfoResponse = chatService.createChatRoom(user, request.getPostId());  
+	return ResponseEntity.ok(chatRoomInfoResponse);  
+}
+```
+
+**ChatRoomRequest**
+게시물 ID와 웹소켓 세션을 포함
+- 생성된 채팅방에 속한 웹소켓 세션을 나타내는 Set → 채팅방에 참여한 각 사용자의 웹소켓 세션은 이 Set에 추가+ 이를 통해 채팅방에 참여한 사용자들의 세션 정보를 관리.
+
+```java 
+private Long postId;
+
+@Builder.Default  
+private Set<WebSocketSession> sessions = new HashSet<>();
+```
+
+**chatRoomInfoResponse**
+채팅방 정보를 응답으로 제공 (채팅방 생성자 여부, 생성자 id, 채팅방 생성 날짜 등..)
+
+**ChatService**
+채팅방 생성 로직을 수행
+
+- `chatRooms` 맵을 LinkedHashMap으로 초기화
+
+> 👀 왜 LinkedHashMap? 채팅방이 생성된 순서대로 맵에 저장되기 때문에 나중에 채팅방 목록을 조회하거나 특정 순서로 순회할 때 유용! (UI에 표시, 목록 정렬, 이력 기록..)
+
+- 주어진 게시글 ID를 사용하여 해당 게시글을 조회하고, 게시물 없을 시 `POST_NOT_FOUND` 에러 반환
+- 거래방법 (판매하기/나눔하기) 에 따라 `ChatRoom` 객체를 다르게 생성하도록 함
+
+```java 
+   public ChatRoomInfoResponse createChatRoom(User member, Long postId) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new KarrotException(ErrorCode.POST_NOT_FOUND));
+
+        ChatRoom chatRoom;
+        User user;
+
+        // 거래방법 (판매하기, 나눔하기) 에 따라 다르게 저장
+        if (post.getDealMethod().equals(DealMethod.SELL)) {
+            chatRoom = ChatRoom.builder()
+                    .caller(post.getUser())
+                    .helper(member)
+                    .post(post)
+                    .build();
+            user = chatRoom.getCaller();
+
+        } else {
+            chatRoom = ChatRoom.builder()
+                    .caller(member)
+                    .helper(post.getUser())
+                    .post(post)
+                    .build();
+            user = chatRoom.getHelper();
+        }
+
+```
+
+- 생성된 `ChatRoom`은 `chatRooms` 맵에 저장되고, `chatRoomRepository`를 통해 데이터베이스에 저장
+- 게시글의 상태를 '진행 중' -->  '채팅 중'으로 변경
+
+```java 
+        chatRooms.put(chatRoom.getId(), chatRoom);
+        chatRoomRepository.save(chatRoom);
+
+        if (post.getPostStatus().equals(PostStatus.IN_PROGRESS))
+            post.updatePostStatus(PostStatus.CHATTING);
+
+        return ChatRoomInfoResponse.of(chatRoom, user, false);
+```
+↓ 생성 완료
+
+<img width="550" alt="스크린샷 2023-11-18 17 18 03" src="https://github.com/CEOS-Developers/spring-daagn-market-18th/assets/77966605/ab3332ba-9e50-4762-81e5-e4d505216ba3">
+
+### ✉️ ChatMessage 보내기 (구현 중)
+
+**ChattingController**
+웹소켓을 이용해 실시간 채팅 메시지를 처리하고, 채팅방에 새로운 메시지가 도착할 때 해당 채팅방의 구독자에게 메시지를 전송하는 역할을 수행
+
+
+- **채팅방 메시지 처리 및 전송**
+  - WebSocket을 통해 전달된 메시지 `SendMessage` 를 받아와 채팅방 ID를 이용하여 `chatRoomRepository`에서 해당 채팅방을 찾음
+  - 메시지의 유형(`ENTER` / `TALK`)에 따라 채팅 메시지를 생성하여 `chatMessageRepository` 에 저장
+  - 생성된 채팅 메시지를 해당 채팅방에 추가하고 마지막 메시지를 업데이트
+  - 메시지의 유형이 대화(=`TALK`)인 경우 → 추가 정보(보낸 사람 ID, 닉네임, 이미지 URL 등)를 설정
+  - 최종적으로 `sendingOperations`를 사용하여 채팅방의 구독자에게 새로운 메시지를 전송
+```java 
+@MessageMapping("/message")
+public void message(SendMessage sendMessage) {
+    ChatRoom chatRoom = chatRoomRepository.findById(sendMessage.getRoomId())
+            .orElseThrow(() -> new KarrotException(ErrorCode.CHATROOM_NOT_FOUND));
+
+    ChatMessage message;
+
+    if (ChatMessage.MessageType.ENTER.equals(sendMessage.getType())) {
+        message = createEnterMessage(chatRoom, sendMessage.getType());
+        sendMessage.setMessage(message.getMessage());
+    } else {
+        User user = userRepository.findById(sendMessage.getSenderId())
+                .orElseThrow(() -> new KarrotException(ErrorCode.MEMBER_NOT_FOUND));
+        message = createTalkMessage(chatRoom, user, sendMessage.getType(), sendMessage.getMessage());
+        sendMessage.setMessage(message.getMessage());
+    }
+
+    chatMessageRepository.save(message);
+    chatRoom.addChatMessage(message);
+    chatRoom.updateLastMessage(message.getMessage());
+    chatRoomRepository.save(chatRoom);
+
+    if (message.getType().equals(ChatMessage.MessageType.TALK)) {
+        sendMessage.setSenderId(message.getSender().getId());
+        sendMessage.setSenderNickname(message.getSender().getNickname());
+        sendMessage.setImgUrl(message.getSender().getImgUrl());
+    }
+    sendMessage.setSendTime(message.getSendDate());
+    sendingOperations.convertAndSend("/sub/chat/room/" + message.getChatRoom().getId(), sendMessage);
+}
+```
+
+
+- 채팅방 ENTER 메시지 생성 (채팅방 입장 메시지)
+  - 입장 메시지 내용은 거래 방법(`DealMethod`)에 따라 다르게 설정
+
+
+```java
+private ChatMessage createEnterMessage(ChatRoom chatRoom, ChatMessage.MessageType messageType) {
+    DealMethod dealMethod = chatRoom.getPost().getDealMethod();
+    User member = dealMethod.equals(DealMethod.SELL) ? chatRoom.getHelper() : chatRoom.getCaller();
+    String messageContent = dealMethod.equals(DealMethod.SELL) ?
+            "Karrot!" :
+            member.getNickname() + "님이 채팅을 시작했어요.";
+
+    return ChatMessage.builder()
+            .sender(null)
+            .chatRoom(chatRoom)
+            .messageType(messageType.name())
+            .message(messageContent)
+            .build();
+}
+```
+
+- 채팅방 TALK 메시지 생성 (일반 대화 메시지)
+  - 채팅방, 보낸 사용자, 메시지 유형, 메시지 내용을 받아와서 `ChatMessage` 객체 생성
+
+```java 
+private ChatMessage createTalkMessage(ChatRoom chatRoom, User sender, ChatMessage.MessageType messageType, String messageContent) {  
+	return ChatMessage.builder()  
+		.sender(sender)  
+		.chatRoom(chatRoom)  
+		.messageType(messageType.name())  
+		.message(messageContent)  
+		.build();  
+}
+
+```
+
+↓ 웹소켓으로 접속<br>
+<img width="550" alt="스크린샷 2023-11-18 17 44 53" src="https://github.com/CEOS-Developers/spring-daagn-market-18th/assets/77966605/3382596f-e261-466d-bdf8-da5d4fbf7479">
+<br>
+↓ 타 유저로 메시지 전송 <br>
+<img width="854" alt="스크린샷 2023-11-18 19 15 39" src="https://github.com/CEOS-Developers/spring-daagn-market-18th/assets/77966605/1f847e29-c32f-4145-b8ee-c7b1629514bc">
+<br>
+🖊️ 수정해야 할 사항: 서버->클라이언트 메시지 전송되도록 고치기
+ 
+---
+### 트러블 슈팅
+**Docker**
+**⛔️ Error starting userland proxy: listen tcp 0.0.0.0:3306: bind⛔️**
+해결 방법: db 포트 3308 로 변경 <br>
+**⛔️jdbc.exceptions.CommunicationsException: Communications link failure⛔️**
+해결 방법: autoReconnect=true&useSSL=false 붙이고 db 설정 수정<br>
+**WebSocket**
+**⛔️ Error: No enum value sending message using websockets**
+해결 방법: Request body를 newline으로 쓰지 않고 한줄에 다 써서 보내기
+[참고한 스택오버플로우](https://stackoverflow.com/questions/70555184/no-enum-value-sending-message-using-websockets)
+
+---
+### 참고
+- https://www.docker.com/resources/what-container/
+- https://docs.docker.com/compose/
+- https://be-developer.tistory.com/18
+- https://yoo11052.tistory.com/208
+- https://velog.io/@whattsup_kim/Docker-%EB%84%A4%ED%8A%B8%EC%9B%8C%ED%81%AC
+- https://wildeveloperetrain.tistory.com/79
+- https://medium.com/naver-cloud-platform/%EB%84%A4%EC%9D%B4%EB%B2%84%ED%81%B4%EB%9D%BC%EC%9A%B0%EB%93%9C-%EA%B8%B0%EC%88%A0-%EA%B2%BD%ED%97%98-%EA%B0%80%EC%83%81%ED%99%94-%EA%B0%9C%EB%85%90-%EC%9D%B4%ED%95%B4%ED%95%98%EA%B8%B0-1-qemu-vs-kvm-962113641799
+
+---
+# 📂 CEOS WEEK 6: Github Action을 이용한 CI/CD
+<br>  
+
+### 🐳  6주차 목표
+
+### 1️⃣ 도커 이미지 배포하기
+### 2️⃣ 배포환경에 대한 테스트 스크린샷 올리기
+---  
+### 🐳 6주차 미션
+
+dockerhub에 push 후 EC2에서 pull 해와 배포 완료하였습니다.
+
+- docker image commit
+
+``` sudo docker commit ```
+
+- docker image 확인
+
+``` sudo docker images ``` <br>
+<img width="469" alt="스크린샷 2023-11-24 01 24 27" src="https://github.com/CEOS-Developers/spring-daagn-market-18th/assets/77966605/d7118ce2-2412-44a4-ac38-0afc3e182b83">
+
+
+- docker hub 로그인<br>
+  ``` sudo docker login ``` <br>
+  -  ⛔️ **에러 발생 - Error saving credentials: error storing credentials - err: exit status 1, out: write permissions error**
+  - 🔧 **해결방법**: `~/.docker/config.json` 삭제
+
+
+- docker hub 재로그인
+  ``` sudo docker login ``` <br>
+
+- docker hub에 push
+  ``` sudo docker push <레포지토리명>/<이미지명>:<태그> ``` <br>
+
+![image](https://github.com/CEOS-Developers/spring-daagn-market-18th/assets/77966605/d28b5753-088f-44dc-a7ff-d476a5d8f36e)
+
+- docker hub에서 확인<br>
+  <img width="550" alt="스크린샷 2023-11-24 01 25 13" src="https://github.com/CEOS-Developers/spring-daagn-market-18th/assets/77966605/263dbaf5-87dd-4c04-9248-98f2332ffa1c">
+
+- EC2 생성<br>
+  <img width="550" alt="스크린샷 2023-11-24 01 53 47" src="https://github.com/CEOS-Developers/spring-daagn-market-18th/assets/77966605/be514f27-2d61-4862-a27b-751af86d4ffa">
+
+- EC2에서 docker 설치
+ ```
+//도커 설치  
+$ sudo yum install docker
+$ docker -v
+
+// 도커 compose 설치 
+$ sudo curl -L https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose   
+
+// 도커 시작하기     
+$ sudo systemctl start docker
+
+// 실행 권한 적용   
+$ sudo chmod +x /usr/local/bin/docker-compose    
+$ sudo chmod 666 /var/run/docker.sock
+$ docker-compose -v
+
+```
+
+![image](https://github.com/CEOS-Developers/spring-daagn-market-18th/assets/77966605/d9d7a2ba-b931-46fb-be7c-f9bc02149cbb)
+
+- EC2 내 docker-compose에 환경변수 적용
+ ```
+docker-compose config    
+```
+
+- jar 파일 생성
+  - ⛔️ **문제 1: AWS EC2 Gradle 배포 시 :compileJava 부분에서 stuck되는 현상 발생!**
+  - 👀 **원인**: Gradle과 버전 호환 문제
+  - 🔧 **해결방법**:
+    `sudo apt-get install lib32stdc++6 `
+    `sudo apt-get install lib32z1`
+  - [참고 링크](https://stackoverflow.com/questions/32360632/gradle-build-gets-stuck-at-executing-tasks-appgeneratedebugsources-appgen)
+
+  - ⛔️ **문제 2: When using COPY with more than one source file, the destination must be a directory and end with a /**
+  - 👀 **원인**: plain jar, executable jar 두 개가 있어서 발생
+  - **🔧 해결방법1**: plain jar 삭제
+  - **🔧 해결방법2**: **executable jar만 생성**하도록 build파일에 설정
+    ` jar { enabled = false }`
+  - [참고 링크](https://velog.io/@jeongmin78/CICD-When-using-COPY-with-more-than-one-source-file-the-destination-must-be-a-directory-and-end-with-a%20https://dev-j.tistory.com/22)
+
+- jar 파일 재생성
+
+```
+// 테스트 제외하고, jar 파일 빌드만
+$ ./gradlew clean build -x test
+``` 
+<br>
+
+test를 제외하지 않으면
+> Task :compileTestJava FAILED
+FAILURE: Build failed with an exception.
+발생하게 됨.
+
+→ 이제 무사히 빌드되었다.
+
+<br>
+
+- docker-compose 이용해 백그라운드로 애플리케이션 실행
+
+  - **⛔️  문제: Couldn’t connect to Docker daemon at http+docker://localhost - is it running?**
+  - **👀 해결방법**: `sudo docker-compose up` (앞에 sudo 붙여 실행)
+  - [참고 링크](https://forums.docker.com/t/couldnt-connect-to-docker-daemon-at-http-docker-localhost-is-it-running/87257/4)
+
+<br>
+<img width="550" alt="스크린샷 2023-11-24 23 33 56" src="https://github.com/CEOS-Developers/spring-daagn-market-18th/assets/77966605/3ed3f5ef-e84b-46a4-926e-27d9a513a82a">
+
+→ 실행 성공적으로 됨
+
+-실행 중 확인<br>
+<img width="550" alt="스크린샷 2023-11-24 23 34 50" src="https://github.com/CEOS-Developers/spring-daagn-market-18th/assets/77966605/f2b3d287-967f-4a8a-86a8-49865d0aacd9">
+<br>
+-EIP 할당<br>
+<img width="550" alt="스크린샷 2023-11-25 13 10 07" src="https://github.com/CEOS-Developers/spring-daagn-market-18th/assets/77966605/9d7f98e0-0f6e-4a93-b376-4455b7c9e025"><br>
+
+-도메인 구매 후 EC2에 연결 & 레코드 업데이트<br>
+<img width="550" alt="스크린샷 2023-11-25 13 28 48" src="https://github.com/CEOS-Developers/spring-daagn-market-18th/assets/77966605/fb593c44-ae53-4e28-a4e2-7ee3476d105e">
+<br>**↓**<br>
+<img width="550" alt="스크린샷 2023-11-25 14 09 31" src="https://github.com/CEOS-Developers/spring-daagn-market-18th/assets/77966605/75bf5e5b-fc07-46e2-bfc4-2ffa9511d2c9"><br>
+
+- Target Group 생성<br>
+  <img width="550" alt="스크린샷 2023-11-25 15 53 13" src="https://github.com/CEOS-Developers/spring-daagn-market-18th/assets/77966605/28a77bb4-b0de-479c-b980-ccbf7eca58b9"><br>
+
+
+- ELB 생성<br>
+  <img width="550" alt="스크린샷 2023-11-25 14 08 00" src="https://github.com/CEOS-Developers/spring-daagn-market-18th/assets/77966605/0db3b0be-50e3-4ec2-8c00-9061981f7be5"><br>
+
+- 인증서 발급 및 HTTPS 리다이렉트 규칙 생성<br>
+  <img width="550" alt="스크린샷 2023-11-25 17 45 10" src="https://github.com/CEOS-Developers/spring-daagn-market-18th/assets/77966605/47bc4ffa-3d5f-4384-8432-530faa957684"><br>
+
+
+- ELB 생성 후 EC2 재부팅을 하고, docker-compose 로 애플리케이션 재실행했는데..
+
+``` 
+ubuntu@ip-172-xx:~/spring-daagn-market-18th$ docker-compose up -d
+Starting db ... done
+Starting web ... done
+ubuntu@ip-172-xx:~/spring-daagn-market-18th$ docker-compose ps
+``` 
+
+⛔️ 실행 후 docker-compose ps로 조회했는데 shell이 stuck되는 현상 발생 <br>
+EC2를 거의 오십번 껐다 키고 ~~수백가지~~ 방법을 시도해보았는데 문제 해결이 안 됨. <br>
+설마 설마 해서 확인해보니.. <br>
+``` 
+               total        used        free      shared  buff/cache   available
+Mem:             949         540          84           0         324         253
+Swap:              0           0           0
+``` 
+메모리 사용량을 확인하였는데 현재 사용 가능한 메모리가 253MB밖에 남아있지 않았다. 충분한 자원이 없어서 애플리케이션이나 도커 컨테이너가 정상적으로 실행되지 않았나 싶음.
+
+- **🔧 EC2 메모리 스왑 진행** <br>
+
+  1. **스왑 파일 생성:**
+
+  `sudo fallocate -l 1G /swapfile`
+
+  1GB 크기의 스왑 파일을 생성
+
+  2. **스왑 파일 권한 설정:**
+
+  `sudo chmod 600 /swapfile`
+
+  스왑 파일에 대한 보안을 위해 권한 설정
+
+  3. **스왑 파일 포맷:**
+
+  `sudo mkswap /swapfile`
+
+  4. **스왑 영역 활성화:**
+
+  `sudo swapon /swapfile`
+
+  생성한 스왑 파일 활성화
+
+  5. **부팅 시 자동으로 스왑 파일 활성화:**
+
+  `echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab`
+
+<br>
+
+- 메모리 스왑 후 애플리케이션 재실행 및 조회<br>
+  <img width="550" alt="스크린샷 2023-11-25 17 30 28" src="https://github.com/CEOS-Developers/spring-daagn-market-18th/assets/77966605/cf46aa7b-fef5-4640-baac-fa802f904595">
+
+→ ps 후 stuck 안되고 조회 잘 됨
+
+
+- (현재 해결 중) ⛔️ web 컨테이너가 정상적으로 실행된 이후 약 2분 뒤 쯤 exit 되어버리는 문제
+
+<img width="180" alt="스크린샷 2023-11-25 17 47 44" src="https://github.com/CEOS-Developers/spring-daagn-market-18th/assets/77966605/6b92c5d7-7daf-43c3-b984-7970eda149df"> <br>
+
+→ HTTP로 리다이렉트는 잘 되나 현재 Web container 문제로 접근이 불가능한 상황
+
+DB와의 연동 문제인 것 같아 이 방향으로 해결 중
+
+(해결 후 내용 추가해놓겠습니다!) 

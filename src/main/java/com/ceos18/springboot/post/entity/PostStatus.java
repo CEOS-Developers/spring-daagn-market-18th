@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public enum PostStatus {
     IN_PROGRESS("판매중"),
+    CHATTING("채팅중"),
     RESERVED("예약중"),
     DONE("거래완료");
 

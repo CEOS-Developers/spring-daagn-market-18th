@@ -19,12 +19,9 @@ public class Post extends BaseTimeEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    /*
-    TODO: 유저 로그인 구현 후 연동 예정
     @ManyToOne(fetch = FetchType.EAGER, optional = false)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
-     */
 
     @Column(name = "town_id", nullable = false)
     private int townId;
@@ -54,16 +51,10 @@ public class Post extends BaseTimeEntity {
     @Enumerated(EnumType.STRING)
     private PostStatus postStatus;
 
-    /*
-    TODO: 가격 제안 로직 추가 여부 결정
-    @Column(name = "hasPriceProposal")
-    private Boolean hasPriceProposal;
-     */
-
     @Builder
-    public Post(Long id, int townId, int categoryId, String postTitle, String postContent, int cost, String productImage, DealMethod dealMethod, PostStatus postStatus) {
+    public Post(Long id, User user, int townId, int categoryId, String postTitle, String postContent, int cost, String productImage, DealMethod dealMethod, PostStatus postStatus) {
         this.id = id;
-        // this.user = user;
+        this.user = user;
         this.townId = townId;
         this.categoryId = categoryId;
         this.postTitle = postTitle;
@@ -72,6 +63,10 @@ public class Post extends BaseTimeEntity {
         this.productImage = productImage;
         this.dealMethod = dealMethod;
         this.postStatus = postStatus;
+    }
+
+    public void updatePostStatus(PostStatus status) {
+        this.postStatus = status;
     }
 
 
