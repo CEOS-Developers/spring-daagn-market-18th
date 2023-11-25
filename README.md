@@ -1041,3 +1041,201 @@ public ResponseEntity<Void> deleteMember(@AuthenticationPrincipal CustomUserDeta
 ```
 - AuthenticationPrincipal을 통해 인증된 사용자의 정보를 받아올 수 있다.
 ![image](https://github.com/letskuku/spring-daagn-market-18th/assets/90572599/616ec6b4-90c8-4f93-a3d8-225462fe5ccf)
+
+-----
+# 📁CEOS 18th Backend Study - 5주차 미션
+### 1️⃣ 로컬에서 도커 실행해보기
+#### 📌 도커 이미지 빌드
+![image](https://github.com/letskuku/spring-daagn-market-18th/assets/90572599/c815271f-7485-45eb-a087-d64d2750071e)
+![image](https://github.com/letskuku/spring-daagn-market-18th/assets/90572599/b70673e8-b400-4491-a1a5-2d4e027ead93)
+
+#### 📌 빌드한 이미지 실행
+![image](https://github.com/letskuku/spring-daagn-market-18th/assets/90572599/4b0b540b-c770-40e1-9a14-791f5c8dfe0f)
+
+#### ✔ 이미지 실행 관련 오류 해결
+![image](https://github.com/letskuku/spring-daagn-market-18th/assets/90572599/bf69cb83-e9f9-4774-951f-7e050ae7eb1d)
+
+➡ db connection 관련 오류 발생
+
+![image](https://github.com/letskuku/spring-daagn-market-18th/assets/90572599/3556a4ac-3f8b-46c7-90d0-bb04fa74704f)
+
+- 도커 실행 시, localhost는 도커 컨테이너 자기 자신을 가리키게 된다.
+- localhost 대신 host.docker.internal 사용하면 해결 가능
+
+![image](https://github.com/letskuku/spring-daagn-market-18th/assets/90572599/5c47d4ed-bf03-490f-b841-c50fb74b73c8)
+
+#### 📌 docker-compose.yml 실행
+![image](https://github.com/letskuku/spring-daagn-market-18th/assets/90572599/009311cd-a43a-449e-aea9-36a13caed222)
+![image](https://github.com/letskuku/spring-daagn-market-18th/assets/90572599/e6ec23e0-6646-4a44-8f10-72319ffe675f)
+
+#### ✔ docker-compose 실행 관련 오류 해결
+![image](https://github.com/letskuku/spring-daagn-market-18th/assets/90572599/ba4ae615-6047-4059-b612-d812dcb49c8d)
+
+➡ db 관련 오류 발생
+
+![image](https://github.com/letskuku/spring-daagn-market-18th/assets/90572599/9473d4b2-7ec5-4417-8952-e268f435c605)
+
+- 이미 로컬에서 3306 포트를 사용하고 있기 때문에 3306:3306으로 포트를 설정하면 제대로 동작하지 않는다.
+- 포트번호 변경하면 해결 가능
+
+![image](https://github.com/letskuku/spring-daagn-market-18th/assets/90572599/eab1b032-a7f4-4725-a709-5250e172b452)
+
+### 2️⃣ API 추가 구현 및 리팩토링
+
+#### 1. 원하는 도메인/기능을 골라 API를 추가해주세요
+
+생성/수정/삭제 등 자유롭게 원하는 API를 구현해주시면 됩니다🤓🤓
+
+#### 📌 Post API 추가
+```java
+@RestController
+@RequiredArgsConstructor
+@RequestMapping("/api/post")
+public class PostController {
+
+    private final PostService postService;
+
+    @PostMapping
+    public ResponseEntity<Void> createPost(@RequestBody CreatePostRequest createPostRequest) {
+
+        postService.createPost(createPostRequest);
+
+        return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+
+    @GetMapping("/{postId}")
+    public ResponseEntity<PostResponse> getPost(@PathVariable Long postId) {
+        return ResponseEntity.ok(postService.getPost(postId));
+    }
+
+    @GetMapping
+    public ResponseEntity<List<PostResponse>> getAllPosts() {
+        return ResponseEntity.ok(postService.getAllPosts());
+    }
+
+    @DeleteMapping("/{postId}")
+    public ResponseEntity<Void> deletePost(@PathVariable Long postId) {
+
+        postService.deletePost(postId);
+
+        return ResponseEntity.ok().build();
+    }
+}
+```
+
+#### 2. 지금까지 과제를 하면서 아쉬웠던 부분이나 더 고치고 싶은 부분을 리팩토링 해주세요
+
+#### 📌 권한 관리 위한 enum Role 추가 및 관련 코드 수정
+
+```java
+@Getter
+public enum Role {
+
+    ROLE_ADMIN,
+    ROLE_USER
+}
+```
+
+#### 📌 CustomUserDetails의 isEnabled 메서드 반환값 알맞게 수정
+``` java
+@Override
+public boolean isEnabled() {
+    return member.getActivated();
+}
+```
+
+#### 📌 예외 처리 방식 변경
+
+❓ 이전 방식 (Member)
+
+- Member 객체를 찾지 못했을 때를 위한 MemberNotFoundException 생성
+```java
+public class MemberNotFoundException extends RuntimeException {
+    public MemberNotFoundException() {
+        super("회원 정보가 존재하지 않습니다.");
+    }
+    public MemberNotFoundException(Long id) {
+        super("요청한 id 값 " + id + "에 해당하는 회원 정보가 존재하지 않습니다.");
+    }
+
+    public MemberNotFoundException(String email) {
+        super("요청한 email " + email + "에 해당하는 회원 정보가 존재하지 않습니다.");
+    }
+}
+```
+
+- Member 관련 예외를 처리하는 MemberExceptionController 생성하여 MemberNotFoundException 처리
+```java
+@Slf4j
+@RestControllerAdvice
+public class MemberExceptionController {
+
+    @ExceptionHandler(MemberNotFoundException.class)
+    public ResponseEntity<String> catchMemberNotFoundException(MemberNotFoundException e) {
+
+        log.error(e.getMessage());
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+    }
+}
+```
+
+➡ Member 관련 커스텀 예외를 새로 생성할 때마다 처리 위한 catch~ 메서드 생성해야 한다.
+
+❓ 새로운 방식
+
+- Member 관련 예외 정보 가지는 MemberErrorCode enum 생성
+```java
+@Getter
+public enum MemberErrorCode {
+
+    MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "해당하는 회원을 찾을 수 없습니다.");
+
+    private final HttpStatus errorCode;
+    private final String errorMessage;
+
+    MemberErrorCode(HttpStatus errorCode, String errorMessage) {
+        this.errorCode = errorCode;
+        this.errorMessage = errorMessage;
+    }
+}
+```
+
+- Member 관련 예외 만들어주는 MemberExcpetion 생성
+```java
+@Getter
+public class MemberException extends RuntimeException {
+
+    private final HttpStatus errorCode;
+
+    public MemberException(MemberErrorCode errorCode) {
+        super(errorCode.getErrorMessage());
+        this.errorCode = errorCode.getErrorCode();
+    }
+
+    public MemberException(MemberErrorCode errorCode, Long id) {
+        super(errorCode.getErrorMessage() + " 요청받은 id : " + id);
+        this.errorCode = errorCode.getErrorCode();
+    }
+
+    public MemberException(MemberErrorCode errorCode, String email) {
+        super(errorCode.getErrorMessage() + " 요청받은 email : " + email);
+        this.errorCode = errorCode.getErrorCode();
+    }
+}
+```
+
+- 모든 예외 관리하는 ExceptionController 생성하여 MemberExcpetion 처리
+- log에 stackTrace 정보 찍히도록 두번째 인자로 MemberException 객체 포함
+```java
+@Slf4j
+@RestControllerAdvice
+public class ExceptionController {
+
+    @ExceptionHandler(MemberException.class)
+    public ResponseEntity<String> catchMemberException(MemberException e) {
+        log.error(e.getMessage(), e);
+        return ResponseEntity.status(e.getErrorCode()).body(e.getMessage());
+    }
+}
+```

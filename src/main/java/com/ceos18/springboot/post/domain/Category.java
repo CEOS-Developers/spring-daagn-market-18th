@@ -1,21 +1,21 @@
 package com.ceos18.springboot.post.domain;
 
-import com.ceos18.springboot.global.common.BaseEntity;
-import jakarta.persistence.*;
-import lombok.AccessLevel;
+import com.ceos18.springboot.post.exception.PostErrorCode;
+import com.ceos18.springboot.post.exception.PostException;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+import java.util.Arrays;
+
 @Getter
-@Entity
-public class Category extends BaseEntity {
+public enum Category {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "category_id")
-    private Long id;
+    SHIRT,
+    PANTS,
+    SHOES;
 
-    @Column(nullable = false)
-    private String name;
+    public static Category getCategoryByName(String name) {
+        return Arrays.stream(Category.values())
+                .filter(category -> category.name().equalsIgnoreCase(name))
+                .findAny().orElseThrow(() -> new PostException(PostErrorCode.CATEGORY_NOT_FOUND));
+    }
 }

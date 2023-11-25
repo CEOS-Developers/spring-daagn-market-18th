@@ -7,7 +7,8 @@ import com.ceos18.springboot.member.dto.request.LoginMemberRequest;
 import com.ceos18.springboot.member.dto.request.SignupMemberRequest;
 import com.ceos18.springboot.member.dto.response.LoginMemberResponse;
 import com.ceos18.springboot.member.dto.response.MemberResponse;
-import com.ceos18.springboot.member.exception.MemberNotFoundException;
+import com.ceos18.springboot.member.exception.MemberErrorCode;
+import com.ceos18.springboot.member.exception.MemberException;
 import com.ceos18.springboot.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -55,7 +56,7 @@ public class MemberServiceImpl implements MemberService {
 
         List<Member> memberList = memberRepository.findAllByActivated(true);
         if (memberList.isEmpty()) {
-            throw new MemberNotFoundException();
+            throw new MemberException(MemberErrorCode.MEMBER_NOT_FOUND);
         }
 
         List<MemberResponse> memberResponseList = memberList.stream()
@@ -68,7 +69,7 @@ public class MemberServiceImpl implements MemberService {
     public MemberResponse getMember(Long id) {
 
         Member member = memberRepository.findByIdAndActivated(id, true)
-                .orElseThrow(() -> new MemberNotFoundException(id));
+                .orElseThrow(() -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND, id));
 
         return MemberResponse.fromEntity(member);
     }
@@ -77,7 +78,7 @@ public class MemberServiceImpl implements MemberService {
     public void deleteMember(Long id) {
 
         Member member = memberRepository.findByIdAndActivated(id, true)
-                .orElseThrow(() -> new MemberNotFoundException(id));
+                .orElseThrow(() -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND, id));
 
         member.updateActivatedFalse();
     }
