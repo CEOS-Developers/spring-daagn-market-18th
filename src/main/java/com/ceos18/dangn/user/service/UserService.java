@@ -10,6 +10,7 @@ import com.ceos18.dangn.user.dto.SignInDto;
 import com.ceos18.dangn.user.dto.SignInResponseDto;
 import com.ceos18.dangn.user.dto.SignUpDto;
 import com.ceos18.dangn.repository.UserRepository;
+import com.ceos18.dangn.user.dto.UserProfileDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -61,5 +62,9 @@ public class UserService {
 
 
         return SignInResponseDto.builder().accessToken(accessToken).build();
+    }
+
+    public UserProfileDto getUserProfile(User user) {
+        return new UserProfileDto(user);
     }
 }

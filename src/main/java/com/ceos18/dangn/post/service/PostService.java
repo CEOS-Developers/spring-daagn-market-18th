@@ -27,7 +27,6 @@ public class PostService {
     private final ChatRoomRepository chatRoomRepository;
 
     public Long registerPost(RegisterPostRequestDto requestDto, User user) {
-        //로그인된 유저의 올바른 정보가 넘어온다고 가정
         Post post = requestDto.toEntity(user);
 
         TradeMethod tradeMethod = TradeMethod.valueOf(requestDto.getTradeMethod());

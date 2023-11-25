@@ -1,42 +1,7 @@
-HELP.md
-.gradle
-build/
-!gradle/wrapper/gradle-wrapper.jar
-!**/src/main/**/build/
-!**/src/test/**/build/
-
-### STS ###
-.apt_generated
-.classpath
-.factorypath
-.project
-.settings
-.springBeans
-.sts4-cache
-bin/
-!**/src/main/**/bin/
-!**/src/test/**/bin/
-
-### IntelliJ IDEA ###
-.idea
-*.iws
+*#
 *.iml
 *.ipr
-out/
-!**/src/main/**/out/
-!**/src/test/**/out/
-
-### NetBeans ###
-/nbproject/private/
-/nbbuild/
-/dist/
-/nbdist/
-/.nb-gradle/
-
-### VS Code ###
-.vscode
-
-### ceos18 ###
+*.iws
 *.jar
 *.sw?
 *~
@@ -44,14 +9,23 @@ out/
 .*.md.html
 .DS_Store
 .attach_pid*
+.classpath
+.factorypath
+.gradle
 .metadata
+.project
 .recommenders
+.settings
+.springBeans
+.vscode
 /code
 MANIFEST.MF
 _site/
 activemq-data
 bin
 build
+!/**/src/**/bin
+!/**/src/**/build
 build.log
 dependency-reduced-pom.xml
 dump.rdb
@@ -64,10 +38,10 @@ target
 .flattened-pom.xml
 secrets.yml
 .gradletasknamecache
+.sts4-cache
 
-src/main/resources/application.yml
-settings.gradle
-build.gradle
-gradlew
-gradlew.bat
-gradle/wrapper/gradle-wrapper.properties
+HELP.md
+.idea
+*.properties
+
+/src/main/resources/application.yml
