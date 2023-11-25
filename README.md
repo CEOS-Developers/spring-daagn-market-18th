@@ -375,6 +375,7 @@ public class UserController {
 ## Lab : AWS + Docker + Github Actions 배포
 
 ### gradle.yml
+
 ```yaml
 name: Java CI with Gradle
 
@@ -431,3 +432,8 @@ jobs:
           docker-compose up -d
           docker image prune -f
 ```
+
+### 배포 후 Swagger 접속 화면
+> security와... db 관련 개편 중에 발생한 오류로... (이렇게 뜨길 목표하며 갈아엎는 중 - 로컬에서 문제되는 코드 모두 제외한 실행 화면)
+
+![image](https://github.com/gmkim20713/daangn-market/assets/68195241/2468337d-e30b-4eb0-953f-ced7fc54e542)
