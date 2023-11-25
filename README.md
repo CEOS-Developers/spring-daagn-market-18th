@@ -371,3 +371,63 @@ public class UserController {
 
 - 애플리케이션 내에서 관계형 데이터베이스의 설정, 운영, 스케일링을 단순케 하도록 설계된 클라우드 내에서 동작하는 웹 서비스
 - 데이터베이스 소프트웨어를 패치하거나 데이터베이스를 백업하거나 시점 복구를 활성화하는 것과 같은 복잡한 관리 프로세스들은 자동으로 관리됨
+
+## Lab : AWS + Docker + Github Actions 배포
+
+### gradle.yml
+```yaml
+name: Java CI with Gradle
+
+on:
+  push:
+    branches: [ "main" ]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up JDK 11
+      uses: actions/setup-java@v3
+      with:
+        java-version: '11'
+        distribution: 'temurin'
+
+    - name: Make application-secret.yaml
+      run: |
+        cd ./src/main/resources
+        touch ./application-secret.yml
+        echo "${{ secrets.APPLICATION_SECRET }}" > ./application-secret.yml
+      shell: bash
+
+    - name: Build with Gradle
+      run: |
+        chmod +x ./gradlew
+        ./gradlew clean build -x test
+
+    - name: Docker build & push to docker repo
+      run: |
+        docker login -u ${{ secrets.DOCKER_NAME }} -p ${{ secrets.DOCKER_PW }}
+        docker build -f Dockerfile -t ${{ secrets.DOCKER_NAME }}/${{ secrets.DOCKER_REPO }} .
+        docker push ${{ secrets.DOCKER_NAME }}/${{ secrets.DOCKER_REPO }}
+
+    - name: Deploy to server
+      uses: appleboy/ssh-action@master
+      id: deploy
+      with:
+        host: ${{ secrets.HOST }}
+        username: ubuntu
+        key: ${{ secrets.KEY }}
+        envs: GITHUB_SHA
+        script: |
+          sudo docker rm -f $(docker ps -qa)
+          sudo docker pull ${{ secrets.DOCKER_NAME }}/${{ secrets.DOCKER_REPO }}
+          docker-compose up -d
+          docker image prune -f
+```
