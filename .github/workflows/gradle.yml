@@ -30,6 +30,7 @@ jobs:
           docker push my-repo/my-web-image
           docker build -f dockerfile-nginx -t my-repo/my-nginx-image .
           docker push my-repo/my-nginx-image
+        working-directory: ./clone-coding
 
       - name: executing remote ssh commands using password
         uses: appleboy/ssh-action@master
