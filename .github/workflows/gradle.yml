@@ -39,6 +39,15 @@ jobs:
           docker build -t younggyolee/market .
           docker push younggyolee/market
 
+      - name: copy docker-compose via ssh key
+        uses: appleboy/scp-action@v0.1.4
+        with:
+          host: ${{ secrets.HOST }}
+          username: ubuntu
+          key: ${{ secrets.KEY }}
+          source: ./docker-compose.yml
+          target: /home/ubuntu
+
       - name: executing remote ssh commands using password
         uses: appleboy/ssh-action@master
         with:
@@ -53,10 +62,6 @@ jobs:
             ## .env 파일을 생성합니다.
             sudo touch .env
             echo "${{ secrets.ENV_VARS }}" | sudo tee .env > /dev/null
-            
-            ## docker-compose.yaml 파일을 생성합니다.
-            sudo touch docker-compose.yaml
-            echo "${{ vars.DOCKER_COMPOSE }}" | sudo tee docker-compose.yaml > /dev/null
             
             ## docker-compose를 실행합니다.
             sudo chmod 666 /var/run/docker.sock
