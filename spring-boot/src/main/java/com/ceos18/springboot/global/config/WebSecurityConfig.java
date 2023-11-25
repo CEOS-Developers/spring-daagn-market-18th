@@ -30,7 +30,8 @@ public class WebSecurityConfig {
                 .cors(Customizer.withDefaults())
                 .sessionManagement(configurer -> configurer.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // jwt 사용하는 경우 쓴다
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers(HttpMethod.POST, "/login").permitAll()
+                        .requestMatchers(HttpMethod.POST, "api/users/join").permitAll()
+                        .requestMatchers(HttpMethod.POST, "api/users/login").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/posts/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/posts/**").hasAnyRole("USER")
                         .requestMatchers(HttpMethod.DELETE, "/api/posts/**").hasAnyRole("USER")
