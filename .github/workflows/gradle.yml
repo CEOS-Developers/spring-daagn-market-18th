@@ -10,8 +10,8 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    
     steps:
-
       - name: checkout
         uses: actions/checkout@v3
 
@@ -26,11 +26,17 @@ jobs:
       - name: Build with Gradle
         run: ./gradlew bootJar
 
+      ## login
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_PASSWORD }}
+
 
       ## 웹 이미지 빌드 및 도커허브에 push
       - name: web docker build and push
         run: |
-          docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
           docker build -t nzeong/spring-boot .
           docker push nzeong/spring-boot
           # docker build -f dockerfile-nginx -t my-repo/my-nginx-image .
@@ -43,19 +49,11 @@ jobs:
           username: ubuntu
           key: ${{ secrets.KEY }}
           script: |
-          
-          ## 여러분이 원하는 경로로 이동합니다.
             cd /home/ubuntu/
-            
-          ## .env 파일을 생성합니다.
             sudo touch .env
             echo "${{ secrets.ENV_VARS }}" | sudo tee .env > /dev/null
-          
-          ## docker-compose.yaml 파일을 생성합니다.
             sudo touch docker-compose-dev.yml
             echo "${{ vars.DOCKER_COMPOSE }}" | sudo tee docker-compose-dev.yml > /dev/null
-            
-          ## docker-compose를 실행합니다.
             sudo chmod 666 /var/run/docker.sock
             sudo docker rm -f $(docker ps -qa)
             sudo docker pull nzeong/spring-boot
