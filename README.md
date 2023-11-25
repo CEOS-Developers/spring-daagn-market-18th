@@ -809,4 +809,196 @@ public class GlobalExceptionHandler{
 
 
 
+# CEOS 백엔드 스터디 - 6주차
+
+## 1️⃣ 도커 이미지 배포하기
+
+### 1. EC2, RDS 생성
+
+### 2. **빌드 결과물을 배포할 서버 세팅**
+
+- Docker 설치
+    
+    ```bash
+    $ sudo apt-get update
+    $ sudo apt-get install apt-transport-https ca-certificates curl gnupg-agent software-properties-common
+    $ curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+    $ sudo add-apt-repository \
+    	"deb [arch=amd64] https://download.docker.com/linux/ubuntu \
+    	$(lsb_release -cs) \
+    	stable"
+    $ sudo apt-get update && sudo apt-get install docker-ce docker-ce-cli containerd.io
+    $ docker -v # 설치 잘 되었는지 확인
+    ```
+    
+- Docker Compose 설치
+    
+    ```bash
+    $ sudo curl \
+         -L "https://github.com/docker/compose/releases/download/1.26.2/docker-compose-$(uname -s)-$(uname -m)" \
+         -o /usr/local/bin/docker-compose
+    $ sudo chmod +x /usr/local/bin/docker-compose
+    $ docker-compose --version
+    ```
+    
+- docker-compose.yml 파일 작성
+    
+    ```bash
+    version: '3.8'
+    services:
+      redis:
+        container_name: ceosRedis
+        image: redis
+        ports:
+          - 6379:6379
+        restart: always
+    
+      ceosServer:
+        container_name: ceosServer
+        image:  joyoonjoo731/ceos-18th
+        expose:
+          - 8080
+        ports:
+          - 8080:8080
+        restart: always
+        depends_on:
+          - redis
+    
+    networks:
+      default:
+        name: mynet
+    ```
+    
+
+### 3. **Github Actions 시 실행될 프로세스를 담은 yml 파일**
+
+```java
+# This workflow uses actions that are not certified by GitHub.
+# They are provided by a third-party and are governed by
+# separate terms of service, privacy policy, and support
+# documentation.
+# This workflow will build a Java project with Gradle and cache/restore any dependencies to improve the workflow execution time
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-java-with-gradle
+
+name: Java CI with Gradle
+
+on:
+  push:
+    branches: 
+      - yj-leez
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up JDK 17
+      uses: actions/setup-java@v3
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+
+    - name: Set up NTP
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y ntp
+        sudo service ntp start
+```
+
+```java
+    - name: make application-db.properties
+      run: |
+          cd ./src/main/resources
+          touch ./application-db.properties
+          echo "${{ secrets.DB_PROPERTIES }}" > ./application-db.properties
+      shell: bash
+
+    - name: make application-real.properties
+      run: |
+        cd ./src/main/resources
+        touch ./application-real.properties
+        echo "${{ secrets.PROPERTIES_PROD }}" > ./application-real.properties
+      shell: bash
+```
+
+- `application-db.properties`와 `application-real.properties` 파일을 생성하고, GitHub Secrets에 저장된 내용을 이 파일들에 작성
+
+```java
+- name: Grant execute permission for gradlew
+      run: chmod +x ./gradlew
+      
+    - name: Build with Gradle
+      run: ./gradlew build -x test
+```
+
+- `./gradlew` 파일에 실행 권한을 부여
+- Gradle을 사용하여 프로젝트를 빌드하고 `-x test` 옵션으로 테스트는 제외 → 근데 테스트 실행됐던데 이유를 좀 더 살펴볼 예정
+
+```java
+    - name: Docker build
+      run: |
+        docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+        docker build -t app -f Dockerfile .
+        docker tag app ${{ secrets.DOCKER_USERNAME }}/ceos-18th:latest
+        docker push ${{ secrets.DOCKER_USERNAME }}/ceos-18th:latest
+```
+
+- Docker 이미지는 빌드되고, 태그가 지정된 후, Docker 레지스트리로 푸시
+    
+    → `app`라는 이름의 Docker 이미지가 빌드되고, 사용자의 Docker Hub 계정에 `ceos-18th:latest`라는 태그로 푸시됨
+    
+
+```java
+    - name: Deploy
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.HOST_PROD }} # EC2 인스턴스 퍼블릭 DNS
+        username: ubuntu
+        key: ${{ secrets.PRIVATE_KEY }} # pem 키
+        # 도커 작업
+        script: |
+          docker pull ${{ secrets.DOCKER_USERNAME }}/ceos-18th:latest
+          docker stop $(docker ps -a -q)
+          docker-compose up -d
+          docker image prune -a -f
+
+    - name: Build with Gradle
+      uses: gradle/gradle-build-action@bd5760595778326ba7f1441bcf7e88b49de61a25 # v2.6.0
+      with:
+        arguments: build
+```
+
+- `appleboy/ssh-action`을 사용하여 AWS EC2 인스턴스에 SSH 접속한 후, Docker 관련 명령어를 실행
+    - `appleboy/ssh-action` : GitHub Actions의 마켓플레이스에서 제공하는 액션,
+        
+        GitHub Actions 워크플로우에서 원격 서버에 SSH(Secure Shell) 접속을 통해 명령어를 실행할 수 있게 해주는 도구
+        
+- 먼저 푸시된 Docker 이미지를 EC2 인스턴스로 풀한 다음, 실행 중인 모든 Docker 컨테이너를 중지하고  `docker-compose up -d`를 통해 새로운 컨테이너를 시작함
+
+## 2️⃣ 배포환경에 대한 테스트 스크린샷 올리기
+
+<img width="1305" alt="bb" src="https://github.com/yj-leez/spring-daagn-market-18th/assets/77960090/4cd6382a-31a6-4b6f-af08-a315a7d23488">
+
+<img width="1465" alt="스크린샷 2023-11-25 오후 10 40 22" src="https://github.com/yj-leez/spring-daagn-market-18th/assets/77960090/ef04d7ad-c1f4-4ae2-ac47-aa3c2c0a40ae">
+
+
+- 할당한 EIP로 접속했을 때 회원가입 API 요청 응답 성공
+- 시간 상 HTTPS 까지는 못했습니다🥲
+
+## 3️⃣ 트러블슈팅
+
+- `sudo mysql -h [ceos-db.cfmyshczry4h.ap-northeast-2.rds.amazonaws.com](http://ceos-db.cfmyshczry4h.ap-northeast-2.rds.amazonaws.com/) -u root -p` 로 접속하려했으나 비밀번호도 제대로 입력했는데 계속 실패함
+    
+    <img width="530" alt="997" src="https://github.com/yj-leez/spring-daagn-market-18th/assets/77960090/79542b45-b548-4f68-8cf0-7f1f8de86fed">
+
+    계정명은 RDS 생성 시 작성한 마스터 사용자 이름이라 root → admin 으로 고치니 접속 성공
+
+
+
+
 
