@@ -1,6 +1,5 @@
 package com.daagn.clonestudy.post.dto.response;
 
-import com.daagn.clonestudy.member.domain.Member;
 import com.daagn.clonestudy.post.domain.Post;
 import com.daagn.clonestudy.post.domain.PostStatus;
 import lombok.Builder;
@@ -24,9 +23,13 @@ public class PostResponse {
 
   private PostStatus status;
 
-  private Member writer;
+  private WriterResponse writer;
 
   public static PostResponse fromEntity(Post post){
+    WriterResponse writer = null;
+    if(post.getWriter() != null) {
+      writer = WriterResponse.fromEntity(post.getWriter());
+    }
     return PostResponse.builder()
         .id(post.getId())
         .title(post.getTitle())
@@ -35,7 +38,7 @@ public class PostResponse {
         .description(post.getDescription())
         .address(post.getAddress())
         .status(post.getStatus())
-        .writer(post.getWriter())
+        .writer(writer)
         .build();
   }
 

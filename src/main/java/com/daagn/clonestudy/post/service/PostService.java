@@ -7,6 +7,7 @@ import com.daagn.clonestudy.post.domain.PostImage;
 import com.daagn.clonestudy.post.domain.PostRepository;
 import com.daagn.clonestudy.post.domain.PostImageRepository;
 import com.daagn.clonestudy.post.dto.request.PostCreateRequest;
+import com.daagn.clonestudy.post.dto.request.PostUpdateRequest;
 import com.daagn.clonestudy.post.dto.response.PostListResponse;
 import com.daagn.clonestudy.post.dto.response.PostResponse;
 import java.io.File;
@@ -14,12 +15,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.crossstore.ChangeSetPersister.NotFoundException;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -35,7 +35,7 @@ public class PostService {
   private final MemberRepository memberRepository;
   private final PostImageRepository postImageRepository;
 
-  public PostResponse save(Member member, List<MultipartFile> images, PostCreateRequest request) throws IOException {
+  public void save(Member member, List<MultipartFile> images, PostCreateRequest request) throws IOException {
     Post post = postRepository.save(request.toEntity(member));
 
     boolean isFirst = true;
@@ -60,8 +60,6 @@ public class PostService {
         PostImage saved = postImageRepository.save(postImage);
       }
     }
-
-    return PostResponse.fromEntity(post);
   }
 
   public List<PostListResponse> listAll(Long lastId, int size){
@@ -89,9 +87,20 @@ public class PostService {
     return PostResponse.fromEntity(post);
   }
 
-  public void delete(Long postId) throws Exception {
+  public void delete(Long postId, Member member) throws Exception {
     Post post = postRepository.findById(postId).orElseThrow(()->new NotFoundException());
+    if(!post.hasPermission(member)) {
+      throw new AccessDeniedException("게시글을 삭제할 권한이 없습니다.");
+    }
     postRepository.delete(post);
   }
 
+  public void update(Long postId, Member member, PostUpdateRequest request) throws Exception {
+    Post post = postRepository.findById(postId).orElseThrow(()->new NotFoundException());
+    if(!post.hasPermission(member)) {
+      throw new AccessDeniedException("게시글을 삭제할 권한이 없습니다.");
+    }
+    post.update(request.getTitle(), request.getPrice(),
+        request.getIsAuction(), request.getDescription(), request.getAddress());
+  }
 }

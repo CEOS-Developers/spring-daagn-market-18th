@@ -24,6 +24,7 @@ public abstract class ServiceTest {
   public Member 유저_등록하기(String nickname, String town, String phoneNumber){
     return memberRepository.save(Member.builder()
         .nickname(nickname)
+        .password("test password")
         .town(town)
         .phoneNumber(phoneNumber)
         .build());

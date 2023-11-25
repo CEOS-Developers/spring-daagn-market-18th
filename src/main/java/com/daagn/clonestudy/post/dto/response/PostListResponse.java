@@ -28,8 +28,8 @@ public class PostListResponse {
   private TimeStatus timeStatus;
 
   public static PostListResponse fromEntity(Post post, String image){
-    TimeStatus timeStatus = null;
-    Long createdFromNow = null;
+    TimeStatus timeStatus;
+    Long createdFromNow;
 
     Duration duration = Duration.between(post.getCreatedDate(), LocalDateTime.now());
     if(duration.toHours() >= 1){

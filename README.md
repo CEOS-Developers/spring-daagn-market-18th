@@ -13,7 +13,8 @@
 ### 📒 목차
 [2주차 | DB 모델링과 JPA](#2주차-미션-주제) <br>
 [3주차 | CRUD API](#3주차-미션-주제) <br>
-[4주차 | Spring Security](#4주차-미션-주제) <br><br>
+[4주차 | Spring Security](#4주차-미션-주제) <br>
+[5주차 | Docker](#5주차-미션-주제) <br><br>
 
 ### 2주차 미션 주제
 ### 당근 마켓의 DB를 모델링한다 🥕
@@ -586,3 +587,146 @@ public class SecurityConfig {
 <br><br>
 #### ✦ 느낀 점 및 배운 점<br>
 스프링 시큐리티 설정이 복잡해서 이론적인 부분들을 놓치며 구현만 따라가기 쉬운데, 이론 공부를 선행하고 바로 적용시키니 세세한 과정들도 쉽게 받아들이고 이해할 수 있었다. 시간적 여유가 따라줄 때 공식 문서를 보며 자세히 공부해보고 싶다.
+<br><br><br>
+
+<div align="center">
+
+### 5주차 미션 주제
+<h4>
+1️⃣ 로컬에서 도커를 실행해본다 🛳️‍<br><br>
+2️⃣ API 추가 구현하고 리팩토링한다 ♻️<br><br>
+</h4>
+</div>
+
+#### ✦ 도커 실행하기
+
+<img width="1121" alt="스크린샷 2023-11-18 오후 8 07 36" src="https://github.com/jongmee/spring-daagn-market-18th/assets/101439796/6e2cef14-bd4d-4202-885e-9d4f057bc387"><br><br>
+현재 H2를 사용하고 있어 H2를 함께 올렸습니다 😊
+- `Dockerfile`
+```
+FROM openjdk:17
+ARG JAR_FILE=/build/libs/*.jar
+COPY ${JAR_FILE} app.jar
+ENTRYPOINT ["java","-jar", "/app.jar"]
+```
+```
+/*
+Dockerfile만으로 H2를 도커로 올리려면
+아래 명령어를 입력 후 컨테이너 내부에 들어가서 data base를 생성해주어야 합니다.
+*/
+docker run -d -p 1521:1521 -p 8081:81 -v /Users/jongmi/Idealproject/ceos-daagn-market/h2:/opt/h2-data -e H2_OPTIONS="-ifNotExists" --name=h2 oscarfonts/h2
+```
+- `docker-compose.yml`
+```
+version: "3"
+services:
+  db:
+    container_name: h2
+    image: oscarfonts/h2:latest
+    ports:
+      - 1521:1521
+      - 8081:81
+    environment:
+      H2_OPTIONS: -ifNotExists
+    volumes:
+      - ./h2/:/opt/h2-data
+    restart: always
+
+  web:
+    container_name: web
+    build: .
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:h2:tcp://h2:1521/demo
+      SPRING_DATASOURCE_USERNAME: sa
+      SPRING_DATASOURCE_PASSWORD: 1234
+    restart: always
+    volumes:
+      - .:/appdocker-compose -f docker-compose.yml up --build
+```
+```
+// 아래 명령으로 실행
+docker-compose -f docker-compose.yml up --build
+```
+<br>
+
+#### ✦ Patch API 추가 구현하기
+- `Member.java`
+```java
+  @Override
+  public boolean equals(Object member) {
+    if(((Member)member).getId().equals(id)) {
+      return true;
+    }
+    return false;
+  }
+```
+- `Post.java`
+```java
+  public boolean hasPermission(Member member) {
+    if(writer.equals(member)) {
+      return true;
+    }
+    return false;
+  }
+
+  public void update(String title, Integer price, Boolean isAuction, String description, String address) {
+    this.title = title;
+    this.price = price;
+    this.isAuction = isAuction;
+    this.description = description;
+    this.address = address;
+  }
+```
+- `PostService.java`
+```java
+  public void update(Long postId, Member member, PostUpdateRequest request) throws Exception {
+    Post post = postRepository.findById(postId).orElseThrow(()->new NotFoundException());
+    if(!post.hasPermission(member)) {
+        throw new AccessDeniedException("게시글을 삭제할 권한이 없습니다.");
+    }
+    post.update(request.getTitle(), request.getPrice(),
+        request.getIsAuction(), request.getDescription(), request.getAddress());
+  }
+```
+- `PostConroller.java`
+```java
+  @PatchMapping("/post/{postId}")
+  public ResponseEntity<Void> updatePost(@AuthenticationPrincipal final Member member,
+        @PathVariable Long postId, @RequestBody PostUpdateRequest request) throws Exception {
+    postService.update(postId, member, request);
+    return ResponseEntity.status(HttpStatus.OK).build();
+  }
+```
+<br>
+
+❓**굳이 Member 클래스에서 `equals`를 오버라이딩 한 이유** <br>
+    : **의문점**: `Entity`는 **id**로 `equals` 비교를 하지 않나?<br><br>
+✔︎ `@AuthenticationPrincipal`로 주입 받은 `Controller`의 `Member`는 준영속 상태이다.<br>
+    ➡ 스프링의 영속성 컨텍스트는 `Service`와 `Respository` layer에서만 작동한다. <br><br>
+✔︎ 따라서 주입 받은 `Member`와 `Post`의 작성자 `Member`는 `equals`로 비교할 때 자동으로 **id**로 비교되지 않는다.<br>
+    ➡ **참고.** 영속 상태의 두 `Entity` 객체는 id로 비교된다. 영속성 컨텍스트는 `Entity`를 식별자 값(@ID로 테이블의 기본 키와 매핑한 값)으로 구분한다. `Map`에 저장하기 때문. <br><br>
+✔︎ OSIV(Open Session In View)를 활용할 수도 있다. 하지만 OSIV는 `Interceptor`에서 시작한다. 스프링 시큐리티는 `Filter`로 동작한다. `Filter`는 `Interceptor`보다 먼저 실행된다.<br>
+    ➡ OSIV를 실행하는 `Interceptor`가 스프링 시큐리티의 `Filter`보다 먼저 실행되도록 우선순위를 설정하면 된다.
+
+```java
+@Component
+@Configuration
+public class OpenEntityManagerConfig {
+    @Bean
+    public FilterRegistrationBean<OpenEntityManagerInViewFilter> openEntityManagerInViewFilter() {
+        FilterRegistrationBean<OpenEntityManagerInViewFilter> filterFilterRegistrationBean = new FilterRegistrationBean<>();
+        filterFilterRegistrationBean.setFilter(new OpenEntityManagerInViewFilter());
+        filterFilterRegistrationBean.setOrder(Integer.MIN_VALUE); // 예시를 위해 최우선 순위로 Filter 등록
+        return filterFilterRegistrationBean;
+    }
+}
+```
+출처: [Entity Lifecycle을 고려해 코드를 작성하자](https://tecoble.techcourse.co.kr/post/2020-09-20-entity-lifecycle-2/)<br>
+➡ 그저 두 `Member`가 같은지 `Id`만 확인하면 되기에 `equals`를 오버라이딩하기로 했다.
+<br><br>
+#### ✦ 느낀 점 및 배운 점<br>
+Docker, Nignx 등 웹 서빙 관련 공부를 스터디로 할 수 있어 좋았다. 양질의 레퍼런스를 읽을 수 있는 시간이었다. 기본적인 이해도를 높일 수 있었다. API 추가 구현을 통해 CRUD를 모두 완성했는데, 그간의 스터디를 통해 공부를 세세하게 진행하고 구현하니 디테일한 부분까지 신경 써서 구현할 수 있어 재미있었다.

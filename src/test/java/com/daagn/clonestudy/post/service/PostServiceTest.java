@@ -11,8 +11,6 @@ import com.daagn.clonestudy.post.domain.PostImageRepository;
 import com.daagn.clonestudy.post.domain.PostRepository;
 import com.daagn.clonestudy.post.dto.request.PostCreateRequest;
 import com.daagn.clonestudy.post.dto.response.PostListResponse;
-import com.daagn.clonestudy.post.dto.response.PostResponse;
-import jakarta.persistence.EntityManager;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -53,10 +51,10 @@ class PostServiceTest extends ServiceTest {
     게시물_이미지들.add(게시물_이미지);
 
     // when
-    PostResponse 응답 = postService.save(작성자, 게시물_이미지들, 게시물_생성_요청);
+    postService.save(작성자, 게시물_이미지들, 게시물_생성_요청);
 
     // then
-    Post 생성된_게시글 = postRepository.findById(응답.getId()).get();
+    Post 생성된_게시글 = postRepository.findAll().get(0);
     assertEquals(게시물_생성_요청.getTitle(), 생성된_게시글.getTitle());
   }
 
