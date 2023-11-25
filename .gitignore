@@ -76,6 +76,7 @@ application.yml
 jwt.yml
 application-dev.yml
 application-local.yml
+application-prod.yml
 .env.dev
 
 
