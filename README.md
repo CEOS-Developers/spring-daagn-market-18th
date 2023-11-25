@@ -1365,6 +1365,7 @@ script: |
 ![image](https://github.com/letskuku/spring-daagn-market-18th/assets/90572599/d5c43da9-bd2b-40c8-a02d-777378d348e3)
 
 -> ec2에서 docker-compose.yml 파일 열어서 version: 3 부분 version: "3"으로 수정해서 해결
+
 -> 매번 ec2에서 파일 수정해주는 것은 말이 안되니 다른 해결책이 있을 것으로 생각됨...
 
 8. docker-compose up 수동 입력 후 에러 발생
@@ -1384,7 +1385,8 @@ script: |
 ```
 
 대략 이 부분쯤에서 문제가 발생했을 것으로 추측됨...
-Q. vars.DOCKER_COMPOSE에 값을 잘못 넣어준 것 같은데 값으로 뭐가 들어가야 하는건가요?
+
+#### Q. vars.DOCKER_COMPOSE에 값을 잘못 넣어준 것 같은데 값으로 뭐가 들어가야 하는건가요?
 
 ### 2️⃣ 배포환경에 대한 테스트 스크린샷 올리기
 
