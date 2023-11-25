@@ -1368,7 +1368,7 @@ script: |
 
 -> 매번 ec2에서 파일 수정해주는 것은 말이 안되니 다른 해결책이 있을 것으로 생각됨...
 
-8. docker-compose up 수동 입력 후 에러 발생
+8. 일단 docker-compose.yml 파일에 문제 없는지 확인 위해 docker-compose up 수동 입력 후 에러 발생
 
 ![image](https://github.com/letskuku/spring-daagn-market-18th/assets/90572599/884d93c1-9fc7-4686-b2fb-f7f6494c3c6c)
 
@@ -1387,6 +1387,8 @@ script: |
 대략 이 부분쯤에서 문제가 발생했을 것으로 추측됨...
 
 #### Q. vars.DOCKER_COMPOSE에 값을 잘못 넣어준 것 같은데 값으로 뭐가 들어가야 하는건가요?
+
+뭔가 처음부터 잘못된 것 같은 이 느낌... 천천히 처음부터 다시 해보도록 하겠습니다...
 
 ### 2️⃣ 배포환경에 대한 테스트 스크린샷 올리기
 
