@@ -1896,3 +1896,110 @@ profile:active 부분을 지우고 application-{profile}.yml 로 파일이름만
 spring 에서 application profile 을 읽는 순서
 
 ⇒ 기본 application.yml 을 먼저 읽고 지정한 application-{profile}.yml 을 그 위에 덮어 씌우는 방식으로 실행 (override 방식)
+
+# ceos 스프링 6주차 미션
+
+# 1️⃣ 도커 이미지 배포하기
+
+### 1) EC2, RDS 인스턴스 생성
+
+### 2) spring project 에서 RDS 인스턴스 연결 설정
+
+`appication-prod.yml`
+
+```yaml
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://<RDS 엔드포인트>:3306/daangn?serverTimezone=Asia/Seoul
+    username: admin
+    password: <RDS 비밀번호>
+```
+
+`docker-compose-prod.yml`
+
+```yaml
+version: "3.7"
+services:
+  web:
+    platform: linux/amd64 # 플랫폼 설정
+    image: soul4927/ceos-spring:latest
+    container_name: spring-daangn-server
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "80:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+```
+
+- m1 mac 부터 arm cpu 라서 ubuntu 에서 배포할 때는 플랫폼을 amd64 로 설정해줘야 에러가 나지 않음
+
+jar 빌드 후, 로컬에서 도커 컨테이너가 잘 올라가는지 테스트
+
+`./gradlew clean build`
+
+`docker-compose -f docker-compose-prod.yml up —-build`
+
+### 3) docker hub 사용해서 EC2 에 수동배포
+
+- 로컬에서 image 빌드
+
+  `docker-compose -f docker-compose-prod.yml build`
+
+
+- docker image 확인
+
+  `docker images`
+
+  ![Untitled](ceos_6주차_img/Untitled.png)
+
+- docker 허브에 push
+
+  `docker push <image명:tag명>`
+
+  (default tag : latest )
+
+  ![Untitled](ceos_6주차_img/Untitled%201.png)
+
+
+docker hub repository 에 image push 됨
+
+![Untitled](ceos_6주차_img/Untitled%202.png)
+
+- ec2 접속
+
+
+    - docker engine 설치 : [https://docs.docker.com/engine/install/ubuntu/#installation-methods](https://docs.docker.com/engine/install/ubuntu/#installation-methods)
+    - docker-compose-prod.yml 작성
+    - docker image pull
+        
+        `docker pull <repo명/image명:tag명>`
+        
+        ![Untitled](ceos_6주차_img/Untitled%203.png)
+        
+    
+    - docker image run
+        
+        `sudo docker-compose -f docker-compose-prod.yml up`
+        
+        ![Untitled](ceos_6주차_img/Untitled%204.png)
+        
+    - http 배포는 완료
+        
+        ![Untitled](ceos_6주차_img/Untitled%205.png)
+
+
+### 부족한 점
+
+- github aciton 배포하려다가 막혀서 일단 수동으로 배포..
+
+  ![Untitled](ceos_6주차_img/Untitled%206.png)
+
+
+- https 인증 관련
+
+  route 53 이 아닌 다른 도메인 업체에서 산 도메인이면 aws 에서 하는 설정 외에 부가적인 작업이 더 필요하더라구요
+
+  해당 부분 더 찾아서 https 적용해보겠습니다
