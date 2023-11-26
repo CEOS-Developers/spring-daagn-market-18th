@@ -983,21 +983,92 @@ docker-compose -f docker-compose.yml up --build
 
 # 💙 CEOS 18th Backend Study 6주차 💙
 
-## 1️⃣ 도커 이미지 배포하기
+## 1️⃣ 도커 이미지 배포하기(AWS-EC2&Redis, docker-compose, nginx, github CI/CD)
 
+1. ec2 인스턴스 생성
+2. 탄력적 ip 만들어서 ec2 인스턴스와 연결해주기
+3. 잘 들어가지는지 터미널에서 ssh 연결 확인하기 (.pem 있는 위치, 웬만하면 git으로 관리 안하는 디렉토리) 
+```
+$ chmod 400 danggun.pem
+$ ssh -i "danggun.pem" ubuntu@ec2-15-164-196-67.ap-northeast-2.compute.amazonaws.com
+```
+4. rds 인스턴스 생성 (보안그룹 새로 생성, 스토리지 자동 조정을 비활성화) -> 보안그룹 설정 -> 파라미터그룹 설정 -> MySql workbench에서 연결 확인하고 새 스키마 만들어주기 
+- [참고](https://velog.io/@jmjmjmz732002/Github-Action-Docker-EC2-Nginx-%ED%99%9C%EC%9A%A9%ED%95%9C-Springboot-CICD-%EA%B5%AC%EC%B6%95%ED%95%98%EA%B8%B0-2-RDS-%EC%83%9D%EC%84%B1%ED%95%98%EA%B8%B0)
+
+5. ec2 인스턴스에 docker & docker-compose 설치
+
+- [docker 설치](https://everydayyy.tistory.com/121)
+
+- [docker-compose 설치](https://velog.io/@jmjmjmz732002/Github-Action-Docker-EC2-Nginx-%ED%99%9C%EC%9A%A9%ED%95%9C-Springboot-CICD-%EA%B5%AC%EC%B6%95%ED%95%98%EA%B8%B0-4-AWS-EC2-%EC%9D%B8%EC%8A%A4%ED%84%B4%EC%8A%A4%EC%97%90-Docker-docker-compose-%EC%84%A4%EC%B9%98%ED%95%98%EA%B8%B0)
+
+```
+$ sudo curl \
+     -L "https://github.com/docker/compose/releases/download/1.26.2/docker-compose-$(uname -s)-$(uname -m)" \
+     -o /usr/local/bin/docker-compose
+$ sudo chmod +x /usr/local/bin/docker-compose
+$ docker-compose --version
+```
+6. 도메인 사이트에서 도메인 등록 & route53 이용하여 도메인 등록
+- [내 도메인](https://xn--220b31d95hq8o.xn--3e0b707e/) 이용
+![도메인다시](https://github.com/nzeong/Spring-study/assets/121355994/a852fa99-4e55-4db9-b6fb-e44f872d79f3)
+
+- [route 53](https://cutebabypig15.tistory.com/153)
+  
+![route53](https://github.com/nzeong/Spring-study/assets/121355994/93303add-cf6b-4727-915b-4a847e97d3c4)
+  
+7. Nginx Letsencrypt 적용 및 reverse proxy 설정하기
+- Certbot 사용하여 ssl 인증서 발급받고 nginx 이미지 docker-compose로 생성 및 실행(ec2 서버에서 진행)
+- [참고](https://node-js.tistory.com/32)
+- /etc/nginx 위치에 app.conf 작성해줌
+- root 위치에 docker-compose.yml 작성해줌
+![docker compose 위치](https://github.com/nzeong/Spring-study/assets/121355994/295c222f-d99e-41a3-bf3e-be1580f534cc)
+```
+version: '3'
+
+services:
+  nginx:
+    image: nginx:1.15-alpine
+    restart: unless-stopped
+    volumes:
+      - ./data/nginx:/etc/nginx/app.conf
+      - /etc/letsencrypt:/etc/letsencrypt
+      - /var/log/nginx/mytamla:/var/log/nginx/danggun
+    ports:
+      - "80:80"
+      - "443:443"
+    command:
+      "/bin/sh -c 'while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g \"daemon off;\"'"
+```
+여기에서 명령어 이용해서 nginx:1.15-alpine 컨테이너 실행시켜준다! -> 실행은 잘 되는데 인증서 발급에서 오류가 나서 아직 시도 중
+```
+docker-compose up -d
+```
+
+8. github CI/CD
+- action 변수들 등록 해주었다
+
+![변수 등록2](https://github.com/nzeong/Spring-study/assets/121355994/ed501164-42e1-4509-a8f0-089ea8427bad)
+![변수 등록](https://github.com/nzeong/Spring-study/assets/121355994/7cf7b07d-0674-4339-80ec-9c90ccc07ee2)
 
 ![git cicd](https://github.com/nzeong/Spring-study/assets/121355994/7b32d496-bf16-409d-bbff-061d6f29f8f5)
 ![잘 돌아감](https://github.com/nzeong/Spring-study/assets/121355994/673b9257-a37c-44e0-8573-5b77fe98f2cf)
 
 - 도메인 링크: http://danggun-ceos.kro.kr:8080/
-  - 로그인 과정에서 문제 발생! -> 해결중
 
 ## 2️⃣ 배포환경에 대한 테스트 스크린샷 올리기
 
 - Postman / 브라우저를 통해 요청/응답을 테스트합니다.
   - HTTP → HTTPS 리디렉션이 제대로 이루어지는지 확인
   - 구현한 API 하나 이상 제대로 응답하는지 확인
-  <br>
-  
 
 ![회원가입 성공](https://github.com/nzeong/Spring-study/assets/121355994/f37a354b-f574-4bd7-ba7e-595fbcc085e9)
+![로그인 성공](https://github.com/nzeong/Spring-study/assets/121355994/289071f8-f499-4e60-b797-85d5cf7cb081)
+
+---
+나는 ec2 서버에서 http->https 연결해주는 nginx 컨테이너를 docker-compose로 띄우고, github action으로는 spring 컨테이너를 docker-compose-dev로 띄우는 식으로 따로 따로 구현하려고 했다. 근데 이렇게 하는 것보단 그냥 아예 다 github action으로 해도 좋을 것 같기도 하고 고민된다. 현재 문제가 있는 부분은 다음과 같다.
+
+1. http -> https 리다이렉트를 위한 인증서 발급과 적용
+2. 1번이 적용된 nginx 컨테이너 띄우기
+3. nginx 컨테이너와 spring 컨테이너의 연결(같이 띄우기)
+
+앞으로 오류를 수정해나가보겠다.
