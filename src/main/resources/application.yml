@@ -21,5 +21,4 @@ spring:
 
 jwt:
     token:
-        secret: ${JWT_TOKEN_SECRET}
-#        loveyoulikeicancancanbysamsmithdramamamamama
+        secret: loveyoulikeicancancanbysamsmithdramamamamama
