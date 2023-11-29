@@ -44,6 +44,7 @@ jobs:
                     sudo touch .env
                     echo "${{ secrets.ENV_VARS }}" | sudo tee .env > /dev/null
             
+                    sudo systemctl start docker
                     sudo chmod 666 /var/run/docker.sock
                     sudo docker rm -f $(docker ps -qa)
                     sudo docker pull jongmi/ceos-study
