@@ -1390,6 +1390,32 @@ script: |
 
 뭔가 처음부터 잘못된 것 같은 이 느낌... 천천히 처음부터 다시 해보도록 하겠습니다...
 
+-----
+#### 📌 2차 도전
+
+아직 elastic beanstalk에 대한 미련을 버리지 못해서 '(Optional) AWS Elastic Beanstalk 배포' 문서를 아예 처음(Sample code 배포)부터 따라해보기로 결정
+
+![image](https://github.com/letskuku/spring-daagn-market-18th/assets/90572599/859960a2-704c-41f4-81b8-e8fa5b8a0537)
+
+- actions 정상적으로 동작하는 것 확인
+
+![image](https://github.com/letskuku/spring-daagn-market-18th/assets/90572599/2897a31e-c662-4c92-a0cd-60e07dc96f52)
+
+- Local 에서 docker-compose 실행 확인
+
+![image](https://github.com/letskuku/spring-daagn-market-18th/assets/90572599/20017934-4173-496e-b882-f1ec85807654)
+
+- Terminal 에 관련 로그 추가 확인
+
+![image](https://github.com/letskuku/spring-daagn-market-18th/assets/90572599/a07de9e5-9c42-4528-a395-3ebf7f805d27)
+
+- elastic beanstalk 생성 완료
+
+![image](https://github.com/letskuku/spring-daagn-market-18th/assets/90572599/f1c3e528-3cc4-41b8-9dcc-a750ad554d3a)
+
+- elastic beanstalk에 배포 성공
+
+
 ### 2️⃣ 배포환경에 대한 테스트 스크린샷 올리기
 
 - Postman / 브라우저를 통해 요청/응답을 테스트합니다.
