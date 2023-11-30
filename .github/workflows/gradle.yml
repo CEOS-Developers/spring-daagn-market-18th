@@ -39,15 +39,11 @@ jobs:
           username: ubuntu
           key: ${{ secrets.KEY }}
           script: |
-                    cd /home/ubuntu/
+                    cd /home/ubuntu/ceos-study
             
                     sudo touch .env
                     echo "${{ secrets.ENV_VARS }}" | sudo tee .env > /dev/null
             
-                    if ! command -v docker &> /dev/null
-                    then
-                      curl -sSL https://get.docker.com/ | sh
-                      sudo systemctl start docker
                     sudo chmod 666 /var/run/docker.sock
                     sudo docker rm -f $(docker ps -qa)
                     sudo docker pull jongmi/ceos-study
