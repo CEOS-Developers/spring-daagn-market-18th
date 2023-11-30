@@ -53,7 +53,7 @@ public class Member extends BaseEntity {
         this.email = email;
         this.imageUrl = imageUrl;
         this.roles = new ArrayList<>() {{
-            add(Role.ROLE_USER);
+            add(Role.USER);
         }};
         this.activated = true;
     }
