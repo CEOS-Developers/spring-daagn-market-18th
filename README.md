@@ -1421,6 +1421,22 @@ script: |
 
 - 성공
 
+![image](https://github.com/letskuku/spring-daagn-market-18th/assets/90572599/b3cd45ca-3e6d-4ebc-b5f5-7eeefbf096b0)
+
+- 그러나 502 Bad Gateway 발생, 로그 까보니 yml 관련 변수가 제대로 안 들어간 것으로 확인
+
+```
+      - name: make application.yml
+        run: |
+          cd ./src/main
+          mkdir resources
+          touch ./application.yml
+          echo "${{ secrets.PROPERTIES }}" > ./application.yml
+        shell: bash
+```
+
+- 아예 yml 파일 새로 만들어주는 방식으로 변경
+
 ### 2️⃣ 배포환경에 대한 테스트 스크린샷 올리기
 
 - Postman / 브라우저를 통해 요청/응답을 테스트합니다.
@@ -1435,7 +1451,11 @@ script: |
 
 회원가입 API로 HTTP 연결 확인
 
+![111](https://github.com/letskuku/spring-daagn-market-18th/assets/90572599/71d90015-48b6-49a7-a1a0-f858559a71e9)
 ![image](https://github.com/letskuku/spring-daagn-market-18th/assets/90572599/1df28537-6571-4419-a380-6dd32f4247c6)
 
 로드밸런서로 HTTPS 적용 후 회원가입 API 응답 확인
 
+### 느낀점
+- docker, github actions 세팅을 직접 해보는 건 처음이라 너무너무 어려웠다... 이상하게 내가 만나는 오류들은 구글링해도 잘 안 나왔다...ㅠㅠㅠ 그래도 이번 미션하면서 두 가지를 같이 사용했을 때 어떻게 동작하는지 원리를 어느정도는 이해한 것 같아 뿌듯했다.
+- elastic beanstalk으로 배포를 해보는 건 두번째인데, 다시 써도 배포가 무척 편하다고 느꼈다. 하지만 편한만큼 생성 전에 여러 설정을 해주어야하는데, 당연한 얘기일수도 있지만 무심코 이렇게 해도 되겠지~ 싶어서 넘기는 사소한 설정이 오류를 부른다... 두 번의 배포 모두 꽤 시간을 써가며 헤맸는데, 둘다 결국엔 사소한 부분이 원인이었다. 헤매지 않고 꼼꼼하게 설정을 체크해가며 생성하면 무척 빠르게 배포를 완료할 수 있다는 점이 아주 큰 장점으로 느껴져서 안 써본 사람들에게 추천하고 싶다.
