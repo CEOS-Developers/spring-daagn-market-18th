@@ -1415,9 +1415,27 @@ script: |
 
 - elastic beanstalk에 배포 성공
 
+동일한 방식으로 배포 시도
+
+![image](https://github.com/letskuku/spring-daagn-market-18th/assets/90572599/e0c5c8d6-7fbb-4833-89c6-73c05ec30b76)
+
+- 성공
 
 ### 2️⃣ 배포환경에 대한 테스트 스크린샷 올리기
 
 - Postman / 브라우저를 통해 요청/응답을 테스트합니다.
     - HTTP → HTTPS 리디렉션이 제대로 이루어지는지 확인
     - 구현한 API 하나 이상 제대로 응답하는지 확인
+ 
+![image](https://github.com/letskuku/spring-daagn-market-18th/assets/90572599/44435207-8a86-4af8-9466-736847ed52de)
+
+도메인 구매 후 route53으로 연결
+
+![image](https://github.com/letskuku/spring-daagn-market-18th/assets/90572599/7ffd2fcc-814c-4e21-a407-239b94a5155e)
+
+회원가입 API로 HTTP 연결 확인
+
+![image](https://github.com/letskuku/spring-daagn-market-18th/assets/90572599/1df28537-6571-4419-a380-6dd32f4247c6)
+
+로드밸런서로 HTTPS 적용 후 회원가입 API 응답 확인
+
