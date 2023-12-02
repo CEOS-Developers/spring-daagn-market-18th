@@ -32,9 +32,12 @@ jobs:
           FILENAME_APPLICATION: application.yml
           FILENAME_APPLICATION_PROD: application-prod.yml
           FILENAME_JWT: jwt.yml
-        run: echo $SECRET_APPLICATION | base64 --decode > $DIR/$FILENAME_APPLICATION &&
-            echo $SECRET_APPLICATION_PROD | base64 --decode > $DIR/$FILENAME_APPLICATION_PROD &&
-            echo $SECRET_JWT | base64 --decode > $DIR/$FILENAME_JWT
+        run: |
+          echo "현재 디렉터리: $(pwd)"
+          ls -la $DIR
+          echo $SECRET_APPLICATION | base64 --decode > $DIR/$FILENAME_APPLICATION &&
+          echo $SECRET_APPLICATION_PROD | base64 --decode > $DIR/$FILENAME_APPLICATION_PROD &&
+          echo $SECRET_JWT | base64 --decode > $DIR/$FILENAME_JWT
 
       ## gradle build
       - name: Build with Gradle
