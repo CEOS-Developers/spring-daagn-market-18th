@@ -18,14 +18,15 @@ jobs:
         with:
           java-version: "17"
           distribution: "temurin"
-
-      - name: Build with Gradle
-        run: ./gradlew bootJar
-        working-directory: ./clone-coding
       - name: Prepare .env file
         run: |
           echo "${{ secrets.ENV_VARS }}" > .env
         working-directory: ./clone-coding
+        
+      - name: Build with Gradle
+        run: ./gradlew bootJar
+        working-directory: ./clone-coding
+
 
       - name: web docker build and push
         run: |
