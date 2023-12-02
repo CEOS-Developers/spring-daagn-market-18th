@@ -330,3 +330,110 @@ public class UserController {
 ![MainImage-2](https://user-images.githubusercontent.com/68195241/160120608-0232c880-a56e-46dd-b912-8e64e35a5280.jpg)
 - 여러개의 컨테이너를 하나로 묶어주는 역할을 하는 툴 (for 다중 컨테이너 도커 애플리케이션)
 - YAML(.yml) 파일로 작성됨 -> YAML 파일을 읽어 하나의 명령어로 모든 서비스 실행
+
+***
+
+# Github Actions
+***
+![Continuous-Deployment-con-GitHub-Actions](https://user-images.githubusercontent.com/68195241/160120267-8a25411d-0ad2-414f-84c2-48f955bf2746.png)
+- Github에서 공식적으로 제공하는 CI/CD 툴
+- Workflow 자동화툴
+
+## CI/CD
+> '빌드 -> 저장소에 전달 -> 배포' 까지의 과정
+- CI (Continuous Integration)
+  * 테스트, 빌드, Dockerizing, 저장소에 전달
+  * 프로덕션 환경으로 서비스를 배포할 수 있도록 준비하는 프로세스
+- CD (Continuous Delivery)
+  * 배포
+  * 프로덕션 환경으로 서비스를 배포할 수 있도록 준비하는 프로세스
+
+## Workflow
+- 하나 이상의 Job으로 구성되고, Event에 의해 예약되거나 트리거될 수 있는 자동화된 절차
+- YAML 파일로 작성 + ```.git/workflows```에 저장
+
+# AWS
+> 클라우드 컴퓨팅 서비스
+
+- 이외에도 GCP(Google Cloud Platform), NCP(Naver Cloud Platform)등의 다양한 클라우드 컴퓨팅 서비스가 존재
+
+## EC2 : Elastic Compute Cloud
+> 클라우드 컴퓨팅 환경 제공 서비스
+
+![](https://velog.velcdn.com/images/gmkim20713/post/8edd8f46-330f-45a4-9205-bd59740e69c3/image.png)
+
+- 사용자가 가상 컴퓨터를 임대 받아 그 위에 자신만의 컴퓨터 애플리케이션들을 실행할 수 있게 함
+
+## RDS : Relational Database Service
+> 관계형 데이터베이스 관리, 분석 자동화 서비스
+
+![](https://velog.velcdn.com/images/gmkim20713/post/58366049-5c13-46f3-8c49-24b39480fb1d/image.png)
+
+- 애플리케이션 내에서 관계형 데이터베이스의 설정, 운영, 스케일링을 단순케 하도록 설계된 클라우드 내에서 동작하는 웹 서비스
+- 데이터베이스 소프트웨어를 패치하거나 데이터베이스를 백업하거나 시점 복구를 활성화하는 것과 같은 복잡한 관리 프로세스들은 자동으로 관리됨
+
+## Lab : AWS + Docker + Github Actions 배포
+
+### gradle.yml
+
+```yaml
+name: Java CI with Gradle
+
+on:
+  push:
+    branches: [ "main" ]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up JDK 11
+      uses: actions/setup-java@v3
+      with:
+        java-version: '11'
+        distribution: 'temurin'
+
+    - name: Make application-secret.yaml
+      run: |
+        cd ./src/main/resources
+        touch ./application-secret.yml
+        echo "${{ secrets.APPLICATION_SECRET }}" > ./application-secret.yml
+      shell: bash
+
+    - name: Build with Gradle
+      run: |
+        chmod +x ./gradlew
+        ./gradlew clean build -x test
+
+    - name: Docker build & push to docker repo
+      run: |
+        docker login -u ${{ secrets.DOCKER_NAME }} -p ${{ secrets.DOCKER_PW }}
+        docker build -f Dockerfile -t ${{ secrets.DOCKER_NAME }}/${{ secrets.DOCKER_REPO }} .
+        docker push ${{ secrets.DOCKER_NAME }}/${{ secrets.DOCKER_REPO }}
+
+    - name: Deploy to server
+      uses: appleboy/ssh-action@master
+      id: deploy
+      with:
+        host: ${{ secrets.HOST }}
+        username: ubuntu
+        key: ${{ secrets.KEY }}
+        envs: GITHUB_SHA
+        script: |
+          sudo docker rm -f $(docker ps -qa)
+          sudo docker pull ${{ secrets.DOCKER_NAME }}/${{ secrets.DOCKER_REPO }}
+          docker-compose up -d
+          docker image prune -f
+```
+
+### 배포 후 Swagger 접속 화면
+> security와... db 관련 개편 중에 발생한 오류로... (이렇게 뜨길 목표하며 갈아엎는 중 - 로컬에서 문제되는 코드 모두 제외한 실행 화면)
+
+![image](https://github.com/gmkim20713/daangn-market/assets/68195241/2468337d-e30b-4eb0-953f-ced7fc54e542)
