@@ -437,3 +437,7 @@ jobs:
 > security와... db 관련 개편 중에 발생한 오류로... (이렇게 뜨길 목표하며 갈아엎는 중 - 로컬에서 문제되는 코드 모두 제외한 실행 화면)
 
 ![image](https://github.com/gmkim20713/daangn-market/assets/68195241/2468337d-e30b-4eb0-953f-ced7fc54e542)
+
+- 보안 그룹 문제인가... 싶어서 찾아보는 중 (http, https, ssh, 8080까지 다 넣어서 뭐가 문제인지 고민)
+![image](https://github.com/gmkim20713/daangn-market/assets/68195241/218fd876-9ad5-4dcd-ad07-7a638d56fd2f)
+
