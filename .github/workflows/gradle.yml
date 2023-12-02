@@ -30,8 +30,8 @@ jobs:
           OCCUPY_SECRET_DIR: src/main/resources
           OCCUPY_SECRET_FILE_APPLICATION: application-prod.yml
           OCCUPY_SECRET_FILE_JWT: jwt.yml
-        run: echo $OCCUPY_SECRET | base64 --decode > $OCCUPY_SECRET_DIR/$OCCUPY_SECRET_FILE_APPLICATION &&
-            echo $OCCUPY_SECRET | base64 --decode > $OCCUPY_SECRET_DIR/$OCCUPY_SECRET_FILE_JWT
+        run: echo OCCUPY_SECRET_APPLICATION | base64 --decode > $OCCUPY_SECRET_DIR/$OCCUPY_SECRET_FILE_APPLICATION &&
+            echo OCCUPY_SECRET_JWT | base64 --decode > $OCCUPY_SECRET_DIR/$OCCUPY_SECRET_FILE_JWT
 
       ## gradle build
       - name: Build with Gradle
