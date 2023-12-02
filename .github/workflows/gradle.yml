@@ -28,17 +28,21 @@ jobs:
           SECRET_APPLICATION: ${{ secrets.SECRET_APPLICATION }}
           SECRET_APPLICATION_PROD: ${{ secrets.SECRET_APPLICATION_PROD }}
           SECRET_JWT: ${{ secrets.SECRET_JWT }}
+          SECRET_ENV: ${{ secrets.ENV_VARS }}
           DIR: src/main/resources
           FILENAME_APPLICATION: application.yml
           FILENAME_APPLICATION_PROD: application-prod.yml
           FILENAME_JWT: jwt.yml
+          FILENAME_ENV : .env
         run: |
           echo "현재 디렉터리: $(pwd)"
           mkdir $DIR
           ls -al
           echo $SECRET_APPLICATION | base64 --decode > $DIR/$FILENAME_APPLICATION &&
           echo $SECRET_APPLICATION_PROD | base64 --decode > $DIR/$FILENAME_APPLICATION_PROD &&
-          echo $SECRET_JWT | base64 --decode > $DIR/$FILENAME_JWT
+          echo $SECRET_JWT | base64 --decode > $DIR/$FILENAME_JWT &&
+          echo $SECRET_ENV | base64 --decode > $FILENAME_ENV
+          
 
       ## gradle build
       - name: Build with Gradle
