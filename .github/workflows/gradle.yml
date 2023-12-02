@@ -25,13 +25,16 @@ jobs:
 
       - name: Copy secret
         env:
-          OCCUPY_SECRET_APPLICATION: ${{ secrets.OCCUPY_SECRET_APPLICATION }}
-          OCCUPY_SECRET_JWT: ${{ secrets.OCCUPY_SECRET_JWT }}
-          OCCUPY_SECRET_DIR: src/main/resources
-          OCCUPY_SECRET_FILE_APPLICATION: application-prod.yml
-          OCCUPY_SECRET_FILE_JWT: jwt.yml
-        run: echo OCCUPY_SECRET_APPLICATION | base64 --decode > $OCCUPY_SECRET_DIR/$OCCUPY_SECRET_FILE_APPLICATION &&
-            echo OCCUPY_SECRET_JWT | base64 --decode > $OCCUPY_SECRET_DIR/$OCCUPY_SECRET_FILE_JWT
+          SECRET_APPLICATION: ${{ secrets.SECRET_APPLICATION }}
+          SECRET_APPLICATION_PROD: ${{ secrets.SECRET_APPLICATION_PROD }}
+          SECRET_JWT: ${{ secrets.SECRET_JWT }}
+          DIR: src/main/resources
+          FILENAME_APPLICATION: application.yml
+          FILENAME_APPLICATION_PROD: application-prod.yml
+          FILENAME_JWT: jwt.yml
+        run: echo $SECRET_APPLICATION | base64 --decode > $DIR/$FILENAME_APPLICATION &&
+            echo $SECRET_APPLICATION_PROD | base64 --decode > $DIR/$FILENAME_APPLICATION_PROD &&
+            echo $SECRET_JWT | base64 --decode > $DIR/$FILENAME_JWT
 
       ## gradle build
       - name: Build with Gradle
