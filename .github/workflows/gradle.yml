@@ -32,7 +32,7 @@ jobs:
       - name: web docker build and push
         run: |
           docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
-          docker build --build-arg ENV_FILE=.env -t aeyongdodam/my-web-image .
+          docker build -t aeyongdodam/my-web-image .
           docker push aeyongdodam/my-web-image
           docker build -f dockerfile-nginx -t aeyongdodam/my-nginx-image .
           docker push aeyongdodam/my-nginx-image
@@ -54,5 +54,5 @@ jobs:
             sudo docker rm -f $(docker ps -qa)
             sudo docker pull aeyongdodam/my-web-image
             sudo docker pull aeyongdodam/my-nginx-image
-            docker-compose -f docker-compose.yaml --env-file ./.env up -d
+            docker-compose -f docker-compose.yaml
             docker image prune -f
