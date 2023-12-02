@@ -37,11 +37,12 @@ jobs:
         run: |
           echo "현재 디렉터리: $(pwd)"
           mkdir $DIR
-          ls -al
+          
           echo $SECRET_APPLICATION | base64 --decode > $DIR/$FILENAME_APPLICATION &&
           echo $SECRET_APPLICATION_PROD | base64 --decode > $DIR/$FILENAME_APPLICATION_PROD &&
           echo $SECRET_JWT | base64 --decode > $DIR/$FILENAME_JWT &&
           echo $SECRET_ENV | base64 --decode > $FILENAME_ENV
+          ls -al
           
 
       ## gradle build
@@ -71,5 +72,5 @@ jobs:
                     sudo chmod 666 /var/run/docker.sock
                     sudo docker rm -f $(docker ps -qa)
                     sudo docker pull soul4927/ceos-spring
-                    sudo docker-compose -f docker-compose-prod.yml up
+                    sudo docker-compose -f docker-compose-prod.yml up -d
                     docker image prune -f
