@@ -23,6 +23,16 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
+      - name: Copy secret
+        env:
+          OCCUPY_SECRET_APPLICATION: ${{ secrets.OCCUPY_SECRET_APPLICATION }}
+          OCCUPY_SECRET_JWT: ${{ secrets.OCCUPY_SECRET_JWT }}
+          OCCUPY_SECRET_DIR: src/main/resources
+          OCCUPY_SECRET_FILE_APPLICATION: application-prod.yml
+          OCCUPY_SECRET_FILE_JWT: jwt.yml
+        run: echo $OCCUPY_SECRET | base64 --decode > $OCCUPY_SECRET_DIR/$OCCUPY_SECRET_FILE_APPLICATION &&
+            echo $OCCUPY_SECRET | base64 --decode > $OCCUPY_SECRET_DIR/$OCCUPY_SECRET_FILE_JWT
+
       ## gradle build
       - name: Build with Gradle
         run: ./gradlew bootJar
