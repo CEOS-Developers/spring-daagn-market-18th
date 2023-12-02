@@ -2,7 +2,7 @@ package com.ceos.daangnmarket.domain.review.entity;
 
 import com.ceos.daangnmarket.common.BaseEntity;
 import com.ceos.daangnmarket.domain.product.entity.Product;
-import com.ceos.daangnmarket.domain.user.entity.User;
+import com.ceos.daangnmarket.domain.account.entity.Account;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -19,7 +19,7 @@ public class Review extends BaseEntity {
 
   @ManyToOne(fetch = FetchType.EAGER)
   @JoinColumn(name = "author_id")
-  private User user;
+  private Account account;
 
   @ManyToOne(fetch = FetchType.EAGER)
   @JoinColumn(name = "product_id")

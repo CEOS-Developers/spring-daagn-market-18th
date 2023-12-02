@@ -1,7 +1,7 @@
 package com.ceos.daangnmarket.domain.product.entity;
 
 import com.ceos.daangnmarket.common.BaseEntity;
-import com.ceos.daangnmarket.domain.user.entity.User;
+import com.ceos.daangnmarket.domain.account.entity.Account;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -19,7 +19,7 @@ public class PriceOffer extends BaseEntity {
 
   @ManyToOne(fetch = FetchType.EAGER)
   @JoinColumn(name = "offerer_id")
-  private User user;
+  private Account account;
 
   @ManyToOne(fetch = FetchType.EAGER)
   @JoinColumn(name = "product_id")

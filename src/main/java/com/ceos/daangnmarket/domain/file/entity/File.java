@@ -1,7 +1,7 @@
 package com.ceos.daangnmarket.domain.file.entity;
 
 import com.ceos.daangnmarket.common.BaseEntity;
-import com.ceos.daangnmarket.domain.user.entity.User;
+import com.ceos.daangnmarket.domain.account.entity.Account;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -19,7 +19,7 @@ public class File extends BaseEntity {
 
   @ManyToOne(fetch = FetchType.EAGER)
   @JoinColumn(name = "uploader_id")
-  private User user;
+  private Account account;
 
   private String type;
 

@@ -7,8 +7,8 @@ import com.ceos.daangnmarket.domain.product.entity.Category;
 import com.ceos.daangnmarket.domain.product.entity.Product;
 import com.ceos.daangnmarket.domain.product.repository.CategoryRepository;
 import com.ceos.daangnmarket.domain.product.repository.ProductRepository;
-import com.ceos.daangnmarket.domain.user.entity.User;
-import com.ceos.daangnmarket.domain.user.repository.UserRepository;
+import com.ceos.daangnmarket.domain.account.entity.Account;
+import com.ceos.daangnmarket.domain.account.repository.AccountRepository;
 import jakarta.transaction.Transactional;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +19,7 @@ import org.springframework.stereotype.Service;
 public class ProductService {
 
   private final ProductRepository productRepository;
-  private final UserRepository userRepository;
+  private final AccountRepository accountRepository;
   private final EmdAreaRepository emdAreaRepository;
   private final CategoryRepository categoryRepository;
 
@@ -32,13 +32,13 @@ public class ProductService {
   }
 
   public Product postProduct(PostProductRequest postProductRequest, Long userId){
-    User user = userRepository.findById(userId).orElseThrow();
+    Account account = accountRepository.findById(userId).orElseThrow();
     EmdArea emdArea = emdAreaRepository.findById(postProductRequest.getAreaId()).orElseThrow();
     Category category = categoryRepository.findById(postProductRequest.getCategoryId()).orElseThrow();
 
     Product createdProduct = productRepository.save(
       Product.builder()
-        .user(user)
+        .account(account)
         .emdArea(emdArea)
         .category(category)
         .title(postProductRequest.getTitle())

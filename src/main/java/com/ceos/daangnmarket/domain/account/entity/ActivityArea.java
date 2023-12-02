@@ -1,4 +1,4 @@
-package com.ceos.daangnmarket.domain.user.entity;
+package com.ceos.daangnmarket.domain.account.entity;
 
 import com.ceos.daangnmarket.domain.area.entity.EmdArea;
 import jakarta.persistence.Entity;
@@ -25,8 +25,8 @@ public class ActivityArea {
   private Long id;
 
   @ManyToOne(fetch = FetchType.EAGER)
-  @JoinColumn(name = "user_id")
-  private User user;
+  @JoinColumn(name = "account_id")
+  private Account account;
 
   @ManyToOne(fetch = FetchType.EAGER)
   @JoinColumn(name = "area_id")

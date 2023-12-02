@@ -1,4 +1,4 @@
-package com.ceos.daangnmarket.domain.user.entity;
+package com.ceos.daangnmarket.domain.account.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

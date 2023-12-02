@@ -1,4 +1,4 @@
-package com.ceos.daangnmarket.domain.user.entity;
+package com.ceos.daangnmarket.domain.account.entity;
 
 import com.ceos.daangnmarket.common.BaseEntity;
 import jakarta.persistence.*;
@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Table(name = "user")
+@Table(name = "account")
 public class Account extends BaseEntity {
 
   @Id
@@ -31,7 +31,7 @@ public class Account extends BaseEntity {
   @ManyToMany
   @JoinTable(
     name = "account_authority",
-    joinColumns = {@JoinColumn(name = "id", referencedColumnName = "id")},
+    joinColumns = {@JoinColumn(name = "account_id", referencedColumnName = "id")},
     inverseJoinColumns = {@JoinColumn(name = "authority_name", referencedColumnName = "authority_name")})
   private Set<Authority> authorities;
 
