@@ -434,7 +434,8 @@ jobs:
 ```
 
 ### 배포 후 Swagger 접속 화면
-![image](https://github.com/gmkim20713/daangn-market/assets/68195241/47660acf-7447-4f89-8396-e4b87e67cba3)
+<!---RDS에 migration을 야매로 해서 table 구조만 올라가 있던 상황이라 내용 추가해서 이미지 새로 업로드--->
+![image](https://github.com/gmkim20713/daangn-market/assets/68195241/aa4a0ea2-bad0-454a-a5b5-7615a5c481c7)
 
 - 보안 그룹 문제인가... 싶어서 찾아보는 중 (http, https, ssh, 8080까지 다 넣어서 뭐가 문제인지 고민)
   - 탄력적 ip 할당을 빼먹어서 주소가 바뀌는 바람에 발생했음! - 해결
