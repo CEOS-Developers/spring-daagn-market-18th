@@ -18,6 +18,8 @@ jobs:
         with:
           java-version: "17"
           distribution: "temurin"
+      - name: Create resources directory
+        run: mkdir -p ./clone-coding/src/main/resources
       - name: Prepare application.yml
         run: |
           echo "${{ secrets.APPLICATION_YML }}" > src/main/resources/application.yml
