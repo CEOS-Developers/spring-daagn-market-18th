@@ -14,7 +14,8 @@
 [2주차 | DB 모델링과 JPA](#2주차-미션-주제) <br>
 [3주차 | CRUD API](#3주차-미션-주제) <br>
 [4주차 | Spring Security](#4주차-미션-주제) <br>
-[5주차 | Docker](#5주차-미션-주제) <br><br>
+[5주차 | Docker](#5주차-미션-주제) <br>
+[6주차 | Github Action을 이용한 CI/CD](#6주차-미션-주제) <br><br>
 
 ### 2주차 미션 주제
 ### 당근 마켓의 DB를 모델링한다 🥕
@@ -730,3 +731,19 @@ public class OpenEntityManagerConfig {
 <br><br>
 #### ✦ 느낀 점 및 배운 점<br>
 Docker, Nignx 등 웹 서빙 관련 공부를 스터디로 할 수 있어 좋았다. 양질의 레퍼런스를 읽을 수 있는 시간이었다. 기본적인 이해도를 높일 수 있었다. API 추가 구현을 통해 CRUD를 모두 완성했는데, 그간의 스터디를 통해 공부를 세세하게 진행하고 구현하니 디테일한 부분까지 신경 써서 구현할 수 있어 재미있었다.
+<div align="center">
+
+### 6주차 미션 주제
+<h4>
+1️⃣ 도커 이미지를 배포한다 🛳️‍<br><br>
+2️⃣ Github Actions로 CI/CD 환경을 구축한다 🏞️<br><br>
+</h4>
+</div>
+
+#### ✦ 배포 후 테스트
+
+**1. 회원가입하기**
+<img width="1010" alt="스크린샷 2023-11-30 오후 7 15 38" src="https://github.com/jongmee/spring-daagn-market-18th/assets/101439796/79b51fbf-5444-46cb-a2a0-d40d4afebf3b">
+
+**2. 로그인하기**
+<img width="1010" alt="스크린샷 2023-11-30 오후 7 16 05" src="https://github.com/jongmee/spring-daagn-market-18th/assets/101439796/9a51f4a4-c77f-4879-bde7-ec93bd0f867f">
