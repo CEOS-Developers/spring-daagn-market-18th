@@ -8,6 +8,7 @@ import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
@@ -19,6 +20,7 @@ import java.util.Date;
 @Component
 @Transactional(readOnly = true)
 @Slf4j
+@PropertySource("classpath:application.yml")
 public class JwtTokenProvider {
     private static final String AUTHORITIES_KEY = "role";
     private static final String EMAIL_KEY = "email";

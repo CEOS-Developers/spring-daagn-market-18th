@@ -2467,16 +2467,24 @@ private ChatMessage createTalkMessage(ChatRoom chatRoom, User sender, ChatMessag
 - https://medium.com/naver-cloud-platform/%EB%84%A4%EC%9D%B4%EB%B2%84%ED%81%B4%EB%9D%BC%EC%9A%B0%EB%93%9C-%EA%B8%B0%EC%88%A0-%EA%B2%BD%ED%97%98-%EA%B0%80%EC%83%81%ED%99%94-%EA%B0%9C%EB%85%90-%EC%9D%B4%ED%95%B4%ED%95%98%EA%B8%B0-1-qemu-vs-kvm-962113641799
 
 ---
+
+---
 # 📂 CEOS WEEK 6: Github Action을 이용한 CI/CD
 <br>  
 
 ### 🐳  6주차 목표
 
-### 1️⃣ 도커 이미지 배포하기
-### 2️⃣ 배포환경에 대한 테스트 스크린샷 올리기
+#### AWS EC2, RDS 서비스를 활용하여 배포 환경을 구축합니다.
+#### Github Actions와 Docker Hub를 이용해 CI/CD 환경을 구축합니다.
 ---  
 ### 🐳 6주차 미션
 
+### 1️⃣ 도커 이미지 배포하기
+
+> **👋🏻 참고**
+>  첫번째 시도는 6주차의 실패 기록기, 두번째 시도는 7주차에 다시 진행한 성공 기록기입니다.
+
+### 1️⃣ 첫번째 시도 (Github Action 연동없이 시도. 실패 기록기☠️)
 dockerhub에 push 후 EC2에서 pull 해와 배포 완료하였습니다.
 
 - docker image commit
@@ -2603,7 +2611,7 @@ FAILURE: Build failed with an exception.
 - ELB 생성 후 EC2 재부팅을 하고, docker-compose 로 애플리케이션 재실행했는데..
 
 ``` 
-ubuntu@ip-172-xx:~/spring-daagn-market-18th$ docker-compose up -d
+ubuntu@ip-172-xx:~/spring-daagn-market-18th$ docker-compose up -d
 Starting db ... done
 Starting web ... done
 ubuntu@ip-172-xx:~/spring-daagn-market-18th$ docker-compose ps
@@ -2655,12 +2663,223 @@ Swap:              0           0           0
 → ps 후 stuck 안되고 조회 잘 됨
 
 
-- (현재 해결 중) ⛔️ web 컨테이너가 정상적으로 실행된 이후 약 2분 뒤 쯤 exit 되어버리는 문제
+**⛔️ web 컨테이너가 정상적으로 실행된 이후 약 2분 뒤 쯤 exit 되어버리는 문제**
 
 <img width="180" alt="스크린샷 2023-11-25 17 47 44" src="https://github.com/CEOS-Developers/spring-daagn-market-18th/assets/77966605/6b92c5d7-7daf-43c3-b984-7970eda149df"> <br>
 
 → HTTP로 리다이렉트는 잘 되나 현재 Web container 문제로 접근이 불가능한 상황
 
-DB와의 연동 문제인 것 같아 이 방향으로 해결 중
+결론만 정리하자면, **첫번째 시도의 문제는 컨테이너의 DB와의 연동 문제**였다.
 
-(해결 후 내용 추가해놓겠습니다!) 
+### 2️⃣ 두번째 시도 (Github Actions+Docker+Nginx. 드디어 성공🪽)
+
+일단 위에 과정에서 했던 파일이나 설정을 따로 삭제하는 건 없이 Github Action과 연동을 먼저 해주었다.
+
+### **🔧 Github Actions 연동** <br>
+**1. 워크플로우 작성**
+```yml
+name: Deploy Development Server
+
+on:
+  push:
+    branches: ["yeni-choi"]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: checkout
+        uses: actions/checkout@v3
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      ## gradle build
+      - name: Grant execute permission for gradlew
+        run: chmod +x ./gradlew
+
+      - name: Build with Gradle
+        run: ./gradlew build -x test
+
+      ## 웹 이미지 빌드 및 도커허브에 push
+      - name: web docker build and push
+        run: |
+          docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+          docker build -t yeniwithchoi/ceos-karrot .
+          docker push yeniwithchoi/ceos-karrot
+          docker build -f dockerfile-nginx -t yeniwithchoi/ceos-nginx .
+          docker push yeniwithchoi/ceos-nginx
+
+      - name: executing remote ssh commands using password
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ubuntu
+          key: ${{ secrets.KEY }}
+          script: |
+            
+            ## home/ubuntu로 이동합니다.
+            cd /home/ubuntu/
+            
+            ## .env 파일을 생성합니다.
+            sudo touch .env
+            echo "${{ secrets.ENV_VARS }}" | sudo tee .env > /dev/null
+            
+            ## docker-compose를 실행합니다.
+            sudo chmod 666 /var/run/docker.sock
+            sudo docker rm -f $(docker ps -qa)
+            sudo docker pull yeniwithchoi/ceos-karrot
+            sudo docker pull yeniwithchoi/ceos-nginx
+            docker-compose -f docker-compose.yml --env-file ./.env up -d
+            docker image prune -f
+
+```
+
+- **빌드 (Build)**
+  -   Java 17을 설치하고, Gradle을 사용하여 프로젝트를 빌드
+  -    `./gradlew build -x test` 로 테스트를 실행하지 않도록 설정하여 빌드함
+- **도커 이미지 빌드 (Build Docker Images):**
+
+  -   Docker 이미지를 빌드하고, Docker Hub에 이미지를 푸시
+  -   `yeniwithchoi/ceos-karrot` 및 `yeniwithchoi/ceos-nginx` 이미지를 빌드하고 Docker Hub에 업로드
+- **서버 배포 (Deploy Server):**
+  -   원격 서버에 SSH를 사용하여 접속하고, 필요한 작업을 수행하여 배포
+  -   `/home/ubuntu/` 디렉토리로 이동하고, `.env` 파일을 생성
+  -   Docker Compose로 컨테이너를 배포하고 실행합니다.
+  -   마지막으로, 사용하지 않는 Docker 이미지를 정리
+      <br>
+
+**2. Github Secrets 등록** <br>
+아래와 같이 필요한 환경변수들을 등록하였습니다.
+-   `DOCKER_USERNAME` : 도커 계정 유저네임
+-   `DOCKER_PASSWORD` : 도커 계정 비밀번호
+-   `HOST` : EC2의 퍼블릭 IPv4 DNS
+-   `KEY` : EC2를 생성하며 같이 생성했던 .pem 파일
+-   `ENV_VARS` : 환경 변수를 key-value 형식으로 담음
+    <br>
+
+**3. dockerfile과 docker-compose, nginx.conf 작성**
+
+**dockerfile-nginx**
+
+```bash
+FROM nginx
+RUN rm -rf /etc/nginx/conf.d/default.conf
+COPY ./nginx/conf.d/nginx.conf /etc/nginx/conf.d
+CMD ["nginx", "-g", "daemon off;"]
+
+```
+
+-  `default.conf` 파일을 삭제하고 프로젝트 내의 `nginx/conf.d/nginx.conf` 파일을 Nginx 설정 디렉토리로 복사함
+-   Nginx를 백그라운드에서 실행하도록 설정 <br>
+
+**docker-compose.yml**
+
+```bash
+version: '3'
+services:
+
+  web:
+    container_name: web
+    image: yeniwithchoi/ceos-karrot
+    env_file:
+      - .env
+    expose:
+      - 8080
+    ports:
+      - 8080:8080
+    tty: true
+    environment:
+      - TZ=Asia/Seoul
+
+  nginx:
+    container_name: nginx
+    image: yeniwithchoi/ceos-nginx
+    ports:
+      - 80:80
+    depends_on:
+      - web
+
+```
+
+-  `web` : `yeniwithchoi/ceos-karrot` 이미지를 사용하며, `.env` 파일에서 환경 변수를 로드
+-   `nginx` : `yeniwithchoi/ceos-nginx` 이미지를 사용하며, 80번 포트를 노출시키고, `web` 서비스에 의존 <br>
+
+**nginx/conf.d/nginx.conf**
+
+```bash
+server {
+    listen 80;
+    server_name *.compute.amazonaws.com;
+
+    access_log /var/log/nginx/access.log;
+    error_log /var/log/nginx/error.log;
+
+    location / {
+        proxy_pass <http://web:8080>;
+        proxy_set_header Host $host:$server_port;
+        proxy_set_header X-Forwarded-Host $server_name;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+}
+
+```
+
+- Nginx 서버 블록을 정의함
+-   80번 포트에서 듣고, `*.compute.amazonaws.com` 도메인을 처리
+-   로그 파일 경로를 설정하고, `/` 경로로 들어오는 요청을 `web` 서비스로 프록시 <br>
+
+**3. 트러블슈팅**
+<br>
+<img width="550" alt="스크린샷 2023-11-29 19 38 13" src="https://github.com/CEOS-Developers/spring-daagn-market-18th/assets/77966605/3120bc49-bf42-4a9c-9504-f861420975ff"><br>
+
+**- ⛔️ 1차 오류:
+`/home/runner/work/_temp/e8b7db6b-8cab-48ff-9f35-de1690e6a741.sh: line 1: ./gradlew: Permission denied`**
+-  👉 gradlew 권한 설정
+```yml 
+- name: Grant execute permission for gradlew  
+run: chmod +x ./gradlew
+```
+<br>
+
+**- ⛔️ 2차 오류: ERROR: failed to solve: failed to read dockerfile: open /var/lib/docker/tmp/buildkit-mount215074990/dockerfile-nginx: no such file or directory**
+- 👉 단순한 오류. dockerfile-nginx 위치 설정 바꿔주면 됨
+
+### **📦  RDS 생성 및 EC2 연동** <br>
+
+<img width="550" alt="스크린샷 2023-11-29 19 44 58" src="https://github.com/CEOS-Developers/spring-daagn-market-18th/assets/77966605/8d2ebf7b-2b51-42f8-8870-329bed666c5e"> <br>
+
+- EC2 ↔ MySQL 의 트래픽을 보안 그룹에서 허용
+-   MySQL (3306) 포트에 대한 인바운드 규칙을 할당<br>
+
+### 2️⃣ 배포환경에 대한 테스트 스크린샷 올리기<br>
+
+### ☁️  EC2 확인 <br>
+
+<img width="600" alt="스크린샷 2023-11-29 19 01 53" src="https://github.com/CEOS-Developers/spring-daagn-market-18th/assets/77966605/4abe7d22-ed9a-4528-a1e1-3992f41af1e2"> <br>
+
+➤ 두 컨테이너(**web, nginx**) 모두 잘 실행되고 있는 것 확인 완료
+
+### 🔑 API 테스트 <br>
+
+<img width="600" alt="스크린샷 2023-11-29 19 02 48" src="https://github.com/CEOS-Developers/spring-daagn-market-18th/assets/77966605/ec2e7b8c-55e3-416c-b0e7-28328e3b844c"><br>
+
+➤ HTTP → HTTPS 리디렉션 및 ALB에 연결된 도메인 확인 완료  
+➤ 회원가입 API 성공 <br>
+
+<img width="600" alt="스크린샷 2023-11-29 19 52 56" src="https://github.com/CEOS-Developers/spring-daagn-market-18th/assets/77966605/974626d3-306b-4760-875d-8eb5f79602f9"><br>
+
+➤ DB(RDS)에도 성공적으로 저장된 것 확인!
+
+---
+**6주차 스터디를 통해 느낀 점**
+데이터베이스 연동, 환경변수 관리 등 다양한 문제가 있었지만 문제 해결 과정을 통해 환경 설정, 컨테이너 관리, 애플리케이션 배포 등 다양한 측면에서 경험을 쌓을 수 있어서 많이 배울 수 있었던 것 같다.
+또한, 해결하면서 서버-네트워크 상호 작용에 대한 이해도 높일 수 있었던 것 같다. 이러한 경험들이 앞으로의 개발 및 배포 과정에서 도움이 될 것 같다 :) 
