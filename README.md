@@ -1422,3 +1422,124 @@ public class UserExceptionHandler {
 }
 
 ```
+
+</br></br>
+
+# 6주차 미션
+
+## 도커 이미지 배포하기
+
+- ec2 생성
+  ![](https://velog.velcdn.com/images/aeyongdodam/post/1cb009a6-8aff-46a0-8446-7d71332b14c7/image.png)
+
+- RDS 생성
+
+![](https://velog.velcdn.com/images/aeyongdodam/post/a88cec5a-7143-44f4-9959-35318df43728/image.png)
+
+이 과정에서 보안 그룹에 인바운드 규칙에 3306 포트 mysql 열어주었습니다.
+
+- ssh 접속
+
+```
+ssh -i {YOUR_KEY_PAIR_FILE.pem} {USER_NAME}@{AWS_PUBLIC_DNS_}
+```
+
+를 통해 연결
+![](https://velog.velcdn.com/images/aeyongdodam/post/065f4482-541f-4dfb-a7d0-ea4cc71a437f/image.png)
+
+### docker compose up을 통한 서버 올리기
+
+- 가비아를 통해 aeyongdodam/shop 도메인 구매한 후, Route 53을 통해 도메인과 public ip를 연결해주었습니다.
+- github action 등록하여 자동 배포 되도록 하였습니다.
+
+```java
+name: Deploy Development Server
+on:
+  push:
+    branches: ["aeyongdodam"]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v3
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: "17"
+          distribution: "temurin"
+      - name: Create resources directory
+        run: mkdir -p ./clone-coding/src/main/resources
+      - name: Prepare application.yml
+        run: |
+          echo "${{ secrets.APPLICATION_YML }}" > src/main/resources/application.yml
+        working-directory: ./clone-coding
+
+      - name: Build with Gradle
+        run: ./gradlew bootJar
+        working-directory: ./clone-coding
+
+      - name: web docker build and push
+        run: |
+          docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+          docker build -t aeyongdodam/my-web-image .
+          docker push aeyongdodam/my-web-image
+          docker build -f dockerfile-nginx -t aeyongdodam/my-nginx-image .
+          docker push aeyongdodam/my-nginx-image
+        working-directory: ./clone-coding
+
+      - name: executing remote ssh commands using password
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ubuntu
+          key: ${{ secrets.KEY }}
+          script: |
+
+            cd /home/ubuntu/
+
+            sudo touch docker-compose.yaml
+            echo "${{ secrets.DOCKER_COMPOSE }}" | sudo tee docker-compose.yaml > /dev/null
+            sudo chmod 666 /var/run/docker.sock
+            sudo docker rm -f $(docker ps -qa)
+            sudo docker pull aeyongdodam/my-web-image
+            sudo docker pull aeyongdodam/my-nginx-image
+            docker-compose -f docker-compose.yaml
+            docker image prune -f
+```
+
+aeyongdodam 브랜치에 push 될 때마다 새로 이미지 배포하고 풀땡겨서 올리는 방식으로 만들었습니다
+![](https://velog.velcdn.com/images/aeyongdodam/post/26576e6c-6fa7-4f2c-bd82-046cf8456023/image.png)
+
+docker-compose.yaml 파일
+
+```java
+version: "3"
+services:
+  web:
+    container_name: web
+    image: aeyongdodam/my-web-image
+    expose:
+      - 8080
+    ports:
+      - 8080:8080
+    tty: true
+    environment:
+      - TZ=Asia/Seoul
+```
+
+![](https://velog.velcdn.com/images/aeyongdodam/post/cc0e10f7-e8c2-4058-952d-96271f0b72f1/image.png)
+github action 실행 후 서버에서 docker ps 를 실행한 결과
+
+## api 테스트
+
+![](https://velog.velcdn.com/images/aeyongdodam/post/ad6c3bb8-f2dd-46d7-93e4-2e3009407a82/image.png)
+
+</br></br>
+
+![](https://velog.velcdn.com/images/aeyongdodam/post/82f0c9c7-c138-4ff6-8daa-ecd24a13e4fd/image.png)
