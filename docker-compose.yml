@@ -1,0 +1,33 @@
+#배포 시엔 안씀
+version: "3"
+
+services:
+  web:
+    container_name: web
+    build: .
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://db:3306/ceos18
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=
+    volumes:
+      - .:/app
+
+
+  db:
+    image: mysql:5.7
+    environment:
+      MYSQL_ALLOW_EMPTY_PASSWORD: 'yes'
+      MYSQL_DATABASE: ceos18
+    volumes:
+      - dbdata:/var/lib/mysql
+    ports:
+      - 3306:3306
+    restart: always
+
+volumes:
+  app:
+  dbdata:

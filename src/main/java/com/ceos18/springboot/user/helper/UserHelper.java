@@ -42,7 +42,7 @@ public class UserHelper {
     }
 
     public void validatePwd(User selectedUser, String pwd) {
-        if(!pwd.equals(selectedUser.getPwd())){
+        if(!pwdEncoder.matches(pwd, selectedUser.getPwd())){
             throw new AppException(ErrorCode.INVALID_PASSWORD, "잘못된 비밀번호입니다.");
         }
     }

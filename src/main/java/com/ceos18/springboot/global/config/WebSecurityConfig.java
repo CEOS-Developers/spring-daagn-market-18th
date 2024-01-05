@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
@@ -30,11 +31,12 @@ public class WebSecurityConfig {
                 .cors(Customizer.withDefaults())
                 .sessionManagement(configurer -> configurer.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // jwt 사용하는 경우 쓴다
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers(HttpMethod.POST, "api/users/join").permitAll()
-                        .requestMatchers(HttpMethod.POST, "api/users/login").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/posts/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/posts/**").hasAnyRole("USER")
-                        .requestMatchers(HttpMethod.DELETE, "/api/posts/**").hasAnyRole("USER")
+                        .requestMatchers(HttpMethod.GET,"/swagger-ui/**", "/api-docs/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "api/v1/users/join").permitAll()
+                        .requestMatchers(HttpMethod.POST, "api/v1/users/login").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/posts/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/posts/**").hasAnyRole("USER")
+                        .requestMatchers(HttpMethod.DELETE, "/api/v1/posts/**").hasAnyRole("USER")
                         .anyRequest().authenticated()
                 );
 
@@ -42,6 +44,7 @@ public class WebSecurityConfig {
         http.addFilterBefore(jwtExceptionHandlerFilter, JwtAuthenticationFilter.class);
         return http.build();
     }
+
 
 
 }

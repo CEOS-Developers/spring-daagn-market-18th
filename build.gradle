@@ -39,13 +39,16 @@ dependencies {
 	implementation 'javax.xml.bind:jaxb-api:2.4.0-b180830.0359'
 	// error json화 하기 위한
 	implementation 'com.google.code.gson:gson:2.8.9'
+	//swagger
+	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.0.2'
+
 
 	compileOnly 'org.projectlombok:lombok'
 	runtimeOnly 'com.mysql:mysql-connector-j'
 
 	// jwt 토큰 사용시 추가
-	runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.3'
-	runtimeOnly 'io.jsonwebtoken:jjwt-gson:0.12.3'
+	runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'
+	runtimeOnly 'io.jsonwebtoken:jjwt-gson:0.11.5'
 	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.2'
 
 	annotationProcessor 'org.projectlombok:lombok'
