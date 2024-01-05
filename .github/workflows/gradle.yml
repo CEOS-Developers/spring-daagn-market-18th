@@ -34,18 +34,18 @@ jobs:
         sudo apt-get install -y ntp
         sudo service ntp start
 
-    - name: make application-db.yml
+    - name: make application-db.properties
       run: |
           cd ./src/main/resources
-          touch ./application-db.yml
-          echo "${{ secrets.DB_PROPERTIES }}" > ./application-db.yml
+          touch ./application-db.properties
+          echo "${{ secrets.DB_PROPERTIES }}" > ./application-db.properties
       shell: bash
 
-    - name: make application-real.yml
+    - name: make application-real.properties
       run: |
         cd ./src/main/resources
-        touch ./application-real.yml
-        echo "${{ secrets.PROPERTIES_PROD }}" > ./application-real.yml
+        touch ./application-real.properties
+        echo "${{ secrets.PROPERTIES_PROD }}" > ./application-real.properties
       shell: bash
 
 

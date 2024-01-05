@@ -2,7 +2,7 @@
 *.iml
 *.ipr
 *.iws
-*.jar
+
 *.sw?
 *~
 .#*
@@ -41,4 +41,5 @@ secrets.yml
 .sts4-cache
 
 .idea
-*.properties
+
+**/application-local.properties
