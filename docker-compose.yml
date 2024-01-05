@@ -1,15 +1,10 @@
-version: "3"
-
+version: "3.8"
 services:
   backend:
     image: "letskuku/spring-daagn-market-18th"
-    env_file:
-      - .env
     ports:
       - "8080:8080"
     restart: "always"
-    environment:
-      - TZ=Asia/Seoul
 
   nginx:
     image: "letskuku/nginx"

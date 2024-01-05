@@ -1239,3 +1239,223 @@ public class ExceptionController {
     }
 }
 ```
+-----
+# 📁CEOS 18th Backend Study - 6주차 미션
+### 1️⃣ 도커 이미지 배포하기
+
+- 방식은 자유롭게 진행해주시면 됩니다!
+    - ECR, API Gateway, App runner, Elastic Beanstalk, …
+ 
+![image](https://github.com/letskuku/spring-daagn-market-18th/assets/90572599/a49c8819-169c-4015-abbf-6c336fe4f8a7)
+![image](https://github.com/letskuku/spring-daagn-market-18th/assets/90572599/434991c0-081d-4a40-a283-e65d52b6a0e0)
+지난주 미션 머지되기 이전에 푸시해 지난주 미션 pr에 포함된 커밋들이 있습니다...!
+
+#### 📌 트러블슈팅 및 삽질기...
+1. 셰어마인드 배포에서 이미 elastic beanstalk을 사용한 바가 있어 이번 미션에서도 '(Optional) AWS Elastic Beanstalk 배포' 문서 참고하여 진행해보기로 결정
+2. 에러 발생 1
+
+![image](https://github.com/letskuku/spring-daagn-market-18th/assets/90572599/1ac2e8b6-a86a-4f48-9de3-949bf1a33db1)
+
+github actions script에서 uses 앞에 '-'을 붙임...
+
+```
+name: deploy
+
+on:
+  push:
+    branches:
+      - 'letskuku'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: checkout
+      - uses: actions/checkout@v3 # 이 부분
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x ./gradlew
+        shell: bash
+
+
+      - name: Build with Gradle
+        run: |
+          ./gradlew -version
+          ./gradlew clean build -x test
+        shell: bash
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_PASSWORD }}
+
+
+      - name : Build Docker Image & Push to Docker Hub
+        run: |
+          docker build . -t ${{ secrets.DOCKER_HUB_USERNAME }}/spring-daagn-market-18th
+          docker build ./proxy -t ${{ secrets.DOCKER_HUB_USERNAME }}/nginx
+          docker push ${{ secrets.DOCKER_HUB_USERNAME }}/spring-daagn-market-18th
+          docker push ${{ secrets.DOCKER_HUB_USERNAME }}/nginx
+```
+
+3. gradle 빌드하는 과정에서 에러 발생
+
+![image](https://github.com/letskuku/spring-daagn-market-18th/assets/90572599/04a3f2af-83cd-4b22-9371-2b42da1f5ae1)
+
+gradle-wrapper.jar 파일이 깃허브에 올릴 필요없는 파일이라고 판단하여 커밋되어있지 않았음... 문제 원인 확인 후 추가
+
+4. 도커 이미지 빌드하고 도커 허브에 푸시하는 과정에서 에러 발생
+
+![image](https://github.com/letskuku/spring-daagn-market-18th/assets/90572599/3fd28fee-935f-4cbb-8592-07fb4aa376da)
+
+찾아보니 도커파일 관련 네이밍 이슈로 발생하는 경우가 많았음... nginx 관련 도커파일 이름을 Dockerfile-nginx에서 Dockerfile로 수정
+
+-> 드디어 성공!
+
+5. elastic beanstalk 생성 시작
+- github actions에서 docker-compose로 만들어진 이미지가 업로드되는 것이기 때문에 일단 샘플 코드로 생성, 인스턴스 배포 성공했다는 메시지 출력됨
+
+![image](https://github.com/letskuku/spring-daagn-market-18th/assets/90572599/443ba4a9-93e0-4989-b797-c47def3b84f3)
+
+- 이후 대략 이런 메시지 출력되면서 상태가 Ok로 바뀌어야 했음...
+
+![image](https://github.com/letskuku/spring-daagn-market-18th/assets/90572599/d5edb83e-778b-42c9-aadf-c9f23b40d9a7)
+![image](https://github.com/letskuku/spring-daagn-market-18th/assets/90572599/06199b53-bca2-4db8-a290-7fba34cd19d0)
+
+- 그런데 아무리 기다려도 상태가 grey에서 바뀌지 않음...? why.....
+- 위의 이미지처럼 도메인 부분 클릭하면 샘플 코드 넣었을 때 나오는 화면도 정상적으로 나오는 것 확인. 그러나 상태 바뀌지 않는 문제 발생
+- 그 결과, github actions script에 elastic beanstalk에 배포하는 스크립트 포함하면 health check에서 에러 발생하기 시작
+
+![image](https://github.com/letskuku/spring-daagn-market-18th/assets/90572599/5787bd33-6418-4e02-b243-172e4ac488e2)
+
+-> 아무리 검색+생각해봐도 원인을 찾을 수 없어 ec2 배포로 변경하기로 결정, 'deploy' 노션 페이지 참고하여 파일 수정
+
+6. .github/workflows/deploy.yml에서 syntax error 발생
+
+![image](https://github.com/letskuku/spring-daagn-market-18th/assets/90572599/a72278a9-b2b0-4110-8c38-ff7042c1dbf3)
+
+-> 주석 지우고 script 모두 붙여써서 해결
+
+```
+script: |
+            cd /home/ubuntu/
+            sudo touch .env
+            echo "${{ secrets.ENV_VARS }}" | sudo tee .env > /dev/null
+            sudo touch docker-compose.yml
+            echo "${{ vars.DOCKER_COMPOSE }}" | sudo tee docker-compose.yml > /dev/null
+            sudo chmod 666 /var/run/docker.sock
+            sudo docker rm -f $(docker ps -qa)
+            sudo docker pull ${{ secrets.DOCKER_HUB_USERNAME }}/spring-daagn-market-18th
+            sudo docker pull ${{ secrets.DOCKER_HUB_USERNAME }}/nginx
+            docker-compose -f docker-compose.yml --env-file ./.env up -d
+            docker image prune -f
+```
+
+7. 이후 ec2에서 실행되는 도커 이미지 없는 것을 확인, 수동으로 docker-compose up 명령어 입력해주니 에러 발생하는 것 확인
+
+![image](https://github.com/letskuku/spring-daagn-market-18th/assets/90572599/d5c43da9-bd2b-40c8-a02d-777378d348e3)
+
+-> ec2에서 docker-compose.yml 파일 열어서 version: 3 부분 version: "3"으로 수정해서 해결
+
+-> 매번 ec2에서 파일 수정해주는 것은 말이 안되니 다른 해결책이 있을 것으로 생각됨...
+
+8. 일단 docker-compose.yml 파일에 문제 없는지 확인 위해 docker-compose up 수동 입력 후 에러 발생
+
+![image](https://github.com/letskuku/spring-daagn-market-18th/assets/90572599/884d93c1-9fc7-4686-b2fb-f7f6494c3c6c)
+
+-> .env가 제대로 들어가지 않은 것으로 추정
+
+```
+## .env 파일을 생성합니다.
+    sudo touch .env
+    echo "${{ secrets.ENV_VARS }}" | sudo tee .env > /dev/null
+          
+## docker-compose.yaml 파일을 생성합니다.
+    sudo touch docker-compose.yaml
+    echo "${{ vars.DOCKER_COMPOSE }}" | sudo tee docker-compose.yaml > /dev/null
+```
+
+대략 이 부분쯤에서 문제가 발생했을 것으로 추측됨...
+
+#### Q. vars.DOCKER_COMPOSE에 값을 잘못 넣어준 것 같은데 값으로 뭐가 들어가야 하는건가요?
+
+뭔가 처음부터 잘못된 것 같은 이 느낌... 천천히 처음부터 다시 해보도록 하겠습니다...
+
+-----
+#### 📌 2차 도전
+
+아직 elastic beanstalk에 대한 미련을 버리지 못해서 '(Optional) AWS Elastic Beanstalk 배포' 문서를 아예 처음(Sample code 배포)부터 따라해보기로 결정
+
+![image](https://github.com/letskuku/spring-daagn-market-18th/assets/90572599/859960a2-704c-41f4-81b8-e8fa5b8a0537)
+
+- actions 정상적으로 동작하는 것 확인
+
+![image](https://github.com/letskuku/spring-daagn-market-18th/assets/90572599/2897a31e-c662-4c92-a0cd-60e07dc96f52)
+
+- Local 에서 docker-compose 실행 확인
+
+![image](https://github.com/letskuku/spring-daagn-market-18th/assets/90572599/20017934-4173-496e-b882-f1ec85807654)
+
+- Terminal 에 관련 로그 추가 확인
+
+![image](https://github.com/letskuku/spring-daagn-market-18th/assets/90572599/a07de9e5-9c42-4528-a395-3ebf7f805d27)
+
+- elastic beanstalk 생성 완료
+
+![image](https://github.com/letskuku/spring-daagn-market-18th/assets/90572599/f1c3e528-3cc4-41b8-9dcc-a750ad554d3a)
+
+- elastic beanstalk에 배포 성공
+
+동일한 방식으로 배포 시도
+
+![image](https://github.com/letskuku/spring-daagn-market-18th/assets/90572599/e0c5c8d6-7fbb-4833-89c6-73c05ec30b76)
+
+- 성공
+
+![image](https://github.com/letskuku/spring-daagn-market-18th/assets/90572599/b3cd45ca-3e6d-4ebc-b5f5-7eeefbf096b0)
+
+- 그러나 502 Bad Gateway 발생, 로그 까보니 yml 관련 변수가 제대로 안 들어간 것으로 확인
+
+```
+      - name: make application.yml
+        run: |
+          cd ./src/main
+          mkdir resources
+          touch ./application.yml
+          echo "${{ secrets.PROPERTIES }}" > ./application.yml
+        shell: bash
+```
+
+- 아예 yml 파일 새로 만들어주는 방식으로 변경
+
+### 2️⃣ 배포환경에 대한 테스트 스크린샷 올리기
+
+- Postman / 브라우저를 통해 요청/응답을 테스트합니다.
+    - HTTP → HTTPS 리디렉션이 제대로 이루어지는지 확인
+    - 구현한 API 하나 이상 제대로 응답하는지 확인
+ 
+![image](https://github.com/letskuku/spring-daagn-market-18th/assets/90572599/44435207-8a86-4af8-9466-736847ed52de)
+
+도메인 구매 후 route53으로 연결
+
+![image](https://github.com/letskuku/spring-daagn-market-18th/assets/90572599/7ffd2fcc-814c-4e21-a407-239b94a5155e)
+
+회원가입 API로 HTTP 연결 확인
+
+![111](https://github.com/letskuku/spring-daagn-market-18th/assets/90572599/71d90015-48b6-49a7-a1a0-f858559a71e9)
+![image](https://github.com/letskuku/spring-daagn-market-18th/assets/90572599/1df28537-6571-4419-a380-6dd32f4247c6)
+
+로드밸런서로 HTTPS 적용 후 회원가입 API 응답 확인
+
+### 느낀점
+- docker, github actions 세팅을 직접 해보는 건 처음이라 너무너무 어려웠다... 이상하게 내가 만나는 오류들은 구글링해도 잘 안 나왔다...ㅠㅠㅠ 그래도 이번 미션하면서 두 가지를 같이 사용했을 때 어떻게 동작하는지 원리를 어느정도는 이해한 것 같아 뿌듯했다.
+- elastic beanstalk으로 배포를 해보는 건 두번째인데, 다시 써도 배포가 무척 편하다고 느꼈다. 하지만 편한만큼 생성 전에 여러 설정을 해주어야하는데, 당연한 얘기일수도 있지만 무심코 이렇게 해도 되겠지~ 싶어서 넘기는 사소한 설정이 오류를 부른다... 두 번의 배포 모두 꽤 시간을 써가며 헤맸는데, 둘다 결국엔 사소한 부분이 원인이었다. 헤매지 않고 꼼꼼하게 설정을 체크해가며 생성하면 무척 빠르게 배포를 완료할 수 있다는 점이 아주 큰 장점으로 느껴져서 안 써본 사람들에게 추천하고 싶다.

@@ -1,4 +1,2 @@
-FROM nginx
-RUN rm -rf /etc/nginx/conf.d/default.conf
-COPY nginx.conf /etc/nginx/conf.d
-CMD ["nginx", "-g", "daemon off;"]
+FROM nginx:1.25-alpine
+COPY .conf /etc/nginx/conf.d/default.conf
