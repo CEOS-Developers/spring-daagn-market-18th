@@ -1,0 +1,55 @@
+name: Deploy Development Server
+
+on:
+  push:
+    branches: [ "main" ]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: checkout
+        uses: actions/checkout@v3
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Build with Gradle
+        run: ./gradlew bootJar
+
+      - name: web docker build and push
+        run: |
+          docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+          docker build -t jongmi/ceos-study .
+          docker push jongmi/ceos-study
+          docker build -f dockerfile-nginx -t jongmi/ceos-study-nignx .
+          docker push jongmi/ceos-study-nignx
+
+      - name: executing remote ssh commands using password
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ubuntu
+          key: ${{ secrets.KEY }}
+          script: |
+                    cd /home/ubuntu/ceos-study
+            
+                    sudo touch .env
+                    echo "${{ secrets.ENV_VARS }}" | sudo tee .env > /dev/null
+            
+                    sudo touch docker-compose.yaml
+                    echo "${{ vars.DOCKER_COMPOSE }}" | sudo tee docker-compose.yaml > /dev/null
+            
+                    sudo chmod 666 /var/run/docker.sock
+                    sudo docker rm -f $(docker ps -qa)
+                    sudo docker pull jongmi/ceos-study
+                    sudo docker pull jongmi/ceos-study-nignx
+                    docker-compose -f docker-compose.yaml --env-file ./.env up -d
+                    docker image prune -f
