@@ -2,7 +2,7 @@ package com.ceos.daangnmarket.domain.product.entity;
 
 import com.ceos.daangnmarket.common.BaseEntity;
 import com.ceos.daangnmarket.domain.area.entity.EmdArea;
-import com.ceos.daangnmarket.domain.user.entity.User;
+import com.ceos.daangnmarket.domain.account.entity.Account;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import lombok.AccessLevel;
@@ -21,7 +21,7 @@ public class Product extends BaseEntity {
 
   @ManyToOne(fetch = FetchType.EAGER)
   @JoinColumn(name = "seller_id")
-  private User user;
+  private Account account;
 
   @ManyToOne(fetch = FetchType.EAGER)
   @JoinColumn(name = "selling_area_id")
@@ -44,9 +44,9 @@ public class Product extends BaseEntity {
   private LocalDateTime refreshedAt;
 
   @Builder
-  public Product(Long id, User user, EmdArea emdArea, Category category, String title, String status, Integer sellPrice, Integer viewCount, String description, LocalDateTime refreshedAt) {
+  public Product(Long id, Account account, EmdArea emdArea, Category category, String title, String status, Integer sellPrice, Integer viewCount, String description, LocalDateTime refreshedAt) {
     this.id = id;
-    this.user = user;
+    this.account = account;
     this.emdArea = emdArea;
     this.category = category;
     this.title = title;

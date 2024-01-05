@@ -1,4 +1,4 @@
-package com.ceos.daangnmarket.domain.user.entity;
+package com.ceos.daangnmarket.domain.account.entity;
 
 import com.ceos.daangnmarket.common.BaseEntity;
 import com.ceos.daangnmarket.domain.product.entity.Product;
@@ -19,7 +19,7 @@ public class WishList extends BaseEntity {
 
   @ManyToOne(fetch = FetchType.EAGER)
   @JoinColumn(name = "register_id")
-  private User user;
+  private Account account;
 
   @ManyToOne(fetch = FetchType.EAGER)
   @JoinColumn(name = "product_id")

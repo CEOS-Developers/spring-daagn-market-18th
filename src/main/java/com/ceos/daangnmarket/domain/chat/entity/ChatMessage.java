@@ -1,11 +1,12 @@
 package com.ceos.daangnmarket.domain.chat.entity;
 
 import com.ceos.daangnmarket.common.BaseEntity;
-import com.ceos.daangnmarket.domain.user.entity.User;
+import com.ceos.daangnmarket.domain.account.entity.Account;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -17,7 +18,7 @@ public class ChatMessage extends BaseEntity {
 
   @ManyToOne(fetch = FetchType.EAGER)
   @JoinColumn(name = "sender_id")
-  private User user;
+  private Account account;
 
   @ManyToOne(fetch = FetchType.EAGER)
   @JoinColumn(name = "chat_room_id")

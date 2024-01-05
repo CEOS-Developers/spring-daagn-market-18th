@@ -2,7 +2,7 @@ package com.ceos.daangnmarket.domain.chat.entity;
 
 import com.ceos.daangnmarket.common.BaseEntity;
 import com.ceos.daangnmarket.domain.product.entity.Product;
-import com.ceos.daangnmarket.domain.user.entity.User;
+import com.ceos.daangnmarket.domain.account.entity.Account;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -19,7 +19,7 @@ public class ChatRoom extends BaseEntity {
 
   @ManyToOne(fetch = FetchType.EAGER)
   @JoinColumn(name = "buyer_id")
-  private User user;
+  private Account account;
 
   @ManyToOne(fetch = FetchType.EAGER)
   @JoinColumn(name = "product_id")
