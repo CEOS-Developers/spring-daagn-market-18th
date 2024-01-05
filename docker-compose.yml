@@ -1,0 +1,27 @@
+version: "3"
+
+services:
+#  db:
+#    container_name: db
+#    image: mysql:latest
+#    environment:
+#      MYSQL_ROOT_PASSWORD: 12345678
+#      MYSQL_DATABASE: ceos18
+#    volumes:
+#      - dbdata:/var/lib/mysql
+#    ports:
+#      - "3306:3306"
+#    restart: always
+
+  web:
+    container_name: web
+    image: younggyolee/market
+    ports:
+      - "8080:8080"
+    restart: always
+    volumes:
+      - .:/app
+
+volumes:
+  app:
+  dbdata:
