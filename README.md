@@ -1896,3 +1896,216 @@ profile:active 부분을 지우고 application-{profile}.yml 로 파일이름만
 spring 에서 application profile 을 읽는 순서
 
 ⇒ 기본 application.yml 을 먼저 읽고 지정한 application-{profile}.yml 을 그 위에 덮어 씌우는 방식으로 실행 (override 방식)
+
+# ceos 스프링 6주차 미션
+
+# 1️⃣ 도커 이미지 배포하기
+
+### 1) EC2, RDS 인스턴스 생성
+
+### 2) spring project 에서 RDS 인스턴스 연결 설정
+
+`appication-prod.yml`
+
+```yaml
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://<RDS 엔드포인트>:3306/daangn?serverTimezone=Asia/Seoul
+    username: admin
+    password: <RDS 비밀번호>
+```
+
+`docker-compose-prod.yml`
+
+```yaml
+version: "3.7"
+services:
+  web:
+    platform: linux/amd64 # 플랫폼 설정
+    image: soul4927/ceos-spring:latest
+    container_name: spring-daangn-server
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "80:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+```
+
+- m1 mac 부터 arm cpu 라서 ubuntu 에서 배포할 때는 플랫폼을 amd64 로 설정해줘야 에러가 나지 않음
+
+jar 빌드 후, 로컬에서 도커 컨테이너가 잘 올라가는지 테스트
+
+`./gradlew clean build`
+
+`docker-compose -f docker-compose-prod.yml up —-build`
+
+### 3-1) docker hub 사용해서 EC2 에 수동배포
+
+- 로컬에서 image 빌드
+
+  `docker-compose -f docker-compose-prod.yml build`
+
+
+- docker image 확인
+
+  `docker images`
+
+  ![Untitled](ceos_6주차_img/Untitled.png)
+
+- docker 허브에 push
+
+  `docker push <image명:tag명>`
+
+  (default tag : latest )
+
+  ![Untitled](ceos_6주차_img/Untitled%201.png)
+
+
+docker hub repository 에 image push 됨
+
+![Untitled](ceos_6주차_img/Untitled%202.png)
+
+- ec2 접속
+
+
+    - docker engine 설치 : [https://docs.docker.com/engine/install/ubuntu/#installation-methods](https://docs.docker.com/engine/install/ubuntu/#installation-methods)
+    - docker-compose-prod.yml 작성
+    - docker image pull
+        
+        `docker pull <repo명/image명:tag명>`
+        
+        ![Untitled](ceos_6주차_img/Untitled%203.png)
+        
+    
+    - docker image run
+        
+        `sudo docker-compose -f docker-compose-prod.yml up`
+        
+        ![Untitled](ceos_6주차_img/Untitled%204.png)
+        
+    - http 배포는 완료
+        
+        ![Untitled](ceos_6주차_img/Untitled%205.png)
+
+### 3-2) github action 사용해서 EC2 에 자동배포
+
+```yaml
+name: Deploy Development Server
+
+## develop 브랜치에 push가 되면 실행됩니다
+on:
+  push:
+    branches: [ "itsme-shawn" ]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: checkout
+        uses: actions/checkout@v3
+
+      ## 여러분이 사용하는 버전을 사용하세요
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Copy secret
+        env:
+          SECRET_APPLICATION: ${{ secrets.SECRET_APPLICATION }}
+          SECRET_APPLICATION_PROD: ${{ secrets.SECRET_APPLICATION_PROD }}
+          SECRET_JWT: ${{ secrets.SECRET_JWT }}
+          SECRET_ENV: ${{ secrets.ENV_VARS }}
+          DIR: src/main/resources
+          FILENAME_APPLICATION: application.yml
+          FILENAME_APPLICATION_PROD: application-prod.yml
+          FILENAME_JWT: jwt.yml
+          FILENAME_ENV : .env
+        run: |
+          echo "현재 디렉터리: $(pwd)"
+          mkdir $DIR
+          
+          echo $SECRET_APPLICATION | base64 --decode > $DIR/$FILENAME_APPLICATION &&
+          echo $SECRET_APPLICATION_PROD | base64 --decode > $DIR/$FILENAME_APPLICATION_PROD &&
+          echo $SECRET_JWT | base64 --decode > $DIR/$FILENAME_JWT &&
+          echo $SECRET_ENV | base64 --decode > $FILENAME_ENV
+          ls -al
+          
+
+      ## gradle build
+      - name: Build with Gradle
+        run: ./gradlew bootJar
+
+
+      ## 웹 이미지 빌드 및 도커허브에 push
+      - name: web docker build and push
+        run: |
+          docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+          docker-compose -f docker-compose-prod.yml build
+          docker push soul4927/ceos-spring
+
+      - name: executing remote ssh commands using password
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ubuntu
+          key: ${{ secrets.KEY }}
+          script: |
+            
+            ## 여러분이 원하는 경로로 이동합니다.
+                    cd /home/ubuntu/
+            
+            ## docker-compose를 실행합니다.
+                    sudo chmod 666 /var/run/docker.sock
+                    sudo docker rm -f $(docker ps -qa)
+                    sudo docker pull soul4927/ceos-spring
+                    sudo docker-compose -f docker-compose-prod.yml up
+                    docker image prune -f
+```
+
+* git ignore 시킨 파일들을 github action 에서 사용하기 위해 base64 로 인코딩 후, 디코딩해서 사용 (base64 인코딩 안 하고 사용하면 못 읽어온다고 함)
+
+  ![Untitled](ceos_6주차_img/action_secret.png)
+
+  * 위 방식대로 안 하고 숨겨야 할 변수들을 모두 .env 에 저장하고, .env 만 나중에 주입해주는 것이 더 깔끔해보이긴 합니다
+
+### 결과
+
+* github action 워크플로우 실행 결과
+![Untitled](ceos_6주차_img/action.png)  
+
+
+* 서버에 컨테이너 정상적으로 올라간 것 확인
+  ![Untitled](ceos_6주차_img/ubuntu.png)
+  
+
+* 배포서버 접속 확인
+  ![Untitled](ceos_6주차_img/swagger.png)
+  
+
+## 트러블슈팅
+
+* github action 빌드 단계에서 에러가 났는데, ./graldew 를 수행할 때 내부적으로 gradle/wrapper/gradle-wrapper.jar 를 사용한다고 함. 그런데 이 jar 파일이 git ignore 돼서 에러가 났었음
+
+
+## 부족한 점
+
+- ~~github aciton 배포하려다가 막혀서 일단 수동으로 배포..~~
+
+  ![Untitled](ceos_6주차_img/Untitled%206.png)
+
+  => 완료
+
+- https 인증 관련
+
+  route 53 이 아닌 다른 도메인 업체에서 산 도메인이면 aws 에서 하는 설정 외에 부가적인 작업이 더 필요하더라구요
+
+  해당 부분 더 찾아서 https 적용해보겠습니다

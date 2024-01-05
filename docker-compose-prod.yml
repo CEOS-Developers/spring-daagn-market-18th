@@ -1,0 +1,14 @@
+version: "3.7"
+services:
+  web:
+    platform: linux/amd64 # 플랫폼 설정
+    image: soul4927/ceos-spring:latest
+    container_name: spring-daangn-server
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "80:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+

@@ -1,7 +1,7 @@
 HELP.md
 .gradle
 build/
-!gradle/wrapper/gradle-wrapper.jar
+#!gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
 
@@ -38,7 +38,7 @@ out/
 
 *#
 
-*.jar
+#*.jar
 *.sw?
 *~
 .#*
@@ -76,6 +76,7 @@ application.yml
 jwt.yml
 application-dev.yml
 application-local.yml
+application-prod.yml
 .env.dev
-
+.env
 
