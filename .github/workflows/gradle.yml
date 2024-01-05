@@ -1,0 +1,97 @@
+name: Deploy Development Server # 깃헙 레포지토리의 액션 탭에 노출되는 workflow의 이름으로 옵셔널한 값
+
+## develop 브랜치에 push가 되면 실행됩니다
+on:
+  push:
+    branches: [ "yoonsseo" ]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+
+      # 우리의 branch를 현재 비어있는 ubuntu에 내려받도록 함
+      - name: checkout
+        uses: actions/checkout@v3
+
+      ## java 다운받기
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Set up NTP
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ntp
+          sudo service ntp start
+
+      - name: Set APPLICATION.YML
+        run: |       
+          mkdir -p src/main/resources
+          echo "${{ secrets.APPLICATION_YML }}" | base64 --decode > src/main/resources/application.yml
+          find src
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x ./gradlew
+
+      - name: Build with Gradle
+        run: ./gradlew build -x test # test 빼고 JAR 생성
+#        ./gradlew bootJar
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Docker Image Build and Push
+        run: |
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/ceos18dangn .
+          docker push ${{ secrets.DOCKER_USERNAME }}/ceos18dangn
+
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_PUBLIC_DNS }}
+          username: ubuntu
+          key: ${{ secrets.PEM_KEY }}
+          script: |
+            cd /home/ubuntu/
+
+            sudo touch docker-compose.yml
+            echo "${{ vars.DOCKER_COMPOSE }}" | sudo tee docker-compose.yml > /dev/null
+
+            sudo chmod 666 /var/run/docker.sock
+            sudo docker rm -f $(sudo docker ps -qa)
+            sudo docker pull ${{ secrets.DOCKER_USERNAME }}/ceos18dangn
+            docker-compose -f docker-compose.yml up -d
+            docker run -d -p 8080:8080 --name ceos_container yoonsseo/ceos18dangn
+            docker image prune -f
+
+#            cd /home/ubuntu/
+#
+#            sudo touch docker-compose.yml
+#            echo "${{ secrets.DOCKER_COMPOSE }}" | sudo tee docker-compose.yml > /dev/null
+#
+##           ## docker-compose 실행
+#            sudo chmod 666 /var/run/docker.sock
+#            # 현재 사용자에게 Docker 소켓에 대한 읽기 및 쓰기 권한 부여
+#            sudo docker rm -f $(docker ps -qa)
+#            # docker ps -qa : 현재 실행 중인 모든 컨테이너의 ID 반환
+#            # -f 옵션으로 모든 컨테이너 강제로 중지하고 제거
+#            sudo docker pull ${{ secrets.DOCKER_USERNAME }}/ceos18dangn
+#            # Docker Hub에서 해당 이미지 가져오기
+#            docker-compose -f docker-compose.yml up -d
+#            #docker-compose -f docker-compose.yml --env-file ./.env up -d
+#            docker image prune -f
+#            # 사용하지 않는 모든 Docker 이미지 강제로 삭제
+
+#            docker pull ${{ secrets.DOCKER_USERNAME }}/ceos18dangn:latest
+#            docker stop $(docker ps -a -q)
+#            docker-compose up -d
+#            docker image prune -a -f
